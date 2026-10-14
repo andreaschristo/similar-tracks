@@ -345,8 +345,18 @@
         </span>
         <button type="button" class="setbtn" id="setBtn" data-i18n="setBtn"></button>
       </div>
+      <div class="setbar genrebar" id="genrebar">
+        <span class="k" data-i18n="genLbl"></span>
+        <span class="roles">
+          <button type="button" class="chip" data-genre="house" data-i18n="gHouse"></button>
+          <button type="button" class="chip" data-genre="deep" data-i18n="gDeep"></button>
+          <button type="button" class="chip" data-genre="tech" data-i18n="gTech"></button>
+          <button type="button" class="chip" data-genre="classic" data-i18n="gClassic"></button>
+          <button type="button" class="chip" data-genre="any" data-i18n="gAny"></button>
+        </span>
+      </div>
       <div class="tags">
-        <span class="tag">House</span><span class="tag">Deep House</span><span class="tag">Tech House</span><span class="tag">Classic House</span><span class="tag" data-i18n="tagExt"></span><span class="tag" data-i18n="tagKey"></span>
+        <span class="tag" data-i18n="tagExt"></span><span class="tag" data-i18n="tagKey"></span>
       </div>
     </div>
 
@@ -401,11 +411,6 @@
         </div>
       </section>
 
-      <section class="block">
-        <h2 data-i18n="srcTitle"></h2>
-        <div class="sources"><span>YouTube</span><span>SoundCloud</span><span>Spotify</span><span>Beatport</span><span>Bandcamp</span><span>Traxsource</span><span>Discogs</span><span>Juno</span></div>
-      </section>
-
       <section class="block faq">
         <h2 data-i18n="faqTitle"></h2>
         <details><summary data-i18n="q1"></summary><p data-i18n="a1"></p></details>
@@ -439,6 +444,8 @@ const audio = $('#audio');
 const MIN_SECONDS = 300; // μόνο extended (5:00+)
 let data = null, tab = 'similar', playingId = null, lang = 'en';
 let infoMap = {}, requested = new Set(), bpmEnabled = false, onlyMix = false, pairA = null, pairB = null;
+let genre = 'house';
+try { const g0 = localStorage.getItem('houze_genre'); if (['house', 'deep', 'tech', 'classic', 'any'].includes(g0)) genre = g0; } catch (_) {}
 let mode = 'search', setData = null, setRole = 'peak', setLen = 120;
 
 const I18N = {
@@ -501,6 +508,7 @@ const I18N = {
     onlyMix: 'Only tracks that mix', setsLbl: 'Hear it in DJ sets',
     mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
     bpmWord: 'BPM',
+    genLbl: 'Style', gHouse: 'House (all)', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Any / random',
     setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Peak', roleClose: 'Closer', setBtn: 'Build set',
     setBuilding: 'building your set... a 2-hour set can take up to a minute',
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
@@ -577,6 +585,7 @@ const I18N = {
     onlyMix: 'Μόνο όσα κάνουν mix', setsLbl: 'Άκουσέ το σε DJ sets',
     mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
     bpmWord: 'BPM',
+    genLbl: 'Στυλ', gHouse: 'House (όλα)', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Οποιοδήποτε / random',
     setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Άνοιγμα', rolePeak: 'Peak', roleClose: 'Κλείσιμο', setBtn: 'Φτιάξε set',
     setBuilding: 'φτιάχνω το set... ένα set 2 ωρών μπορεί να πάρει έως ένα λεπτό',
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',
@@ -657,6 +666,7 @@ function applyLang() {
   $('#demoWheel').innerHTML = wheelSVG('8A');
   renderChips();
   updateRoleChips();
+  updateGenreChips();
   rerender();
 }
 document.querySelector('.lang').addEventListener('click', (e) => {
@@ -697,6 +707,16 @@ function rerender() {
   if (mode === 'set' && setData) renderSet();
   else if (data && data.seed) render();
 }
+function updateGenreChips() {
+  document.querySelectorAll('#genrebar [data-genre]').forEach((b) => b.classList.toggle('on', b.dataset.genre === genre));
+}
+$('#genrebar').addEventListener('click', (e) => {
+  const g = e.target.closest('[data-genre]');
+  if (!g) return;
+  genre = g.dataset.genre; updateGenreChips();
+  try { localStorage.setItem('houze_genre', genre); } catch (_) {}
+  if ($('#q').value.trim() && (data || setData)) { if (mode === 'set') runSet(); else doSearch(); }
+});
 function updateRoleChips() {
   document.querySelectorAll('#setbar [data-role]').forEach((b) => b.classList.toggle('on', b.dataset.role === setRole));
   document.querySelectorAll('#setbar [data-len]').forEach((b) => b.classList.toggle('on', Number(b.dataset.len) === setLen));
@@ -718,7 +738,7 @@ async function runSet() {
   $('#landing').classList.add('hidden');
   setStatus(t('setBuilding'));
   try {
-    const r = await fetch('/api/set?' + new URLSearchParams({ q, role: setRole, len: String(setLen) }));
+    const r = await fetch('/api/set?' + new URLSearchParams({ q, role: setRole, len: String(setLen), genre }));
     const d = await r.json();
     if (d.error) { setStatus(I18N[lang]['err_' + d.code] || I18N[lang].err_generic, true); return; }
     setStatus('');
@@ -827,7 +847,7 @@ async function doSearch() {
   infoMap = {}; requested = new Set(); onlyMix = false; pairA = null; pairB = null;
   setStatus(t('searching'));
   try {
-    const params = new URLSearchParams({ q, min: String(MIN_SECONDS), house: '1' });
+    const params = new URLSearchParams({ q, min: String(MIN_SECONDS), house: '1', genre });
     const r = await fetch('/api/search?' + params);
     data = await r.json();
     if (data.error) {
@@ -1686,7 +1706,7 @@ function render() {
     <img src="${esc(s.cover || '')}" alt="">
     <div style="min-width:0"><div class="k">${esc(t('found'))}</div>
       <div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)} ${s.duration ? '· ' + fmtDur(s.duration) : ''}</div>
-      <div class="bk">${bkLine(s, false)}</div></div>
+      <div class="bk">${gTag(s)} ${bkLine(s, false)}</div></div>
     <div class="seedact">${playBtn(s)}${pairBtn(s)}</div>
   </div>`;
   html += mixPanel();
@@ -1696,7 +1716,7 @@ function render() {
   if (onlyMix) list = list.filter(isMixable);
   if (tab === 'discogs') html += `<div class="note" style="margin-top:0">${esc(t('dcNote'))}</div>`;
   html += '<div class="list">' + (list.length ? list.map(tab === 'discogs' ? dcRow : row).join('') : `<div class="empty">${esc(t('empty'))}</div>`) + '</div>';
-  if (tab === 'similar' && !data.houseFilter) html += `<div class="note">${esc(t('noHouse'))}</div>`;
+  if (tab === 'similar' && !data.houseFilter && genre !== 'any') html += `<div class="note">${esc(t('noHouse'))}</div>`;
   $('#out').innerHTML = html;
   mountMixer();
 }

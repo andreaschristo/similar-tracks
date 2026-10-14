@@ -151,6 +151,20 @@
   .links a:hover{color:var(--text)}
   .play{width:30px;height:30px;border:1px solid var(--dim);background:transparent;color:var(--text);cursor:pointer;font-size:11px;padding:0;border-radius:0;display:inline-flex;align-items:center;justify-content:center}
   .play:hover{border-color:var(--text)}
+  .pairbtn{width:30px;height:30px;border:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer;font-size:13px;padding:0;border-radius:0;display:inline-flex;align-items:center;justify-content:center}
+  .pairbtn:hover,.pairbtn.on{border-color:var(--text);color:var(--text)}
+  .trans{padding:26px 0;border-bottom:1px solid var(--line)}
+  .trans h3{margin:0 0 14px;font:700 11px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
+  .trhead{display:grid;grid-template-columns:1fr 30px 1fr auto;gap:16px;align-items:center;margin-bottom:12px}
+  .trhead .t{font:600 15px/1.3 var(--sans)}
+  .trhead .a{color:var(--mute);font-size:12px}
+  .trhead .m{margin-top:4px;font-size:12px;color:var(--mute)}
+  .trarrow{text-align:center;color:var(--mute);font-size:18px}
+  .trbtns{display:flex;gap:8px}
+  .trbtns button{background:transparent;border:1px solid var(--line);color:var(--mute);font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:7px 10px;cursor:pointer;border-radius:0}
+  .trbtns button:hover{border-color:var(--text);color:var(--text)}
+  .trverdict{font:600 14px/1.5 var(--sans);margin:6px 0 2px}
+  .trverdict.bad{color:var(--mute)}
   .play.on{background:var(--text);color:var(--bg);border-color:var(--text)}
   .empty{color:var(--mute);padding:22px 0;font-size:13px}
   .note{font-size:12px;color:var(--mute);margin-top:22px;line-height:1.7}
@@ -345,7 +359,7 @@ const $ = (s) => document.querySelector(s);
 const audio = $('#audio');
 const MIN_SECONDS = 300; // μόνο extended (5:00+)
 let data = null, tab = 'similar', playingId = null, lang = 'en';
-let infoMap = {}, requested = new Set(), bpmEnabled = false, onlyMix = false;
+let infoMap = {}, requested = new Set(), bpmEnabled = false, onlyMix = false, pairA = null, pairB = null;
 let mode = 'search', setData = null, setRole = 'peak', setLen = 120;
 
 const I18N = {
@@ -391,6 +405,12 @@ const I18N = {
     tabs: { similar: 'Similar', versions: 'Remixes / versions', sameArtist: 'Same artist' },
     empty: 'No results here.',
     noHouse: 'The house genre filter needs a Last.fm API key on the server. Until then only the length filter (5:00+) is applied.',
+    trTitle: 'Transition', trHint: 'Press ⇄ on any track to see how to mix it with your track.', trFrom: 'From', trTo: 'To', trSwap: 'Swap', trClear: 'Clear',
+    trNeed: 'This pair needs BPM and key data. They may still be loading, or the tracks were not found.',
+    trPerfect: 'Same key. A perfect blend.', trSmoothK: 'Neighbouring key. A smooth blend.', trRelK: 'Relative major/minor. It works well and shifts the mood.',
+    trBoostK: 'Energy boost: +2 on the wheel, it lifts the room.', trClashK: 'The keys clash. Keep the blend short or cut on a break.',
+    trGap: 'Tempo gap', trPitchB: 'Pitch B by', trFar: 'Tempos too far apart. Use a cut, an echo out or a break.', trHalfD: 'B runs at double or half the tempo of A. Mix on the beat grid at x2 or /2.',
+    trBlend: 'Blend', trBars: 'bars', trTipLong: 'Long blend: bring B in on a phrase start, swap the bass around bar 16, then ease the highs.', trTipShort: 'Short blend: bring B in on a phrase start, cut the bass of A first and drop it on the downbeat.',
     noBpm: 'BPM and key need a GetSongBPM API key on the server.',
     noBpmFound: 'BPM and key were not found for this track.',
     mixTitle: 'Harmonic mixing',
@@ -458,6 +478,12 @@ const I18N = {
     tabs: { similar: 'Παρόμοια', versions: 'Remixes / εκδόσεις', sameArtist: 'Ίδιος artist' },
     empty: 'Δεν βρέθηκαν αποτελέσματα εδώ.',
     noHouse: 'Το φίλτρο είδους (house) χρειάζεται Last.fm API key στον server. Μέχρι τότε φιλτράρεται μόνο η διάρκεια (5:00+).',
+    trTitle: 'Μετάβαση', trHint: 'Πάτα ⇄ σε οποιοδήποτε κομμάτι για να δεις πώς μιξάρεται με το δικό σου.', trFrom: 'Από', trTo: 'Προς', trSwap: 'Αντιστροφή', trClear: 'Καθαρισμός',
+    trNeed: 'Αυτό το ζεύγος θέλει δεδομένα BPM και key. Μπορεί να φορτώνουν ακόμα ή να μην βρέθηκαν τα κομμάτια.',
+    trPerfect: 'Ίδιο key. Τέλεια μίξη.', trSmoothK: 'Γειτονικό key. Ομαλή μίξη.', trRelK: 'Σχετική μείζονα/ελάσσονα. Δουλεύει καλά και αλλάζει το mood.',
+    trBoostK: 'Ώθηση ενέργειας: +2 στον τροχό, ανεβάζει την πίστα.', trClashK: 'Τα key συγκρούονται. Κράτα το blend σύντομο ή κάνε cut σε break.',
+    trGap: 'Διαφορά tempo', trPitchB: 'Pitch στο B', trFar: 'Τα tempo απέχουν πολύ. Κάνε cut, echo out ή break.', trHalfD: 'Το B τρέχει στο διπλάσιο ή μισό tempo από το A. Μίξη στο beat grid ×2 ή /2.',
+    trBlend: 'Blend', trBars: 'bars', trTipLong: 'Μεγάλο blend: μπες με το B στην αρχή φράσης, κάνε swap στα μπάσα γύρω στο bar 16 και μετά κατέβασε σιγά τα πρίμα.', trTipShort: 'Μικρό blend: μπες με το B στην αρχή φράσης, κόψε πρώτα τα μπάσα του A και άφησέ τα στο downbeat.',
     noBpm: 'Τα BPM και η tonality χρειάζονται GetSongBPM API key στον server.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
     mixTitle: 'Αρμονική μίξη',
@@ -657,13 +683,13 @@ function transText(x) {
 function setRow(x, i, start) {
   const bits = [];
   if (x.bpm) bits.push(`<b>${Math.round(x.bpm)}</b> ${esc(t('bpmWord'))}`);
-  if (x.camelot) bits.push(`<b>${esc(x.camelot)}</b>`);
-  if (x.key) bits.push(esc(x.key));
   bits.push(`${esc(t('inAt'))} ${fmtClock(start)}`);
   return `<div class="row${x.isSeed ? ' isseed' : ''}">
     <div class="n">${String(i + 1).padStart(2, '0')}</div>
     <img src="${esc(x.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
     <div class="meta"><div class="t">${esc(x.title)}${x.isSeed ? ` <span class="mixtag">${esc(t('yourTrack'))}</span>` : ''}</div><div class="a">${esc(x.artist)}</div><div class="bk">${bits.join(' · ')}</div></div>
+    <div class="gcell">${x.genre ? `<span class="gtag">${esc(x.genre)}</span>` : ''}</div>
+    <div class="ktag" title="${esc(x.key || '')}">${esc(x.camelot || '')}</div>
     <div class="dur">${fmtDur(x.duration)}</div>
     <div class="links">${playBtn(x)}${links(x)}</div>
   </div>`;
@@ -712,7 +738,7 @@ async function doSearch() {
   $('#btn').disabled = true;
   $('#out').innerHTML = '';
   $('#landing').classList.add('hidden');
-  infoMap = {}; requested = new Set(); onlyMix = false;
+  infoMap = {}; requested = new Set(); onlyMix = false; pairA = null; pairB = null;
   setStatus(t('searching'));
   try {
     const params = new URLSearchParams({ q, min: String(MIN_SECONDS), house: '1' });
@@ -801,8 +827,12 @@ function row(tr, i) {
     <div class="gcell">${gTag(tr)}</div>
     <div class="ktag" title="${esc((infoMap[tr.id] && infoMap[tr.id].key) || '')}">${esc((infoMap[tr.id] && infoMap[tr.id].camelot) || '')}</div>
     <div class="dur">${fmtDur(tr.duration)}</div>
-    <div class="links">${playBtn(tr)}${links(tr)}</div>
+    <div class="links">${playBtn(tr)}${pairBtn(tr)}${links(tr)}</div>
   </div>`;
+}
+function pairBtn(tr) {
+  const on = pairB && String(pairB.id) === String(tr.id);
+  return `<button class="pairbtn${on ? ' on' : ''}" data-pair="${esc(tr.id)}" title="${esc(t('trTitle'))}">⇄</button>`;
 }
 function gTag(tr) {
   const g = infoMap[tr.id] && infoMap[tr.id].genre;
@@ -816,6 +846,62 @@ function setsLinks(s) {
          `<a href="https://soundcloud.com/search?q=${q}%20dj%20set" target="_blank" rel="noopener">SoundCloud</a>`;
 }
 const baseOf = (s) => String(s || '').replace(/[\(\[].*?[\)\]]/g, '').replace(/\s+/g, ' ').trim();
+
+function relOf(a, b) {
+  const c = compat(a);
+  if (a === b) return 'same';
+  if (c.smooth.includes(b)) return 'smooth';
+  if (c.relative === b) return 'relative';
+  if (c.boost === b) return 'boost';
+  return 'clash';
+}
+function trMeta(x) {
+  const i = infoMap[x.id] || {};
+  const bits = [];
+  if (i.bpm) bits.push(Math.round(i.bpm) + ' ' + t('bpmWord'));
+  if (i.camelot) bits.push(i.camelot);
+  if (i.genre) bits.push(i.genre);
+  return bits.join(' · ');
+}
+function transitionPanel() {
+  let h = `<div class="trans"><h3>${esc(t('trTitle'))}</h3>`;
+  if (!pairB) return h + `<div class="mixhint" style="margin-top:0">${esc(t('trHint'))}</div></div>`;
+  const A = pairA || data.seed, B = pairB;
+  const ia = infoMap[A.id], ib = infoMap[B.id];
+  h += `<div class="trhead">
+    <div><div class="k">${esc(t('trFrom'))}</div><div class="t">${esc(A.title)}</div><div class="a">${esc(A.artist)}</div><div class="m">${esc(trMeta(A))}</div></div>
+    <div class="trarrow">→</div>
+    <div><div class="k">${esc(t('trTo'))}</div><div class="t">${esc(B.title)}</div><div class="a">${esc(B.artist)}</div><div class="m">${esc(trMeta(B))}</div></div>
+    <div class="trbtns"><button type="button" id="trSwap">${esc(t('trSwap'))}</button><button type="button" id="trClear">${esc(t('trClear'))}</button></div>
+  </div>`;
+  if (!ia || !ib || !ia.camelot || !ib.camelot || !ia.bpm || !ib.bpm) {
+    return h + `<div class="mixhint" style="margin-top:0">${esc(t('trNeed'))}</div></div>`;
+  }
+  const rel = relOf(ia.camelot, ib.camelot);
+  const keyTxt = { same: t('trPerfect'), smooth: t('trSmoothK'), relative: t('trRelK'), boost: t('trBoostK'), clash: t('trClashK') }[rel];
+  const ratio = ib.bpm / ia.bpm, gap = (ratio - 1) * 100;
+  const half = Math.abs(ratio - 2) <= 0.06 * 2 || Math.abs(ratio - 0.5) <= 0.03;
+  const far = !half && Math.abs(gap) > 6;
+  let bars = rel === 'clash' ? 8 : rel === 'boost' ? 16 : 32;
+  if (far) bars = 8;
+  const secs = Math.round((bars * 4 * 60) / ia.bpm);
+  const pitch = ((ia.bpm / ib.bpm) - 1) * 100;
+  h += `<div class="trverdict${rel === 'clash' ? ' bad' : ''}">${esc(keyTxt)}</div>
+    <div class="mixrows">
+      <div class="mixrow"><span>${esc(t('rKey'))}</span><div><b>${esc(ia.camelot)}</b> → <b>${esc(ib.camelot)}</b></div></div>
+      <div class="mixrow"><span>${esc(t('rBpm'))}</span><div><b>${Math.round(ia.bpm)}</b> → <b>${Math.round(ib.bpm)}</b> <span style="color:var(--mute)">· ${esc(t('trGap'))} ${gap >= 0 ? '+' : ''}${gap.toFixed(1)}%</span></div></div>`;
+  if (half) {
+    h += `<div class="mixrow"><span>${esc(t('trPitchB'))}</span><div>${esc(t('trHalfD'))}</div></div>`;
+  } else if (far) {
+    h += `<div class="mixrow"><span>${esc(t('trPitchB'))}</span><div>${esc(t('trFar'))}</div></div>`;
+  } else {
+    h += `<div class="mixrow"><span>${esc(t('trPitchB'))}</span><div><b>${pitch >= 0 ? '+' : ''}${pitch.toFixed(1)}%</b></div></div>`;
+  }
+  h += `<div class="mixrow"><span>${esc(t('trBlend'))}</span><div><b>${bars}</b> ${esc(t('trBars'))} <span style="color:var(--mute)">· ~${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}</span></div></div>
+    </div>
+    <div class="mixhint">${esc(bars >= 16 ? t('trTipLong') : t('trTipShort'))}</div></div>`;
+  return h;
+}
 
 function mixPanel() {
   const s = data.seed, i = infoMap[s.id];
@@ -845,9 +931,8 @@ function mixPanel() {
   return `<div class="mixpanel">
     <div>${wheelSVG(i && i.camelot)}</div>
     <div>${head}${body}
-      <div class="mixactions" style="margin-top:18px"><span class="k">${esc(t('setsLbl'))}</span><span class="setlinks">${setsLinks(s)}</span></div>
     </div>
-  </div>`;
+  </div>` + transitionPanel();
 }
 
 function render() {
@@ -874,6 +959,17 @@ $('#out').addEventListener('click', (e) => {
   const tb = e.target.closest('.tab');
   if (tb) { tab = tb.dataset.tab; render(); loadInfo(); return; }
   if (e.target.closest('#mixToggle')) { onlyMix = !onlyMix; render(); return; }
+  const pr = e.target.closest('.pairbtn');
+  if (pr) {
+    const tr = findTrack(pr.dataset.pair);
+    if (tr) {
+      pairB = tr; render();
+      const el = document.querySelector('.trans'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  if (e.target.closest('#trClear')) { pairA = null; pairB = null; render(); return; }
+  if (e.target.closest('#trSwap')) { const a = pairA || data.seed; pairA = pairB; pairB = a; render(); return; }
   const pb = e.target.closest('.play');
   if (pb) {
     const id = pb.dataset.id;

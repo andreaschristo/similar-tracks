@@ -602,8 +602,26 @@ async function ytFind(artist, title, why) {
   }, 7 * 864e5);
 }
 
+const AUDIO_CACHE = new Map();
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://localhost');
+  if (u.pathname === '/api/audio') {
+    try {
+      const src = new URL(u.searchParams.get('u') || '');
+      if (src.protocol !== 'https:' || !/(^|\.)dzcdn\.net$/.test(src.hostname)) { res.statusCode = 400; return res.end('bad url'); }
+      let buf = AUDIO_CACHE.get(src.href);
+      if (!buf) {
+        const r = await fetch(src.href, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(15000) });
+        if (!r.ok) throw new Error('upstream ' + r.status);
+        buf = Buffer.from(await r.arrayBuffer());
+        if (buf.length > 3e6) throw new Error('too big');
+        AUDIO_CACHE.set(src.href, buf);
+        if (AUDIO_CACHE.size > 60) AUDIO_CACHE.delete(AUDIO_CACHE.keys().next().value);
+      }
+      res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Content-Length': buf.length, 'Cache-Control': 'public, max-age=86400' });
+      return res.end(buf);
+    } catch (_) { res.statusCode = 502; return res.end('audio unavailable'); }
+  }
   if (u.pathname === '/api/yt') {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {

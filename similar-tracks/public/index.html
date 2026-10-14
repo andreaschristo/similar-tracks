@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Similar Tracks</title>
+<style>
+  :root{
+    --bg:#0b0b10; --panel:#14141c; --line:#262633; --text:#ececf3; --mute:#8b8ba0;
+    --accent:#7c5cff; --accent2:#19e3b1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#1d1640 0,transparent 70%),var(--bg);
+    color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 16px 80px}
+  h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
+  h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--mute);margin:0 0 24px}
+  form{display:flex;gap:8px}
+  input[type=text]{flex:1;min-width:0;padding:14px 16px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font-size:16px;outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  button.go{padding:0 22px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--accent),#5b8cff);
+    color:#fff;font-weight:600;font-size:16px;cursor:pointer}
+  button.go:disabled{opacity:.5;cursor:wait}
+  .hint{font-size:13px;color:var(--mute);margin:8px 2px 0}
+  #status{margin:24px 0;color:var(--mute)}
+  #status.err{color:#ff7b7b}
+  .seed{display:flex;gap:16px;align-items:center;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:14px;margin:24px 0}
+  .seed img{width:84px;height:84px;border-radius:10px;object-fit:cover;background:#222}
+  .seed .t{font-weight:700;font-size:18px}
+  .seed .a{color:var(--mute)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:20px 0 10px}
+  .tab{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;
+    color:var(--mute);cursor:pointer;font-size:14px}
+  .tab.on{background:var(--text);color:#111;border-color:var(--text);font-weight:600}
+  .tab small{opacity:.7;margin-left:4px}
+  .list{display:grid;gap:8px}
+  .row{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px 8px 8px}
+  .row img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:#222}
+  .row .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .a{color:var(--mute);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .meta{min-width:0}
+  .links{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .links a,.play{font-size:12px;padding:5px 9px;border-radius:8px;border:1px solid var(--line);
+    color:var(--text);text-decoration:none;background:#1b1b26;cursor:pointer}
+  .links a:hover,.play:hover{border-color:var(--accent)}
+  .play{font-size:14px;min-width:34px;text-align:center}
+  .play.on{background:var(--accent);border-color:var(--accent)}
+  .empty{color:var(--mute);padding:16px 4px}
+  .note{font-size:13px;color:var(--mute);margin-top:18px}
+  @media(max-width:600px){
+    .row{grid-template-columns:52px 1fr}
+    .links{grid-column:1 / -1;justify-content:flex-start}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Similar <span>Tracks</span></h1>
+  <p class="sub">Γράψε τίτλο ή βάλε link και βρες ίδια ή παρόμοια τραγούδια.</p>
+
+  <form id="f">
+    <input id="q" type="text" autocomplete="off" autofocus
+      placeholder='π.χ. "Charlotte de Witte - Doppler" ή link από YouTube / SoundCloud / Spotify / Beatport / Bandcamp'>
+    <button class="go" id="btn">Βρες</button>
+  </form>
+  <div class="hint">Για πιο ακριβή αποτελέσματα γράψε «Καλλιτέχνης - Τίτλος».</div>
+
+  <div id="status"></div>
+  <div id="out"></div>
+  <audio id="audio"></audio>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const audio = $('#audio');
+let data = null, tab = 'similar', playingId = null;
+
+const TABS = [
+  ['similar', 'Παρόμοια'],
+  ['versions', 'Ίδιο κομμάτι / remixes'],
+  ['sameArtist', 'Ίδιος καλλιτέχνης'],
+];
+
+$('#f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = $('#q').value.trim();
+  if (!q) return;
+  audio.pause(); playingId = null;
+  $('#btn').disabled = true;
+  $('#out').innerHTML = '';
+  setStatus('Ψάχνω…');
+  try {
+    const r = await fetch('/api/search?q=' + encodeURIComponent(q));
+    data = await r.json();
+    if (data.error) { setStatus(data.error, true); return; }
+    setStatus('');
+    tab = data.similar && data.similar.length ? 'similar' : (data.versions.length ? 'versions' : 'sameArtist');
+    render();
+  } catch (err) {
+    setStatus('Σφάλμα σύνδεσης: ' + err.message, true);
+  } finally {
+    $('#btn').disabled = false;
+  }
+});
+
+function setStatus(msg, err) {
+  const s = $('#status');
+  s.textContent = msg;
+  s.className = err ? 'err' : '';
+}
+
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function links(t) {
+  const q = encodeURIComponent(t.artist + ' ' + t.title);
+  const L = [
+    ['YouTube', 'https://www.youtube.com/results?search_query=' + q],
+    ['SoundCloud', 'https://soundcloud.com/search?q=' + q],
+    ['Beatport', 'https://www.beatport.com/search?q=' + q],
+    ['Bandcamp', 'https://bandcamp.com/search?q=' + q],
+    ['Spotify', 'https://open.spotify.com/search/' + q],
+  ];
+  return L.map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join('');
+}
+
+function row(t) {
+  const id = esc(t.id);
+  return `<div class="row">
+    <img src="${esc(t.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <div class="meta"><div class="t">${esc(t.title)}</div><div class="a">${esc(t.artist)}${t.album ? ' · ' + esc(t.album) : ''}</div></div>
+    <div class="links">
+      ${t.preview ? `<button class="play${playingId == t.id ? ' on' : ''}" data-id="${id}" data-src="${esc(t.preview)}">${playingId == t.id ? '⏸' : '▶'}</button>` : ''}
+      ${links(t)}
+    </div>
+  </div>`;
+}
+
+function render() {
+  const s = data.seed;
+  let html = `<div class="seed">
+    <img src="${esc(s.cover || '')}" alt="">
+    <div style="flex:1;min-width:0"><div class="a">Βρέθηκε</div>
+      <div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)}</div></div>
+    ${s.preview ? `<button class="play" data-id="${esc(s.id)}" data-src="${esc(s.preview)}">▶</button>` : ''}
+  </div>`;
+  html += '<div class="tabs">' + TABS.map(([k, label]) =>
+    `<button class="tab${tab === k ? ' on' : ''}" data-tab="${k}">${label}<small>${(data[k] || []).length}</small></button>`).join('') + '</div>';
+  const list = data[tab] || [];
+  html += '<div class="list">' + (list.length ? list.map(row).join('') : '<div class="empty">Δεν βρέθηκαν αποτελέσματα εδώ.</div>') + '</div>';
+  if (tab === 'similar' && !data.lastfm) {
+    html += '<div class="note">Συμβουλή: με δωρεάν Last.fm API key (δες README) οι προτάσεις «παρόμοιου vibe» γίνονται πολύ καλύτερες.</div>';
+  }
+  $('#out').innerHTML = html;
+}
+
+$('#out').addEventListener('click', (e) => {
+  const tb = e.target.closest('.tab');
+  if (tb) { tab = tb.dataset.tab; render(); return; }
+  const pb = e.target.closest('.play');
+  if (pb) {
+    const id = pb.dataset.id;
+    if (playingId == id) { audio.pause(); playingId = null; }
+    else { audio.src = pb.dataset.src; audio.play(); playingId = id; }
+    render();
+  }
+});
+audio.addEventListener('ended', () => { playingId = null; if (data) render(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "similar-tracks",
+  "version": "1.0.0",
+  "description": "Βρες ίδια ή παρόμοια τραγούδια από τίτλο ή link",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

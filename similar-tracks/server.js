@@ -192,6 +192,41 @@ async function artistKind(name) {
   return 'neutral';
 }
 
+// ---------- Υποκατηγορία house ανά κομμάτι (Last.fm tags) ----------
+const GENRES = [
+  ['deep house', /deep.?house/],
+  ['tech house', /tech.?house/],
+  ['classic house', /classic house|chicago house|old.?school house|garage house|disco house|funky house|soulful house|acid house/],
+  ['progressive house', /progressive house/],
+  ['afro house', /afro.?house/],
+  ['melodic house', /melodic house/],
+];
+function pickGenre(tags) {
+  for (const tg of tags) {
+    for (const [name, re] of GENRES) if (re.test(tg)) return name;
+  }
+  if (tags.some((tg) => /\bhouse\b/.test(tg) && !/electro house|big room|future house/.test(tg))) return 'house';
+  return '';
+}
+async function genreOf(artist, title) {
+  if (!LASTFM || !artist) return '';
+  try {
+    const tt = await cached('ttags:' + norm(artist) + '|' + norm(baseTitle(title)), async () => {
+      const d = await lf('track.gettoptags', { artist, track: baseTitle(title) });
+      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
+    }, 7 * 24 * 3600e3);
+    const g = pickGenre(tt);
+    if (g) return g;
+  } catch (_) {}
+  try {
+    const at = await cached('tags:' + norm(artist), async () => {
+      const d = await lf('artist.gettoptags', { artist });
+      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
+    });
+    return pickGenre(at);
+  } catch (_) { return ''; }
+}
+
 // ---------- Πηγές αποτελεσμάτων ----------
 async function dzTop(artistId) {
   return cached('top:' + artistId, async () => {
@@ -505,7 +540,7 @@ async function handleSet(q, role, minutes) {
     sameArtist(seed, opts).catch(() => []),
   ]);
   const built = await buildSet(seed, [...sim.list, ...same.slice(0, big ? 10 : 6)], role, N);
-  return { seed, role, minutes, wanted: N, bpmEnabled: !!GSB, houseFilter: sim.houseFilter, ...built };
+  return { seed, role, minutes, wanted: N, bpmEnabled: !!(GSB || LASTFM), houseFilter: sim.houseFilter, ...built };
 }
 
 async function handleSearch(q, opts) {
@@ -522,7 +557,7 @@ async function handleSearch(q, opts) {
   return {
     input, seed,
     similar: sim.list, versions, sameArtist: same,
-    lastfm: !!LASTFM, houseFilter: sim.houseFilter, minDur: opts.minDur, bpmEnabled: !!GSB,
+    lastfm: !!LASTFM, houseFilter: sim.houseFilter, minDur: opts.minDur, bpmEnabled: !!(GSB || LASTFM),
   };
 }
 
@@ -580,13 +615,16 @@ const server = http.createServer(async (req, res) => {
       const body = JSON.parse((await readBody(req)) || '{}');
       const list = (body.tracks || []).slice(0, 20);
       const info = {};
-      if (GSB) {
-        const r = await pmap(list, async (t) => ({ id: t.id, info: await trackInfo(t.artist, t.title) }), 4, 300);
+      if (GSB || LASTFM) {
+        const r = await pmap(list, async (t) => {
+          const [bk, genre] = await Promise.all([trackInfo(t.artist, t.title), genreOf(t.artist, t.title)]);
+          return { id: t.id, info: bk || genre ? { ...(bk || {}), genre: genre || '' } : null };
+        }, 4, 300);
         for (const x of r) if (x && x.info) info[x.id] = x.info;
       }
-      return res.end(JSON.stringify({ enabled: !!GSB, info }));
+      return res.end(JSON.stringify({ enabled: !!(GSB || LASTFM), info }));
     } catch (_) {
-      return res.end(JSON.stringify({ enabled: !!GSB, info: {} }));
+      return res.end(JSON.stringify({ enabled: !!(GSB || LASTFM), info: {} }));
     }
   }
   if (u.pathname === '/api/set') {

@@ -738,22 +738,27 @@ async function doSearch() {
 // BPM + tonality φορτώνουν μετά, για να μην καθυστερεί η αναζήτηση
 async function loadInfo() {
   if (!data || !data.seed || !bpmEnabled) return;
-  const visible = [data.seed, ...(data[tab] || []).slice(0, 18)];
+  const visible = [data.seed, ...(data[tab] || [])];
   const need = visible.filter((x) => !requested.has(x.id));
   if (!need.length) return;
   need.forEach((x) => requested.add(x.id));
-  try {
-    const r = await fetch('/api/info', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tracks: need.map((x) => ({ id: x.id, artist: x.artist, title: x.title })) }),
-    });
-    const d = await r.json();
-    bpmEnabled = !!d.enabled;
-    Object.assign(infoMap, d.info || {});
-    need.forEach((x) => { if (!infoMap[x.id]) infoMap[x.id] = { none: true }; });
-    if (mode === 'search') render();
-  } catch (_) {}
+  const mySearch = data;
+  for (let i = 0; i < need.length; i += 12) {
+    if (mySearch !== data) return; // έγινε νέα αναζήτηση
+    const chunk = need.slice(i, i + 12);
+    try {
+      const r = await fetch('/api/info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tracks: chunk.map((x) => ({ id: x.id, artist: x.artist, title: x.title })) }),
+      });
+      const d = await r.json();
+      bpmEnabled = !!d.enabled;
+      Object.assign(infoMap, d.info || {});
+    } catch (_) {}
+    chunk.forEach((x) => { if (!infoMap[x.id]) infoMap[x.id] = { none: true }; });
+    if (mode === 'search' && mySearch === data) render();
+  }
 }
 
 const fmtDur = (s) => (s ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') : '');

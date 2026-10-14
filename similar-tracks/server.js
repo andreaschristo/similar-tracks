@@ -540,6 +540,9 @@ async function handleSet(q, role, minutes) {
     sameArtist(seed, opts).catch(() => []),
   ]);
   const built = await buildSet(seed, [...sim.list, ...same.slice(0, big ? 10 : 6)], role, N);
+  if (LASTFM && Array.isArray(built.set)) {
+    await pmap(built.set, async (x) => { x.genre = await genreOf(x.artist, x.title); }, 5, 200);
+  }
   return { seed, role, minutes, wanted: N, bpmEnabled: !!(GSB || LASTFM), houseFilter: sim.houseFilter, ...built };
 }
 

@@ -178,14 +178,26 @@
   .dbpm small{display:block;font:9px var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
   .wave{width:100%;height:64px;display:block;background:rgba(255,255,255,.03);cursor:pointer}
   .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;margin:4px 0 10px}
-  .deck .drow{display:grid;grid-template-columns:34px auto 1fr 52px;gap:10px;align-items:center;margin-bottom:12px}
+  .deck .drow{display:grid;grid-template-columns:1fr 52px;gap:10px;align-items:center;margin-bottom:14px}
+  .trow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+  .tb{background:transparent;border:1px solid var(--line);color:var(--text);font:700 10px var(--mono);letter-spacing:.12em;padding:11px 4px;cursor:pointer;border-radius:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .tb:hover{border-color:var(--text)}
+  .tb.on,.tb.lp.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .tb.cue{color:#ff9d2e;border-color:#ff9d2e66}
+  .tb.cue.on{background:#ff9d2e;color:#000;border-color:#ff9d2e}
+  .kn{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .kn span{font:9px var(--mono);letter-spacing:.14em;color:var(--mute)}
+  .kn em{font:normal 10px var(--mono);color:var(--dim)}
+  .knob{width:46px;height:46px;border-radius:50%;border:1px solid var(--mute);background:radial-gradient(circle at 35% 30%,#2a2a2a,#0d0d0d);position:relative;cursor:ns-resize;touch-action:none;transform:rotate(var(--a,0deg))}
+  .knob i{position:absolute;left:50%;top:4px;width:2px;height:12px;margin-left:-1px;background:var(--text)}
+  .knob:focus-visible{outline:1px solid var(--text);outline-offset:3px}
   .lp{background:transparent;border:1px solid var(--line);color:var(--mute);font:700 9px var(--mono);letter-spacing:.16em;padding:8px 9px;cursor:pointer;border-radius:0}
   .lp.on{border-color:var(--text);color:var(--text)}
   .tempo{display:grid;grid-template-columns:24px 1fr 24px;gap:6px;align-items:center}
   .tpct{font:600 11px var(--mono);text-align:right}
   .nudge{width:24px;height:24px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;border-radius:0;font:600 13px var(--mono);padding:0}
   .nudge:hover{border-color:var(--text)}
-  .eq{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .eq{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;justify-items:center}
   .eq label{display:block;font:9px var(--mono);letter-spacing:.14em;color:var(--mute)}
   .eq label span{display:block;margin-bottom:2px}
   .eq label em{font-style:normal;color:var(--text);font-size:10px}
@@ -913,7 +925,7 @@ function mxNewDeck(k) {
   const gain = c.createGain();
   low.connect(mid); mid.connect(high); high.connect(gain); gain.connect(MX.master);
   return { k, id: null, tr: null, buf: null, status: '', bpm: 0, bpmSrc: '', first: 0, peaks: null, src: null,
-    playing: false, startedAt: 0, startOff: 0, pausedAt: 0, rate: 1, loop: true, ls: 0, le: 0, loopBars: 0,
+    playing: false, startedAt: 0, startOff: 0, pausedAt: 0, cue: 0, cueHeld: false, rate: 1, loop: true, ls: 0, le: 0, loopBars: 0,
     eq: { low: 0, mid: 0, high: 0 }, nodes: { low, mid, high, gain } };
 }
 function mxPos(D) {
@@ -1028,7 +1040,7 @@ function mxDecode(ab) {
 async function mxLoadDeck(D, tr) {
   if (D.id === tr.id) return;
   mxKill(D);
-  Object.assign(D, { id: tr.id, tr, buf: null, peaks: null, bpm: 0, bpmSrc: '', first: 0, rate: 1, pausedAt: 0, ls: 0, le: 0, loopBars: 0, status: tr.preview ? 'loading' : 'nopreview' });
+  Object.assign(D, { id: tr.id, tr, buf: null, peaks: null, bpm: 0, bpmSrc: '', first: 0, rate: 1, pausedAt: 0, cue: 0, cueHeld: false, ls: 0, le: 0, loopBars: 0, status: tr.preview ? 'loading' : 'nopreview' });
   mxSetEq(D, 'low', 0); mxSetEq(D, 'mid', 0); mxSetEq(D, 'high', 0);
   if (D.k === 'b') { MX.xf = 0; mxApplyXf(); }
   if (!tr.preview) return;
@@ -1046,6 +1058,7 @@ async function mxLoadDeck(D, tr) {
     if (an) { D.bpm = an.bpm; D.first = an.first; D.bpmSrc = 'detected'; }
     else { const i = infoMap[tr.id]; if (i && i.bpm) { D.bpm = i.bpm; D.first = 0; D.bpmSrc = 'database'; } }
     mxLoopRegion(D);
+    D.cue = D.ls; D.pausedAt = D.cue;
     D.status = 'ready';
   } catch (e) {
     if (D.id === tr.id) D.status = 'error';
@@ -1064,12 +1077,13 @@ function mxAlignOff(Bd, Ad) {
 function mxStopAuto() { if (MX.auto) { clearInterval(MX.auto); MX.auto = null; } }
 function mxStopAll() {
   mxStopAuto();
-  if (MX.a) { mxPause(MX.a); mxPause(MX.b); }
+  if (MX.a) { for (const D of [MX.a, MX.b]) { mxPause(D); D.pausedAt = D.cue; } }
 }
 // συμβατότητα με το υπόλοιπο site
 function mxStop() { mxStopAll(); mxPaint(); }
 
 const mxFmt = (s) => fmtT(s);
+const mxKnobAngle = (db) => db >= 0 ? (db / 6) * 135 : (db / 24) * 135;
 function mxDeckHTML(D) {
   const k = D.k, n = k.toUpperCase();
   const tr = D.tr;
@@ -1083,13 +1097,18 @@ function mxDeckHTML(D) {
   } else {
     body = `<canvas class="wave" id="mxw-${k}" data-mxw="${k}" width="640" height="64"></canvas>
     <div class="dtime"><span id="mxc-${k}">0:00</span><span>${D.loopBars ? D.loopBars + ' ' + esc(t('mxBars')) + ' loop' : '30″'}</span></div>
-    <div class="drow"><button type="button" class="play" data-mxa="play-${k}" id="mxp-${k}">▶</button>
-      <button type="button" class="lp${D.loop ? ' on' : ''}" data-mxa="loop-${k}" id="mxlp-${k}">LOOP</button>
+    <div class="trow">
+      <button type="button" class="tb cue" data-mxcue="${k}" id="mxcue-${k}">CUE</button>
+      <button type="button" class="tb dplay" data-mxa="play-${k}" id="mxp-${k}">▶ PLAY</button>
+      <button type="button" class="tb" data-mxa="stop-${k}">■ STOP</button>
+      <button type="button" class="tb lp${D.loop ? ' on' : ''}" data-mxa="loop-${k}" id="mxlp-${k}">LOOP</button>
+      <button type="button" class="tb" data-mxa="dsync-${k}">SYNC</button></div>
+    <div class="drow">
       <div class="tempo"><button type="button" class="nudge" data-mxa="nd-${k}">−</button>
         <input type="range" min="-100" max="100" value="${Math.round((D.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}">
         <button type="button" class="nudge" data-mxa="nu-${k}">+</button></div>
       <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
-    <div class="eq">${['low', 'mid', 'high'].map((b) => `<label><span>${b.toUpperCase()}</span><input type="range" min="-24" max="6" step="0.5" value="${D.eq[b]}" data-mx="eq${b}-${k}" id="mxe-${b}-${k}" aria-label="${b} ${n}"><em id="mxev-${b}-${k}">${D.eq[b]}</em></label>`).join('')}</div>`;
+    <div class="eq">${['low', 'mid', 'high'].map((b) => `<div class="kn"><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b])}deg"><i></i></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`).join('')}</div>`;
   }
   return `<div class="deck"><div class="dhead"><div><div class="dn">DECK ${n}${tags ? ' · ' + esc(tags) : ''}</div>
       <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div></div>
@@ -1141,6 +1160,8 @@ function mxDraw(D) {
     const beat = 60 / D.bpm;
     for (let tm = D.first; tm < dur; tm += beat) g.fillRect((tm / dur) * W, 0, 1, 7);
   }
+  g.fillStyle = '#ff9d2e';
+  g.fillRect((D.cue / dur) * W - 1, 0, 2, H);
   g.fillStyle = '#fff';
   g.fillRect((mxPos(D) / dur) * W - 1, 0, 2, H);
 }
@@ -1149,7 +1170,8 @@ function mxPaint() {
   for (const D of [MX.a, MX.b]) {
     const k = D.k;
     const btn = document.getElementById('mxp-' + k);
-    if (btn) { btn.textContent = D.playing ? '❚❚' : '▶'; btn.classList.toggle('on', D.playing); }
+    if (btn) btn.classList.toggle('on', D.playing);
+    const cbn = document.getElementById('mxcue-' + k); if (cbn) cbn.classList.toggle('on', D.cueHeld);
     const c = document.getElementById('mxc-' + k);
     if (c && D.buf) c.textContent = mxFmt(mxPos(D));
     const bb = document.getElementById('mxb-' + k);
@@ -1166,7 +1188,7 @@ function mxPaint() {
 function mxSetXf(v) { MX.xf = mxClamp(v, 0, 100); mxApplyXf(); const x = document.getElementById('mxx'); if (x) x.value = String(Math.round(MX.xf)); }
 function mxEqUI(D, b) {
   const e = document.getElementById('mxe-' + b + '-' + D.k), v = document.getElementById('mxev-' + b + '-' + D.k);
-  if (e) e.value = String(D.eq[b]);
+  if (e) e.style.setProperty('--a', mxKnobAngle(D.eq[b]) + 'deg');
   if (v) v.textContent = String(Math.round(D.eq[b] * 10) / 10);
 }
 function mxPrep() {
@@ -1211,15 +1233,59 @@ $('#out').addEventListener('input', (e) => {
   const [what, k] = key.split('-');
   const D = MX[k];
   if (what === 'tempo') { mxSetRate(D, 1 + Number(el.value) / 1000); return; }
-  if (what.startsWith('eq')) { const b = what.slice(2); mxSetEq(D, b, Number(el.value)); const v = document.getElementById('mxev-' + b + '-' + k); if (v) v.textContent = String(Math.round(D.eq[b] * 10) / 10); }
 });
+// Περιστροφικά knobs: σύρε πάνω/κάτω, διπλό κλικ = μηδέν, βελάκια στο πληκτρολόγιο
+function mxKnobSet(k, b, db) { const D = MX[k]; mxSetEq(D, b, mxClamp(Math.round(db * 2) / 2, -24, 6)); mxEqUI(D, b); }
+let mxDrag = null;
+$('#out').addEventListener('pointerdown', (e) => {
+  const kn = e.target.closest('[data-knob]');
+  if (kn && MX.a) {
+    const [b, k] = kn.dataset.knob.split('-');
+    mxDrag = { b, k, y: e.clientY, v: MX[k].eq[b], el: kn };
+    try { kn.setPointerCapture(e.pointerId); } catch (_) {}
+    e.preventDefault();
+    return;
+  }
+  const cb = e.target.closest('[data-mxcue]');
+  if (cb && MX.a) { e.preventDefault(); mxCueDown(MX[cb.dataset.mxcue]); }
+});
+window.addEventListener('pointermove', (e) => {
+  if (!mxDrag) return;
+  mxKnobSet(mxDrag.k, mxDrag.b, mxDrag.v + (mxDrag.y - e.clientY) * 0.3);
+});
+const mxPtrUp = () => {
+  mxDrag = null;
+  if (MX.a) for (const D of [MX.a, MX.b]) if (D.cueHeld) mxCueUp(D);
+};
+window.addEventListener('pointerup', mxPtrUp);
+window.addEventListener('pointercancel', mxPtrUp);
 $('#out').addEventListener('dblclick', (e) => {
-  const el = e.target.closest('[data-mx^="eq"]');
-  if (!el || !MX.a) return;
-  const [what, k] = el.dataset.mx.split('-');
-  const b = what.slice(2);
-  mxSetEq(MX[k], b, 0); mxEqUI(MX[k], b);
+  const kn = e.target.closest('[data-knob]');
+  if (!kn || !MX.a) return;
+  const [b, k] = kn.dataset.knob.split('-');
+  mxKnobSet(k, b, 0);
 });
+$('#out').addEventListener('keydown', (e) => {
+  const kn = e.target.closest && e.target.closest('[data-knob]');
+  if (!kn || !MX.a) return;
+  const [b, k] = kn.dataset.knob.split('-');
+  if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { mxKnobSet(k, b, MX[k].eq[b] + 1); e.preventDefault(); }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { mxKnobSet(k, b, MX[k].eq[b] - 1); e.preventDefault(); }
+});
+// CUE: αν παίζει → σταματά και γυρνά στο cue. Αν είναι σταματημένο → ορίζει cue εδώ και παίζει όσο το κρατάς πατημένο.
+function mxCueDown(D) {
+  if (D.status !== 'ready') return;
+  mxPrep();
+  if (D.playing) { mxPause(D); D.pausedAt = D.cue; mxPaint(); return; }
+  if (Math.abs(D.pausedAt - D.cue) > 0.02) D.cue = D.pausedAt;
+  D.cueHeld = true;
+  if (D.k === 'b' && MX.a.playing && Math.abs(D.cue - D.ls) < 0.02) mxPlay(D, mxAlignOff(D, MX.a)); else mxPlay(D, D.cue);
+  mxPaint();
+}
+function mxCueUp(D) {
+  D.cueHeld = false;
+  if (D.playing) { mxPause(D); D.pausedAt = D.cue; mxPaint(); }
+}
 $('#out').addEventListener('click', (e) => {
   const cv = e.target.closest('canvas[data-mxw]');
   if (cv && MX.a) {
@@ -1238,10 +1304,20 @@ $('#out').addEventListener('click', (e) => {
     const D = MX[act.slice(-1)];
     if (D.status !== 'ready') return;
     mxPrep();
-    if (D.playing) mxPause(D);
-    else if (D.k === 'b' && A.playing) mxPlay(B, mxAlignOff(B, A));
-    else mxPlay(D, D.pausedAt > 0 ? D.pausedAt : D.ls);
+    if (D.playing) return;
+    if (D.k === 'b' && A.playing && Math.abs(D.pausedAt - D.cue) < 0.02) mxPlay(B, mxAlignOff(B, A));
+    else mxPlay(D, D.pausedAt);
     mxPaint();
+  } else if (act === 'stop-a' || act === 'stop-b') {
+    const D = MX[act.slice(-1)];
+    if (D.k === 'b') mxStopAuto();
+    mxPause(D); D.pausedAt = D.cue; mxPaint();
+  } else if (act === 'dsync-a' || act === 'dsync-b') {
+    const D = MX[act.slice(-1)], O = D.k === 'a' ? B : A;
+    if (!D.bpm || !O.bpm) { mxMsg(t('mxNoSync')); return; }
+    mxSetRate(D, (O.bpm * O.rate) / D.bpm);
+    if (D.playing && O.playing) mxPlay(D, mxAlignOff(D, O));
+    mxMsg(t('mxSynced') + ' ' + (D.bpm * D.rate).toFixed(1) + ' BPM (' + D.k.toUpperCase() + ')');
   } else if (act.startsWith('loop-')) {
     const D = MX[act.slice(-1)];
     mxRebase(D);

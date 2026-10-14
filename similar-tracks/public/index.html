@@ -28,11 +28,12 @@
   .lang button.on{color:var(--text);border-bottom-color:var(--text)}
   .lang button:hover{color:var(--text)}
 
-  .hero{padding:72px 0 34px}
+  .hero{padding:64px 0 34px}
+  .hero .eyebrow,.hero h1,.hero .tagline,.hero .sub{text-align:center}
   .eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--mute);margin-bottom:18px}
-  h1{margin:0;font:800 clamp(56px,15vw,132px)/.88 var(--sans);letter-spacing:.12em;text-transform:uppercase}
+  h1{margin:0;font:800 clamp(44px,10vw,84px)/.9 var(--sans);letter-spacing:.14em;padding-left:.14em;text-transform:uppercase}
   .tagline{font:600 clamp(18px,3vw,26px)/1.25 var(--sans);margin:28px 0 8px}
-  .sub{color:var(--mute);max-width:640px;margin:0 0 34px;font-size:14px}
+  .sub{color:var(--mute);max-width:640px;margin:0 auto 34px;font-size:14px}
 
   form{display:flex;border:1px solid var(--text);background:rgba(255,255,255,.015)}
   input[type=text]{flex:1;min-width:0;padding:18px;border:0;background:transparent;color:var(--text);font:inherit;font-size:16px;outline:none;border-radius:0}
@@ -487,7 +488,7 @@ const I18N = {
     s3t: 'Dig and mix', s3d: 'Get extended cuts of 5:00 and up, with BPM, key and a clear view of what blends with your track.',
     featTitle: 'Built for DJs',
     f1t: 'Extended only', f1d: 'No radio edits. Every result runs 5:00 or longer, so it is ready for the mix.',
-    f2t: 'Pick your style', f2d: 'Soulful, house, classic, deep or tech house, with no techno, trance or pop slipping in. Or choose All and explore any genre.',
+    f2t: 'Pick your style', f2d: 'Soulful, House, Classic, Deep or Tech House, with no techno, trance or pop slipping in. Or choose All and explore any genre.',
     f3t: 'BPM and key', f3d: 'Tempo and musical key for every track, so you can plan the set before you buy.',
     f4t: 'Harmonic mixing', f4d: 'Camelot keys, compatible keys and a pitch range of plus or minus 6%. One tap to show only tracks that mix.',
     f5t: 'Versions and remixes', f5d: 'See other mixes of the same record in one place.',
@@ -499,10 +500,10 @@ const I18N = {
     hRel: 'A / B switch', hRelD: 'Same number, other letter. Relative major or minor.',
     hBoost: 'Plus 2', hBoostD: 'Two steps up. Adds energy, best for a short blend.',
     genreTitle: 'House genre guide',
-    g1t: 'Classic house', g1d: 'Chicago and New York roots. Piano stabs, 909 drums and raw early-days energy.',
-    g5t: 'Soulful house', g5d: 'Warm gospel and soul vocals over smooth, uplifting grooves.',
-    g2t: 'Deep house', g2d: 'Warm chords, smooth basslines and a relaxed, late-night feel.',
-    g3t: 'Tech house', g3d: 'Driving percussion and rolling grooves with minimal vocals.',
+    g1t: 'Classic House', g1d: 'Chicago and New York roots. Piano stabs, 909 drums and raw early-days energy.',
+    g5t: 'Soulful House', g5d: 'Warm gospel and soul vocals over smooth, uplifting grooves.',
+    g2t: 'Deep House', g2d: 'Warm chords, smooth basslines and a relaxed, late-night feel.',
+    g3t: 'Tech House', g3d: 'Driving percussion and rolling grooves with minimal vocals.',
     g4t: 'House', g4d: 'The whole family: four-on-the-floor club house with big hooks, and every style below.',
     srcTitle: 'Works with',
     faqTitle: 'Questions',
@@ -533,7 +534,7 @@ const I18N = {
     onlyMix: 'Only tracks that mix', setsLbl: 'Hear it in DJ sets',
     mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
     bpmWord: 'BPM',
-    genLbl: 'Style', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'All',
+    genLbl: 'Style', gSoulful: 'Soulful House', gHouse: 'House', gDeep: 'Deep House', gTech: 'Tech House', gClassic: 'Classic House', gAny: 'All',
     setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'You are playing as', hintOpen: 'Warm-up: the most relaxed tracks of the style, building slowly.', hintPeak: 'Peak time: the most energetic tracks of the style, held high.', hintClose: 'Closing: dynamic and danceable like the headliner, but with a more melodic, uplifting colour.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'hour', unitHours: 'hours', setBtn: 'Build',
     setBuilding: 'building your set... a 2-hour set can take up to a minute',
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
@@ -565,7 +566,7 @@ const I18N = {
     s3t: 'Σκάψε και μίξε', s3d: 'Πάρε extended εκδόσεις 5:00 και πάνω, με BPM, tonality και καθαρή εικόνα για το τι ταιριάζει με το κομμάτι σου.',
     featTitle: 'Φτιαγμένο για DJs',
     f1t: 'Μόνο extended', f1d: 'Χωρίς radio edits. Κάθε αποτέλεσμα διαρκεί 5:00 ή περισσότερο, έτοιμο για mix.',
-    f2t: 'Διάλεξε στυλ', f2d: 'Soulful, house, classic, deep ή tech house, χωρίς techno, trance ή pop να παρεισφρέουν. Ή διάλεξε Όλα και εξερεύνησε οποιοδήποτε είδος.',
+    f2t: 'Διάλεξε στυλ', f2d: 'Soulful, House, Classic, Deep ή Tech House, χωρίς techno, trance ή pop να παρεισφρέουν. Ή διάλεξε Όλα και εξερεύνησε οποιοδήποτε είδος.',
     f3t: 'BPM και tonality', f3d: 'Ταχύτητα και μουσικό κλειδί για κάθε κομμάτι, ώστε να οργανώνεις το set πριν αγοράσεις.',
     f4t: 'Αρμονική μίξη', f4d: 'Camelot κλειδιά, συμβατά κλειδιά και περιθώριο pitch ±6%. Με ένα πάτημα βλέπεις μόνο όσα κάνουν mix.',
     f5t: 'Εκδόσεις και remixes', f5d: 'Δες άλλα mixes του ίδιου κομματιού σε ένα σημείο.',
@@ -577,10 +578,10 @@ const I18N = {
     hRel: 'Εναλλαγή A / B', hRelD: 'Ίδιος αριθμός, άλλο γράμμα. Σχετική μείζονα ή ελάσσονα.',
     hBoost: 'Συν 2', hBoostD: 'Δύο βήματα πάνω. Δίνει ενέργεια, καλύτερο για σύντομο blend.',
     genreTitle: 'Οδηγός ειδών house',
-    g1t: 'Classic house', g1d: 'Ρίζες σε Σικάγο και Νέα Υόρκη. Πιάνο, drums 909 και ωμή ενέργεια των πρώτων χρόνων.',
-    g5t: 'Soulful house', g5d: 'Ζεστά gospel και soul φωνητικά πάνω σε απαλά, ανεβαστικά grooves.',
-    g2t: 'Deep house', g2d: 'Ζεστές αρμονίες, απαλά basslines και χαλαρό, βραδινό feeling.',
-    g3t: 'Tech house', g3d: 'Δυνατά κρουστά και rolling groove με ελάχιστα φωνητικά.',
+    g1t: 'Classic House', g1d: 'Ρίζες σε Σικάγο και Νέα Υόρκη. Πιάνο, drums 909 και ωμή ενέργεια των πρώτων χρόνων.',
+    g5t: 'Soulful House', g5d: 'Ζεστά gospel και soul φωνητικά πάνω σε απαλά, ανεβαστικά grooves.',
+    g2t: 'Deep House', g2d: 'Ζεστές αρμονίες, απαλά basslines και χαλαρό, βραδινό feeling.',
+    g3t: 'Tech House', g3d: 'Δυνατά κρουστά και rolling groove με ελάχιστα φωνητικά.',
     g4t: 'House', g4d: 'Όλη η οικογένεια: club house με four-on-the-floor, δυνατά hooks, και όλα τα στυλ.',
     srcTitle: 'Δουλεύει με',
     faqTitle: 'Ερωτήσεις',
@@ -611,7 +612,7 @@ const I18N = {
     onlyMix: 'Μόνο όσα κάνουν mix', setsLbl: 'Άκουσέ το σε DJ sets',
     mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
     bpmWord: 'BPM',
-    genLbl: 'Στυλ', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Όλα',
+    genLbl: 'Στυλ', gSoulful: 'Soulful House', gHouse: 'House', gDeep: 'Deep House', gTech: 'Tech House', gClassic: 'Classic House', gAny: 'Όλα',
     setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Παίζεις ως', hintOpen: 'Warm-up: τα πιο χαλαρά κομμάτια του στυλ, που ανεβαίνουν σιγά-σιγά.', hintPeak: 'Peak time: τα πιο δυναμικά κομμάτια του στυλ, σταθερά ψηλά.', hintClose: 'Κλείσιμο: δυναμικά και χορευτικά όπως ο headliner, αλλά με πιο μελωδικό, uplifting χρώμα.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'ώρα', unitHours: 'ώρες', setBtn: 'Φτιάξε',
     setBuilding: 'φτιάχνω το set... ένα set 2 ωρών μπορεί να πάρει έως ένα λεπτό',
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',

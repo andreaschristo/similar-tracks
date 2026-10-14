@@ -96,7 +96,7 @@
   .setbtn:disabled{opacity:.35;cursor:wait}
   .roles{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .setbar{flex-direction:column;align-items:stretch;gap:12px}
-  .sbgrid{display:grid;grid-template-columns:3fr 1fr;gap:0 16px;align-items:end}
+  .sbgrid{display:grid;grid-template-columns:3fr 2fr 1.2fr;gap:0 16px;align-items:end}
   .sbgroup{display:flex;flex-direction:column;gap:8px;min-width:0}
   .sbgroup .cells{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line)}
   .sbgroup .chip{border:0;border-right:1px solid var(--line);padding:14px 6px;text-align:center;width:100%;min-width:0}
@@ -105,6 +105,8 @@
   .sbgroup .lenchip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 6px}
   .lenchip b{font:700 20px/1 var(--sans);letter-spacing:0}
   .lenchip span{font:600 9px var(--mono);letter-spacing:.2em;text-transform:uppercase;opacity:.75}
+  .sbgroup .cells2{grid-template-columns:repeat(2,1fr)}
+  .rolehint{font:12px/1.5 var(--mono);color:var(--mute);min-height:18px}
   .sbgo .setbtn{width:100%;height:52px;padding:0 10px}
   .genrebar{border-top:0;margin-top:0;gap:12px}
   .genrebar .roles{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid var(--line);width:100%}
@@ -357,9 +359,15 @@
               <button type="button" class="chip" data-role="peak" data-i18n="rolePeak"></button>
               <button type="button" class="chip" data-role="close" data-i18n="roleClose"></button>
             </div></div>
+          <div class="sbgroup"><span class="k" data-i18n="lenLbl"></span>
+            <div class="cells cells2">
+              <button type="button" class="chip lenchip" data-len="60"><b>1</b><span data-i18n="unitHour"></span></button>
+              <button type="button" class="chip lenchip" data-len="120"><b>2</b><span data-i18n="unitHours"></span></button>
+            </div></div>
           <div class="sbgroup sbgo"><span class="k">&nbsp;</span>
             <button type="button" class="setbtn" id="setBtn" data-i18n="setBtn"></button></div>
         </div>
+        <div class="rolehint" id="roleHint"></div>
       </div>
       <div class="setbar genrebar" id="genrebar">
         <span class="k" data-i18n="genLbl"></span>
@@ -525,7 +533,7 @@ const I18N = {
     mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
     bpmWord: 'BPM',
     genLbl: 'Style', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'All',
-    setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'hour', unitHours: 'hours', setBtn: 'Build',
+    setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'You are playing as', hintOpen: 'Warm-up: the most relaxed tracks of the style, building slowly.', hintPeak: 'Peak time: the most energetic tracks of the style, held high.', hintClose: 'Closing: dynamic and danceable like the headliner, but with a more melodic, uplifting colour.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'hour', unitHours: 'hours', setBtn: 'Build',
     setBuilding: 'building your set... a 2-hour set can take up to a minute',
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
@@ -603,7 +611,7 @@ const I18N = {
     mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
     bpmWord: 'BPM',
     genLbl: 'Στυλ', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Όλα',
-    setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'ώρα', unitHours: 'ώρες', setBtn: 'Φτιάξε',
+    setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Παίζεις ως', hintOpen: 'Warm-up: τα πιο χαλαρά κομμάτια του στυλ, που ανεβαίνουν σιγά-σιγά.', hintPeak: 'Peak time: τα πιο δυναμικά κομμάτια του στυλ, σταθερά ψηλά.', hintClose: 'Κλείσιμο: δυναμικά και χορευτικά όπως ο headliner, αλλά με πιο μελωδικό, uplifting χρώμα.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'ώρα', unitHours: 'ώρες', setBtn: 'Φτιάξε',
     setBuilding: 'φτιάχνω το set... ένα set 2 ωρών μπορεί να πάρει έως ένα λεπτό',
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
@@ -735,6 +743,7 @@ $('#genrebar').addEventListener('click', (e) => {
   if ($('#q').value.trim() && (data || setData)) { if (mode === 'set') runSet(); else doSearch(); }
 });
 function updateRoleChips() {
+  const rh = document.getElementById('roleHint'); if (rh) rh.textContent = t({ open: 'hintOpen', peak: 'hintPeak', close: 'hintClose' }[setRole]);
   document.querySelectorAll('#setbar [data-role]').forEach((b) => b.classList.toggle('on', b.dataset.role === setRole));
   document.querySelectorAll('#setbar [data-len]').forEach((b) => b.classList.toggle('on', Number(b.dataset.len) === setLen));
 }

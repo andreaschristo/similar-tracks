@@ -175,7 +175,16 @@ const isExtendedTitle = (t) => /(extended|club mix|original mix|dub mix|full len
 function lenScore(t) {
   return (isExtendedTitle(t.title) ? 0.25 : 0) + (t.duration >= 330 && t.duration <= 480 ? 0.15 : 0);
 }
-const passLen = (t, minDur) => !minDur || (t.duration >= minDur && !isRadio(t.title));
+// Φίλτρο για AI μουσική: λέξεις-κλειδιά στον τίτλο/καλλιτέχνη/άλμπουμ + λίστα αποκλεισμού (env AI_BLOCKLIST, χωρισμένη με κόμμα)
+const AI_WORDS = /\b(suno|udio|ai[\s_-]?generated|generated\s+(?:by\s+|with\s+|using\s+)?ai|ai[\s_-]?music|ai[\s_-]?cover|made\s+(?:by|with)\s+ai|artificial\s+intelligence|text[\s-]?to[\s-]?music)\b/i;
+const AI_BLOCK = new Set(['xania monet', 'breaking rust', 'velvet sundown', 'the velvet sundown', ...(process.env.AI_BLOCKLIST || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)]);
+function isAI(t) {
+  const artist = String(t.artist || '');
+  if (AI_BLOCK.has(artist.toLowerCase())) return true;
+  if (/(^|[\s(\[])AI([\s)\]]|$)/.test(artist)) return true; // «AI» με κεφαλαία στο όνομα καλλιτέχνη
+  return AI_WORDS.test(`${artist} ${t.title || ''} ${t.album || ''}`);
+}
+const passLen = (t, minDur) => !isAI(t) && (!minDur || (t.duration >= minDur && !isRadio(t.title)));
 
 // ---------- Είδος μέσω Last.fm tags (αν υπάρχει key) ----------
 const REJECT_RE = /(techno|trance|dubstep|drum and bass|dnb|hardstyle|hardcore|\bpop\b|rock|hip.?hop|\brap\b|metal|big room|electro house|future house|trap|\bedm\b|reggaeton|latin)/;
@@ -302,6 +311,7 @@ async function artistPool(seed) {
   return out.slice(0, 40);
 }
 
+const pctOf = (base, bonus) => Math.max(5, Math.min(99, Math.round((base + (bonus || 0) * 0.15) * 100)));
 async function similar(seed, opts) {
   const { minDur, house } = opts;
   const cap = opts.cap || 40;
@@ -324,7 +334,7 @@ async function similar(seed, opts) {
 
   const cands = [];
   for (const t of lfTracks) {
-    if (ok(t)) cands.push({ ...t, score: 0.6 + 0.8 * (t.match || 0) + houseBonus(t.artist) + lenScore(t) });
+    if (ok(t)) cands.push({ ...t, pct: pctOf(0.1 + 0.9 * (t.match || 0), houseBonus(t.artist)), score: 0.6 + 0.8 * (t.match || 0) + houseBonus(t.artist) + lenScore(t) });
   }
 
   const usable = pool.filter((a) => !(useHouse && kind(a.name) === 'reject')).slice(0, cap > 40 ? 26 : 16);
@@ -337,6 +347,7 @@ async function similar(seed, opts) {
     const top = await dzTop(a.id);
     return top.filter(ok).map((t) => ({
       ...t,
+      pct: pctOf(0.2 + 0.4 * (1 - i / usable.length), houseBonus(a.name)),
       score: (1 - i / usable.length) * 0.6 + houseBonus(a.name) + lenScore(t),
     }));
   }, 4, 500);
@@ -355,6 +366,7 @@ async function similar(seed, opts) {
     out.push(t);
     if (out.length >= cap) break;
   }
+  out.sort((a, b) => (b.pct || 0) - (a.pct || 0));
   return { list: out, houseFilter: useHouse };
 }
 

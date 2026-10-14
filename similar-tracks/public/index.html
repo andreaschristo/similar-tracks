@@ -206,6 +206,15 @@
   .tpct{font:600 11px var(--mono);text-align:right}
   .nudge{width:24px;height:24px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;border-radius:0;font:600 13px var(--mono);padding:0}
   .nudge:hover{border-color:var(--text)}
+  .mid{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+  .jogw{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .jog{width:96px;height:96px;border-radius:50%;border:1px solid var(--mute);background:radial-gradient(circle at 50% 50%,#0b0b0b 0 38%,#1a1a1a 39% 41%,#101010 42%);position:relative;cursor:grab;touch-action:none;transform:rotate(var(--ja,0deg));user-select:none;-webkit-user-select:none}
+  .jog:active,.jog.drag{cursor:grabbing;border-color:var(--text)}
+  .jog i{position:absolute;left:50%;top:5px;width:3px;height:16px;margin-left:-1.5px;background:#ff9d2e}
+  .jog b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 9px var(--mono);letter-spacing:.2em;color:var(--dim);transform:rotate(calc(var(--ja,0deg) * -1))}
+  .jbtn{display:flex;gap:6px}
+  .jbtn button{border:1px solid var(--line);background:transparent;color:var(--text);font:700 10px var(--mono);padding:6px 10px;cursor:pointer;border-radius:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .jbtn button:hover,.jbtn button.on{border-color:var(--text)}
   .eq{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;justify-items:center}
   .eq label{display:block;font:9px var(--mono);letter-spacing:.14em;color:var(--mute)}
   .eq label span{display:block;margin-bottom:2px}
@@ -939,10 +948,11 @@ function mxNewDeck(k) {
     playing: false, startedAt: 0, startOff: 0, pausedAt: 0, cue: 0, cueHeld: false, rate: 1, loop: true, ls: 0, le: 0, loopBars: 0,
     eq: { low: 0, mid: 0, high: 0 }, nodes: { low, mid, high, gain } };
 }
+const mxEff = (D) => D.rate * (D.bend || 1);
 function mxPos(D) {
   if (!D.buf) return 0;
   if (!D.playing) return D.pausedAt;
-  let p = D.startOff + (MXCTX.currentTime - D.startedAt) * D.rate;
+  let p = D.startOff + (MXCTX.currentTime - D.startedAt) * mxEff(D);
   if (D.loop && D.le > D.ls) { if (p >= D.le) p = D.ls + ((p - D.ls) % (D.le - D.ls)); }
   else p = Math.min(p, D.buf.duration);
   return p;
@@ -957,7 +967,7 @@ function mxPlay(D, off) {
   const c = mxCtx();
   const s = c.createBufferSource();
   s.buffer = D.buf; s.loop = D.loop; s.loopStart = D.ls; s.loopEnd = D.le;
-  s.playbackRate.value = D.rate;
+  s.playbackRate.value = mxEff(D);
   s.connect(D.nodes.low);
   s.onended = () => { if (D.src === s) { D.src = null; D.playing = false; D.pausedAt = 0; } };
   s.start(0, mxClamp(off, 0, D.buf.duration - 0.02));
@@ -969,7 +979,11 @@ function mxSetRate(D, r) {
   r = mxClamp(r, 0.85, 1.15);
   mxRebase(D);
   D.rate = r;
-  if (D.src) D.src.playbackRate.value = r;
+  if (D.src) D.src.playbackRate.value = mxEff(D);
+}
+function mxBend(D, f) {
+  mxRebase(D); D.bend = f;
+  if (D.src) D.src.playbackRate.value = mxEff(D);
 }
 function mxApplyXf() {
   if (!MX.a) return;
@@ -1165,7 +1179,9 @@ function mxDeckHTML(D) {
         <input type="range" min="-100" max="100" value="${Math.round((D.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}">
         <button type="button" class="nudge" data-mxa="nu-${k}">+</button></div>
       <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
-    <div class="eq">${['low', 'mid', 'high'].map((b) => `<div class="kn"><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b])}deg"><i></i></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`).join('')}</div>`;
+    <div class="mid"><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}"><i></i><b>JOG</b></div>
+        <div class="jbtn"><button type="button" data-bend="${k}:0.92" aria-label="Slow down">◀◀</button><button type="button" data-bend="${k}:1.08" aria-label="Speed up">▶▶</button></div></div>
+    <div class="eq">${['low', 'mid', 'high'].map((b) => `<div class="kn"><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b])}deg"><i></i></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`).join('')}</div></div>`;
   }
   return `<div class="deck"><div class="dhead"><div><div class="dn">DECK ${n}${tags ? ' · ' + esc(tags) : ''}</div>
       <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div></div>
@@ -1232,6 +1248,7 @@ function mxPaint() {
     const k = D.k;
     const btn = document.getElementById('mxp-' + k);
     if (btn) btn.classList.toggle('on', D.playing);
+    const jw = document.getElementById('mxj-' + k); if (jw && D.buf) jw.style.setProperty('--ja', ((mxPos(D) / 1.8) * 360) % 360 + 'deg');
     const syb = document.getElementById('mxsy-' + k); if (syb) syb.classList.toggle('on', D.sync);
     const cbn = document.getElementById('mxcue-' + k); if (cbn) cbn.classList.toggle('on', D.cueHeld);
     const c = document.getElementById('mxc-' + k);
@@ -1298,7 +1315,32 @@ $('#out').addEventListener('input', (e) => {
 });
 // Περιστροφικά knobs: σύρε πάνω/κάτω, διπλό κλικ = μηδέν, βελάκια στο πληκτρολόγιο
 function mxKnobSet(k, b, db) { const D = MX[k]; mxSetEq(D, b, mxClamp(Math.round(db * 2) / 2, -24, 6)); mxEqUI(D, b); }
-let mxDrag = null;
+let mxDrag = null, mxJog = null;
+function mxJogAngle(el, e) { const r = el.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)); }
+function mxJogEnd() {
+  if (!mxJog) return;
+  const D = MX[mxJog.k]; mxJog.el.classList.remove('drag'); clearTimeout(mxJog.t); mxJog = null;
+  if (D.playing) mxBend(D, 1);
+}
+document.addEventListener('pointermove', (e) => {
+  if (!mxJog) return;
+  const D = MX[mxJog.k], now = performance.now();
+  const ang = mxJogAngle(mxJog.el, e);
+  let da = ang - mxJog.ang; if (da > Math.PI) da -= 2 * Math.PI; if (da < -Math.PI) da += 2 * Math.PI;
+  const dt = Math.max(8, now - mxJog.t0) / 1000;
+  mxJog.ang = ang; mxJog.t0 = now;
+  if (D.playing) {
+    // ροδέλα: γρηγορότερη περιστροφή δεξιά = επιτάχυνση, αριστερά = επιβράδυνση (pitch bend)
+    const om = da / dt;
+    mxBend(D, mxClamp(1 + om * 0.08, 0.2, 2));
+    clearTimeout(mxJog.t); mxJog.t = setTimeout(() => { if (mxJog && D.playing) mxBend(D, 1); }, 90);
+  } else if (D.buf) {
+    // σταματημένο: scrub, μια πλήρης στροφή = 2 δευτερόλεπτα
+    D.pausedAt = mxClamp(D.pausedAt + da * 0.32, 0, D.buf.duration - 0.05);
+  }
+});
+document.addEventListener('pointerup', mxJogEnd);
+document.addEventListener('pointercancel', mxJogEnd);
 $('#out').addEventListener('pointerdown', (e) => {
   const kn = e.target.closest('[data-knob]');
   if (kn && MX.a) {
@@ -1308,6 +1350,10 @@ $('#out').addEventListener('pointerdown', (e) => {
     e.preventDefault();
     return;
   }
+  const jg = e.target.closest('[data-jog]');
+  if (jg && MX.a) { const k = jg.dataset.jog; mxJog = { k, el: jg, ang: mxJogAngle(jg, e), t0: performance.now(), t: 0 }; jg.classList.add('drag'); try { jg.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); return; }
+  const bd = e.target.closest('[data-bend]');
+  if (bd && MX.a) { const [k, f] = bd.dataset.bend.split(':'); bd.classList.add('on'); MX[k].bendBtn = bd; mxBend(MX[k], Number(f)); e.preventDefault(); return; }
   const cb = e.target.closest('[data-mxcue]');
   if (cb && MX.a) { e.preventDefault(); mxCueDown(MX[cb.dataset.mxcue]); }
 });
@@ -1317,6 +1363,7 @@ window.addEventListener('pointermove', (e) => {
 });
 const mxPtrUp = () => {
   mxDrag = null;
+  if (MX.a) for (const D of [MX.a, MX.b]) if (D.bendBtn) { D.bendBtn.classList.remove('on'); D.bendBtn = null; mxBend(D, 1); }
   if (MX.a) for (const D of [MX.a, MX.b]) if (D.cueHeld) mxCueUp(D);
 };
 window.addEventListener('pointerup', mxPtrUp);

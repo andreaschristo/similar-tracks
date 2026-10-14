@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HOUZE</title>
-<meta name="description" content="Find extended house, deep house, tech house and classic house tracks similar to any record. Built for DJs.">
+<meta name="description" content="Find extended house, deep house, tech house and classic house tracks similar to any record, with BPM, key and harmonic mixing. Built for DJs.">
 <style>
   :root{
     --bg:#060606; --panel:#0b0b0b; --line:#1d1d1d; --text:#ecece8; --mute:#7a7a75; --dim:#3d3d3a;
@@ -21,55 +21,95 @@
   .page{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 22px}
   a{color:inherit}
 
-  /* Header */
   header{display:flex;justify-content:space-between;align-items:center;padding:22px 0;border-bottom:1px solid var(--line)}
   .brand{font:800 15px var(--sans);letter-spacing:.3em;text-transform:uppercase}
   .lang{display:flex;gap:4px;font-size:12px;letter-spacing:.14em}
-  .lang button{
-    border:0;background:transparent;color:var(--mute);font:inherit;padding:4px 8px;cursor:pointer;border-bottom:1px solid transparent
-  }
+  .lang button{border:0;background:transparent;color:var(--mute);font:inherit;padding:4px 8px;cursor:pointer;border-bottom:1px solid transparent}
   .lang button.on{color:var(--text);border-bottom-color:var(--text)}
   .lang button:hover{color:var(--text)}
 
-  /* Hero */
   .hero{padding:72px 0 34px}
   .eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--mute);margin-bottom:18px}
   h1{margin:0;font:800 clamp(56px,15vw,132px)/.88 var(--sans);letter-spacing:.12em;text-transform:uppercase}
   .tagline{font:600 clamp(18px,3vw,26px)/1.25 var(--sans);margin:28px 0 8px}
-  .sub{color:var(--mute);max-width:620px;margin:0 0 34px;font-size:14px}
+  .sub{color:var(--mute);max-width:640px;margin:0 0 34px;font-size:14px}
 
   form{display:flex;border:1px solid var(--text);background:rgba(255,255,255,.015)}
-  input[type=text]{
-    flex:1;min-width:0;padding:18px 18px;border:0;background:transparent;color:var(--text);
-    font:inherit;font-size:16px;outline:none;border-radius:0
-  }
+  input[type=text]{flex:1;min-width:0;padding:18px;border:0;background:transparent;color:var(--text);font:inherit;font-size:16px;outline:none;border-radius:0}
   input[type=text]::placeholder{color:var(--dim)}
-  button.go{
-    border:0;background:var(--text);color:var(--bg);font:700 12px var(--sans);
-    letter-spacing:.22em;text-transform:uppercase;cursor:pointer;padding:0 30px;border-radius:0
-  }
+  button.go{border:0;background:var(--text);color:var(--bg);font:700 12px var(--sans);letter-spacing:.22em;text-transform:uppercase;cursor:pointer;padding:0 30px;border-radius:0}
   button.go:hover{opacity:.85}
   button.go:disabled{opacity:.35;cursor:wait}
 
   .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px;min-height:30px}
   .chips .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-right:6px}
-  .chip{
-    border:1px solid var(--line);background:transparent;color:var(--mute);font:inherit;font-size:12px;
-    padding:5px 11px;cursor:pointer;border-radius:0
-  }
+  .chip{border:1px solid var(--line);background:transparent;color:var(--mute);font:inherit;font-size:12px;padding:5px 11px;cursor:pointer;border-radius:0}
   .chip:hover{color:var(--text);border-color:var(--mute)}
+  .chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
   .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
   .tag{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);border:1px solid var(--line);padding:4px 10px}
 
   #status{margin:30px 0 0;color:var(--mute);font-size:13px;letter-spacing:.05em}
   #status.err{color:#c9534f}
 
-  /* Results */
+  /* Αποτελέσματα */
   .seed{display:grid;grid-template-columns:76px 1fr auto;gap:18px;align-items:center;padding:24px 0;border-bottom:1px solid var(--line);margin-top:30px}
   .seed img{width:76px;height:76px;object-fit:cover;background:#111;filter:grayscale(1) contrast(1.1)}
   .k{font-size:10px;color:var(--mute);letter-spacing:.24em;text-transform:uppercase}
   .seed .t{font:700 21px/1.2 var(--sans);margin-top:3px}
   .seed .a{color:var(--mute);font-size:13px}
+  .seed .bk{margin-top:6px}
+
+  .bk{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--mute);letter-spacing:.06em}
+  .bk b{color:var(--text);font-weight:600}
+  .mixtag{border:1px solid var(--text);color:var(--text);font-size:9px;letter-spacing:.18em;padding:1px 6px;text-transform:uppercase}
+
+  /* Πάνελ αρμονικής μίξης */
+  .mixpanel{display:grid;grid-template-columns:230px 1fr;gap:30px;padding:30px 0;border-bottom:1px solid var(--line)}
+  .mixpanel h3{margin:0 0 4px;font:700 11px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
+  .mixrows{display:grid;gap:0;margin-top:14px}
+  .mixrow{display:grid;grid-template-columns:130px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .mixrow span:first-child{color:var(--mute);font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding-top:2px}
+  .mixrow b{font:700 14px var(--sans);letter-spacing:.04em}
+  .mixactions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+  .toggle{border:1px solid var(--dim);background:transparent;color:var(--text);font:inherit;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:8px 12px;cursor:pointer;border-radius:0}
+  .toggle.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .setlinks{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+  .setlinks a{color:var(--mute);text-decoration:none;border-bottom:1px solid var(--dim)}
+  .setlinks a:hover{color:var(--text);border-bottom-color:var(--text)}
+  .mixhint{font-size:12px;color:var(--mute);line-height:1.7;margin-top:12px}
+
+  /* Τροχός Camelot */
+  .wheel{width:100%;max-width:230px;height:auto;display:block}
+  .wheel .seg{fill:transparent;stroke:var(--line);stroke-width:1}
+  .wheel .seg.cmp{fill:#1c1c1a;stroke:var(--mute)}
+  .wheel .seg.act{fill:var(--text);stroke:var(--text)}
+  .wheel text{fill:var(--mute);font:600 8.5px var(--sans);text-anchor:middle;dominant-baseline:central;letter-spacing:.02em}
+  .wheel .cmp+text{fill:var(--text)}
+  .wheel .act+text{fill:var(--bg)}
+
+  /* Set builder */
+  .setbar{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;margin-top:26px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .setbar .k{margin-right:2px}
+  .setbtn{border:1px solid var(--text);background:transparent;color:var(--text);font:700 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;padding:10px 16px;cursor:pointer;border-radius:0}
+  .setbtn:hover{background:var(--text);color:var(--bg)}
+  .setbtn:disabled{opacity:.35;cursor:wait}
+  .roles{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .setmeta{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:center;justify-content:space-between;margin-top:30px}
+  .setmeta h3{margin:0;font:800 24px var(--sans);letter-spacing:.04em}
+  .setmeta .sub2{color:var(--mute);font-size:12px;margin-top:4px}
+  .curve{width:100%;height:auto;display:block;margin:18px 0 4px}
+  .curve .ln{fill:none;stroke:var(--text);stroke-width:1.5}
+  .curve .dot{fill:var(--bg);stroke:var(--text);stroke-width:1.5}
+  .curve .dot.s{fill:var(--text)}
+  .curve text{fill:var(--mute);font:600 8px var(--sans);text-anchor:middle;letter-spacing:.08em}
+  .sec{margin:34px 0 4px;font:700 11px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:14px}
+  .sec::after{content:"";flex:1;height:1px;background:var(--line)}
+  .trans{padding:6px 0 6px 88px;font-size:11px;color:var(--mute);letter-spacing:.04em;border-bottom:1px dashed var(--line)}
+  .trans.clash{color:#c9534f}
+  .row.isseed{background:rgba(255,255,255,.03)}
+  .copybtn{border:1px solid var(--dim);background:transparent;color:var(--text);font:inherit;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:8px 12px;cursor:pointer;border-radius:0}
+  .copybtn:hover{border-color:var(--text)}
 
   .tabs{display:flex;gap:28px;flex-wrap:wrap;margin:30px 0 6px;border-bottom:1px solid var(--line)}
   .tab{padding:0 0 10px;border:0;border-bottom:1px solid transparent;margin-bottom:-1px;background:transparent;color:var(--mute);cursor:pointer;font:inherit;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
@@ -84,6 +124,7 @@
   .row .meta{min-width:0}
   .row .t{font:600 15px/1.3 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .row .a{color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .bk{margin-top:3px;min-height:16px}
   .dur{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
   .links{display:flex;gap:12px;align-items:center;justify-content:flex-end}
   .links a{color:var(--dim);font-size:10px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
@@ -94,29 +135,55 @@
   .empty{color:var(--mute);padding:22px 0;font-size:13px}
   .note{font-size:12px;color:var(--mute);margin-top:22px;line-height:1.7}
 
-  /* Landing sections */
+  /* Ενότητες */
   section.block{padding:64px 0 8px}
   .block h2{font:700 11px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute);margin:0 0 26px;display:flex;align-items:center;gap:16px}
   .block h2::after{content:"";flex:1;height:1px;background:var(--line)}
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line)}
   .step{padding:26px 24px;border-right:1px solid var(--line)}
   .step:last-child{border-right:0}
   .step .num{font:800 34px/1 var(--sans);color:var(--dim);margin-bottom:18px;letter-spacing:.06em}
-  .step h3,.feat h3{font:700 16px/1.3 var(--sans);margin:0 0 8px}
-  .step p,.feat p{margin:0;color:var(--mute);font-size:13px;line-height:1.65}
+  .step h3,.feat h3,.genre h3{font:700 16px/1.3 var(--sans);margin:0 0 8px}
+  .step p,.feat p,.genre p{margin:0;color:var(--mute);font-size:13px;line-height:1.65}
   .feats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
   .feat{background:var(--bg);padding:26px 24px}
   .feat .mk{font-size:11px;letter-spacing:.2em;color:var(--dim);margin-bottom:12px}
+
+  .harm{display:grid;grid-template-columns:230px 1fr;gap:34px;align-items:center}
+  .harm p{color:var(--mute);font-size:13px;line-height:1.75;margin:0 0 14px}
+  .harm ul{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+  .harm li{display:grid;grid-template-columns:120px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--mute)}
+  .harm li b{color:var(--text);font:700 12px var(--sans);letter-spacing:.14em;text-transform:uppercase}
+
+  .genres{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line)}
+  .genre{padding:24px 20px;border-right:1px solid var(--line)}
+  .genre:last-child{border-right:0}
+  .genre .bpm{font:800 22px var(--sans);letter-spacing:.04em;margin:0 0 12px;color:var(--text)}
+  .genre .bpm small{font:600 10px var(--sans);letter-spacing:.2em;color:var(--mute);margin-left:6px}
+
   .sources{display:flex;flex-wrap:wrap;gap:10px 26px;font:600 13px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
-  footer{margin-top:80px;padding:26px 0 44px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:11px;letter-spacing:.1em;color:var(--dim)}
+  .faq details{border-bottom:1px solid var(--line);padding:16px 0}
+  .faq details:first-of-type{border-top:1px solid var(--line)}
+  .faq summary{cursor:pointer;font:600 15px var(--sans);list-style:none;display:flex;justify-content:space-between;gap:16px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";color:var(--mute);font-weight:400}
+  .faq details[open] summary::after{content:"–"}
+  .faq p{margin:12px 0 0;color:var(--mute);font-size:13px;line-height:1.75;max-width:720px}
+
+  footer{margin-top:80px;padding:26px 0 44px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;font-size:11px;letter-spacing:.1em;color:var(--dim)}
+  footer a{color:var(--mute)}
+  footer a:hover{color:var(--text)}
   .hidden{display:none !important}
 
-  @media(max-width:720px){
+  @media(max-width:760px){
     .hero{padding-top:44px}
-    .steps{grid-template-columns:1fr}
-    .step{border-right:0;border-bottom:1px solid var(--line)}
-    .step:last-child{border-bottom:0}
+    .steps,.genres{grid-template-columns:1fr}
+    .step,.genre{border-right:0;border-bottom:1px solid var(--line)}
+    .step:last-child,.genre:last-child{border-bottom:0}
     .feats{grid-template-columns:1fr}
+    .harm,.mixpanel{grid-template-columns:1fr}
+    .wheel{margin:0 auto}
+    .mixrow{grid-template-columns:100px 1fr}
     .row{grid-template-columns:26px 46px 1fr auto;row-gap:8px}
     .links{grid-column:2 / -1;justify-content:flex-start;flex-wrap:wrap}
     .seed{grid-template-columns:76px 1fr}
@@ -149,8 +216,18 @@
       </form>
 
       <div class="chips" id="chips"></div>
+
+      <div class="setbar" id="setbar">
+        <span class="k" data-i18n="setLbl"></span>
+        <span class="roles"><span class="k" data-i18n="roleLbl"></span>
+          <button type="button" class="chip" data-role="open" data-i18n="roleOpen"></button>
+          <button type="button" class="chip" data-role="peak" data-i18n="rolePeak"></button>
+          <button type="button" class="chip" data-role="close" data-i18n="roleClose"></button>
+        </span>
+        <button type="button" class="setbtn" id="setBtn" data-i18n="setBtn"></button>
+      </div>
       <div class="tags">
-        <span class="tag">House</span><span class="tag">Deep House</span><span class="tag">Tech House</span><span class="tag">Classic House</span><span class="tag" data-i18n="tagExt"></span>
+        <span class="tag">House</span><span class="tag">Deep House</span><span class="tag">Tech House</span><span class="tag">Classic House</span><span class="tag" data-i18n="tagExt"></span><span class="tag" data-i18n="tagKey"></span>
       </div>
     </div>
 
@@ -174,6 +251,34 @@
           <div class="feat"><div class="mk">/ 02</div><h3 data-i18n="f2t"></h3><p data-i18n="f2d"></p></div>
           <div class="feat"><div class="mk">/ 03</div><h3 data-i18n="f3t"></h3><p data-i18n="f3d"></p></div>
           <div class="feat"><div class="mk">/ 04</div><h3 data-i18n="f4t"></h3><p data-i18n="f4d"></p></div>
+          <div class="feat"><div class="mk">/ 05</div><h3 data-i18n="f5t"></h3><p data-i18n="f5d"></p></div>
+          <div class="feat"><div class="mk">/ 06</div><h3 data-i18n="f6t"></h3><p data-i18n="f6d"></p></div>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 data-i18n="harmTitle"></h2>
+        <div class="harm">
+          <div id="demoWheel"></div>
+          <div>
+            <p data-i18n="harmP"></p>
+            <ul>
+              <li><b data-i18n="hSame"></b><span data-i18n="hSameD"></span></li>
+              <li><b data-i18n="hSmooth"></b><span data-i18n="hSmoothD"></span></li>
+              <li><b data-i18n="hRel"></b><span data-i18n="hRelD"></span></li>
+              <li><b data-i18n="hBoost"></b><span data-i18n="hBoostD"></span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 data-i18n="genreTitle"></h2>
+        <div class="genres">
+          <div class="genre"><div class="bpm">118–124<small>BPM</small></div><h3 data-i18n="g1t"></h3><p data-i18n="g1d"></p></div>
+          <div class="genre"><div class="bpm">120–124<small>BPM</small></div><h3 data-i18n="g2t"></h3><p data-i18n="g2d"></p></div>
+          <div class="genre"><div class="bpm">124–128<small>BPM</small></div><h3 data-i18n="g3t"></h3><p data-i18n="g3d"></p></div>
+          <div class="genre"><div class="bpm">122–128<small>BPM</small></div><h3 data-i18n="g4t"></h3><p data-i18n="g4d"></p></div>
         </div>
       </section>
 
@@ -181,11 +286,20 @@
         <h2 data-i18n="srcTitle"></h2>
         <div class="sources"><span>YouTube</span><span>SoundCloud</span><span>Spotify</span><span>Beatport</span><span>Bandcamp</span></div>
       </section>
+
+      <section class="block faq">
+        <h2 data-i18n="faqTitle"></h2>
+        <details><summary data-i18n="q1"></summary><p data-i18n="a1"></p></details>
+        <details><summary data-i18n="q2"></summary><p data-i18n="a2"></p></details>
+        <details><summary data-i18n="q3"></summary><p data-i18n="a3"></p></details>
+        <details><summary data-i18n="q4"></summary><p data-i18n="a4"></p></details>
+      </section>
     </div>
   </main>
 
   <footer>
     <span data-i18n="footL"></span>
+    <span><span data-i18n="footBpm"></span> <a href="https://getsongbpm.com" target="_blank" rel="noopener">GetSongBPM</a></span>
     <span data-i18n="footR"></span>
   </footer>
   <audio id="audio"></audio>
@@ -196,32 +310,71 @@ const $ = (s) => document.querySelector(s);
 const audio = $('#audio');
 const MIN_SECONDS = 300; // μόνο extended (5:00+)
 let data = null, tab = 'similar', playingId = null, lang = 'en';
+let infoMap = {}, requested = new Set(), bpmEnabled = false, onlyMix = false;
+let mode = 'search', setData = null, setRole = 'peak';
 
 const I18N = {
   en: {
     eyebrow: 'Track finder for house DJs',
     tagline: 'Find your next record.',
-    sub: 'Paste a title or a link. Get extended house tracks that mix well, 5 minutes and up.',
+    sub: 'Paste a title or a link. Get extended house tracks that mix well, with BPM, key and harmonic mixing, 5 minutes and up.',
     placeholder: 'Artist - Title, or a YouTube / SoundCloud / Spotify / Beatport / Bandcamp link',
     go: 'Find',
-    tagExt: 'Extended 5:00+',
+    tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Try', recentLbl: 'Recent',
     howTitle: 'How it works',
     s1t: 'Drop a track', s1d: 'Type artist and title, or paste a link from YouTube, SoundCloud, Spotify, Beatport or Bandcamp.',
     s2t: 'We read the style', s2d: 'Related artists and listener data narrow it down to the house family: house, deep, tech and classic.',
-    s3t: 'Dig', s3d: 'Get extended cuts of 5:00 and up, with previews and quick search on the major stores.',
+    s3t: 'Dig and mix', s3d: 'Get extended cuts of 5:00 and up, with BPM, key and a clear view of what blends with your track.',
     featTitle: 'Built for DJs',
     f1t: 'Extended only', f1d: 'No radio edits. Every result runs 5:00 or longer, so it is ready for the mix.',
     f2t: 'House family', f2d: 'House, deep house, tech house and classic house. No techno, trance or pop slipping in.',
-    f3t: 'Versions and remixes', f3d: 'See other mixes of the same record in one place.',
-    f4t: 'Preview and find', f4d: '30-second previews, then jump to YouTube, SoundCloud, Beatport, Bandcamp or Spotify.',
+    f3t: 'BPM and key', f3d: 'Tempo and musical key for every track, so you can plan the set before you buy.',
+    f4t: 'Harmonic mixing', f4d: 'Camelot keys, compatible keys and a pitch range of plus or minus 6%. One tap to show only tracks that mix.',
+    f5t: 'Versions and remixes', f5d: 'See other mixes of the same record in one place.',
+    f6t: 'Preview and find', f6d: '30-second previews, then jump to YouTube, SoundCloud, Beatport, Bandcamp or Spotify. Or hear the track in real DJ sets.',
+    harmTitle: 'Harmonic mixing',
+    harmP: 'The Camelot wheel labels every musical key from 1A to 12B. Tracks whose keys sit close together on the wheel blend without clashing. Search a track and the wheel lights up with its compatible keys.',
+    hSame: 'Same key', hSameD: 'Perfect match. Blend as long as you like.',
+    hSmooth: 'Plus or minus 1', hSmoothD: 'One step around the wheel. The safest move.',
+    hRel: 'A / B switch', hRelD: 'Same number, other letter. Relative major or minor.',
+    hBoost: 'Plus 2', hBoostD: 'Two steps up. Adds energy, best for a short blend.',
+    genreTitle: 'House genre guide',
+    g1t: 'Classic house', g1d: 'Chicago roots. Soulful vocals, piano stabs and 909 drums.',
+    g2t: 'Deep house', g2d: 'Warm chords, smooth basslines and a relaxed, late-night feel.',
+    g3t: 'Tech house', g3d: 'Driving percussion and rolling grooves with minimal vocals.',
+    g4t: 'House', g4d: 'Four-on-the-floor club house with big hooks and open dancefloor energy.',
     srcTitle: 'Works with',
-    footL: 'HOUZE. For diggers and DJs.', footR: 'Data via Deezer and Last.fm.',
+    faqTitle: 'Questions',
+    q1: 'What does "extended" mean?', a1: 'The full-length club version of a track, usually 5 to 8 minutes, with long intros and outros made for mixing.',
+    q2: 'What is the Camelot system?', a2: 'A way to name musical keys from 1A to 12B so DJs can see which tracks blend. Same number, one step either way, or the same number with the other letter all stay in harmony.',
+    q3: 'Where do BPM and key come from?', a3: 'From GetSongBPM, a public database. Values can differ from your own analysis, and some tracks are missing, so always check by ear or in your DJ software.',
+    q4: 'Can I play the full tracks here?', a4: 'No. Previews are 30 seconds. Use the links on each track to find the full version on your platform.',
+    footL: 'HOUZE. For diggers and DJs.', footBpm: 'BPM and key data:', footR: 'Tracks via Deezer and Last.fm.',
     searching: 'searching... this can take a few seconds',
     found: 'found',
     tabs: { similar: 'Similar', versions: 'Remixes / versions', sameArtist: 'Same artist' },
     empty: 'No results here.',
     noHouse: 'The house genre filter needs a Last.fm API key on the server. Until then only the length filter (5:00+) is applied.',
+    noBpm: 'BPM and key need a GetSongBPM API key on the server.',
+    noBpmFound: 'BPM and key were not found for this track.',
+    mixTitle: 'Harmonic mixing',
+    rBpm: 'Tempo', rKey: 'Key', rSame: 'Perfect', rSmooth: 'Smooth', rRel: 'Relative', rBoost: 'Energy boost',
+    pitch: 'pitch range ±6%',
+    onlyMix: 'Only tracks that mix', setsLbl: 'Hear it in DJ sets',
+    mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
+    bpmWord: 'BPM',
+    setLbl: 'Build a 1-hour set', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Peak', roleClose: 'Closer', setBtn: 'Build set',
+    setBuilding: 'building your set... this can take up to 30 seconds',
+    setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
+    secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
+    yourTrack: 'Your track', inAt: 'in at',
+    rel_same: 'same key', rel_smooth: 'smooth key change', rel_relative: 'relative key', rel_boost: 'energy boost', rel_clash: 'keys clash, mix with care', rel_unknown: 'key unknown',
+    blend: 'blend about', bars: 'bars',
+    copySet: 'Copy tracklist', copied: 'Copied',
+    noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
+    shortSet: 'Only this many tracks matched. Try a more popular track for a full set.',
+    backSearch: 'Back to results',
     err_notfound: 'Track not found. Try "Artist - Title".',
     err_nourl: 'Could not read a title from that link. Try "Artist - Title".',
     err_generic: 'Something went wrong. Try again.',
@@ -231,27 +384,64 @@ const I18N = {
   el: {
     eyebrow: 'Εργαλείο αναζήτησης για house DJs',
     tagline: 'Βρες το επόμενο κομμάτι.',
-    sub: 'Βάλε τίτλο ή link. Πάρε extended house κομμάτια για mix, 5 λεπτά και πάνω.',
+    sub: 'Βάλε τίτλο ή link. Πάρε extended house κομμάτια για mix, με BPM, tonality και αρμονική μίξη, 5 λεπτά και πάνω.',
     placeholder: 'Καλλιτέχνης - Τίτλος, ή link από YouTube / SoundCloud / Spotify / Beatport / Bandcamp',
     go: 'Βρες',
-    tagExt: 'Extended 5:00+',
+    tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Δοκίμασε', recentLbl: 'Πρόσφατα',
     howTitle: 'Πώς λειτουργεί',
     s1t: 'Βάλε ένα κομμάτι', s1d: 'Γράψε καλλιτέχνη και τίτλο ή κάνε επικόλληση link από YouTube, SoundCloud, Spotify, Beatport ή Bandcamp.',
     s2t: 'Διαβάζουμε το στυλ', s2d: 'Σχετικοί καλλιτέχνες και δεδομένα ακροατών περιορίζουν τα αποτελέσματα στην οικογένεια house: house, deep, tech και classic.',
-    s3t: 'Σκάψε', s3d: 'Πάρε extended εκδόσεις 5:00 και πάνω, με preview και γρήγορη αναζήτηση στις βασικές πλατφόρμες.',
+    s3t: 'Σκάψε και μίξε', s3d: 'Πάρε extended εκδόσεις 5:00 και πάνω, με BPM, tonality και καθαρή εικόνα για το τι ταιριάζει με το κομμάτι σου.',
     featTitle: 'Φτιαγμένο για DJs',
     f1t: 'Μόνο extended', f1d: 'Χωρίς radio edits. Κάθε αποτέλεσμα διαρκεί 5:00 ή περισσότερο, έτοιμο για mix.',
     f2t: 'Οικογένεια house', f2d: 'House, deep house, tech house και classic house. Χωρίς techno, trance ή pop να παρεισφρέουν.',
-    f3t: 'Εκδόσεις και remixes', f3d: 'Δες άλλα mixes του ίδιου κομματιού σε ένα σημείο.',
-    f4t: 'Preview και αναζήτηση', f4d: 'Preview 30 δευτερολέπτων και άμεση αναζήτηση σε YouTube, SoundCloud, Beatport, Bandcamp ή Spotify.',
+    f3t: 'BPM και tonality', f3d: 'Ταχύτητα και μουσικό κλειδί για κάθε κομμάτι, ώστε να οργανώνεις το set πριν αγοράσεις.',
+    f4t: 'Αρμονική μίξη', f4d: 'Camelot κλειδιά, συμβατά κλειδιά και περιθώριο pitch ±6%. Με ένα πάτημα βλέπεις μόνο όσα κάνουν mix.',
+    f5t: 'Εκδόσεις και remixes', f5d: 'Δες άλλα mixes του ίδιου κομματιού σε ένα σημείο.',
+    f6t: 'Preview και αναζήτηση', f6d: 'Preview 30 δευτερολέπτων και άμεση αναζήτηση σε YouTube, SoundCloud, Beatport, Bandcamp ή Spotify. Ή άκουσε το κομμάτι σε πραγματικά DJ sets.',
+    harmTitle: 'Αρμονική μίξη',
+    harmP: 'Ο τροχός Camelot ονομάζει κάθε μουσικό κλειδί από 1A έως 12B. Κομμάτια με κλειδιά κοντά στον τροχό ταιριάζουν χωρίς να «χτυπάνε». Ψάξε ένα κομμάτι και ο τροχός θα φωτίσει τα συμβατά κλειδιά του.',
+    hSame: 'Ίδιο κλειδί', hSameD: 'Τέλειο ταίριασμα. Μίξε όσο θέλεις.',
+    hSmooth: 'Συν ή πλην 1', hSmoothD: 'Ένα βήμα στον τροχό. Η πιο ασφαλής κίνηση.',
+    hRel: 'Εναλλαγή A / B', hRelD: 'Ίδιος αριθμός, άλλο γράμμα. Σχετική μείζονα ή ελάσσονα.',
+    hBoost: 'Συν 2', hBoostD: 'Δύο βήματα πάνω. Δίνει ενέργεια, καλύτερο για σύντομο blend.',
+    genreTitle: 'Οδηγός ειδών house',
+    g1t: 'Classic house', g1d: 'Ρίζες στο Σικάγο. Soulful φωνητικά, πιάνο και drums 909.',
+    g2t: 'Deep house', g2d: 'Ζεστές αρμονίες, απαλά basslines και χαλαρό, βραδινό feeling.',
+    g3t: 'Tech house', g3d: 'Δυνατά κρουστά και rolling groove με ελάχιστα φωνητικά.',
+    g4t: 'House', g4d: 'Club house με four-on-the-floor, δυνατά hooks και ενέργεια για πίστα.',
     srcTitle: 'Δουλεύει με',
-    footL: 'HOUZE. Για diggers και DJs.', footR: 'Δεδομένα από Deezer και Last.fm.',
+    faqTitle: 'Ερωτήσεις',
+    q1: 'Τι σημαίνει «extended»;', a1: 'Η πλήρης club έκδοση ενός κομματιού, συνήθως 5 έως 8 λεπτά, με μεγάλα intro και outro φτιαγμένα για μίξη.',
+    q2: 'Τι είναι το σύστημα Camelot;', a2: 'Ένας τρόπος να ονομάζουμε τα μουσικά κλειδιά από 1A έως 12B, ώστε οι DJs να βλέπουν ποια κομμάτια ταιριάζουν. Ίδιος αριθμός, ένα βήμα προς οποιαδήποτε κατεύθυνση ή ίδιος αριθμός με το άλλο γράμμα μένουν σε αρμονία.',
+    q3: 'Από πού έρχονται τα BPM και η tonality;', a3: 'Από το GetSongBPM, μια δημόσια βάση δεδομένων. Οι τιμές μπορεί να διαφέρουν από τη δική σου ανάλυση και κάποια κομμάτια λείπουν, οπότε έλεγχε πάντα με το αυτί ή στο DJ software σου.',
+    q4: 'Μπορώ να ακούσω ολόκληρα τα κομμάτια εδώ;', a4: 'Όχι. Τα preview είναι 30 δευτερολέπτων. Χρησιμοποίησε τα links κάθε κομματιού για να βρεις την πλήρη έκδοση στην πλατφόρμα σου.',
+    footL: 'HOUZE. Για diggers και DJs.', footBpm: 'Δεδομένα BPM και tonality:', footR: 'Κομμάτια από Deezer και Last.fm.',
     searching: 'ψάχνω... μπορεί να πάρει λίγα δευτερόλεπτα',
     found: 'βρέθηκε',
     tabs: { similar: 'Παρόμοια', versions: 'Remixes / εκδόσεις', sameArtist: 'Ίδιος artist' },
     empty: 'Δεν βρέθηκαν αποτελέσματα εδώ.',
     noHouse: 'Το φίλτρο είδους (house) χρειάζεται Last.fm API key στον server. Μέχρι τότε φιλτράρεται μόνο η διάρκεια (5:00+).',
+    noBpm: 'Τα BPM και η tonality χρειάζονται GetSongBPM API key στον server.',
+    noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
+    mixTitle: 'Αρμονική μίξη',
+    rBpm: 'Ταχύτητα', rKey: 'Κλειδί', rSame: 'Τέλειο', rSmooth: 'Ομαλό', rRel: 'Σχετικό', rBoost: 'Ενέργεια',
+    pitch: 'περιθώριο pitch ±6%',
+    onlyMix: 'Μόνο όσα κάνουν mix', setsLbl: 'Άκουσέ το σε DJ sets',
+    mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
+    bpmWord: 'BPM',
+    setLbl: 'Φτιάξε set 1 ώρας', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Άνοιγμα', rolePeak: 'Peak', roleClose: 'Κλείσιμο', setBtn: 'Φτιάξε set',
+    setBuilding: 'φτιάχνω το set... μπορεί να πάρει έως 30 δευτερόλεπτα',
+    setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',
+    secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
+    yourTrack: 'Το κομμάτι σου', inAt: 'μπαίνει στο',
+    rel_same: 'ίδιο κλειδί', rel_smooth: 'ομαλή αλλαγή κλειδιού', rel_relative: 'σχετικό κλειδί', rel_boost: 'ενεργειακό boost', rel_clash: 'τα κλειδιά συγκρούονται, πρόσεχε στη μίξη', rel_unknown: 'άγνωστο κλειδί',
+    blend: 'blend περίπου', bars: 'bars',
+    copySet: 'Αντιγραφή tracklist', copied: 'Αντιγράφηκε',
+    noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
+    shortSet: 'Ταίριαξαν μόνο τόσα κομμάτια. Δοκίμασε πιο δημοφιλές κομμάτι για πλήρες set.',
+    backSearch: 'Πίσω στα αποτελέσματα',
     err_notfound: 'Δεν βρέθηκε το κομμάτι. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_nourl: 'Δεν μπόρεσα να διαβάσω τίτλο από αυτό το link. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_generic: 'Κάτι πήγε στραβά. Δοκίμασε ξανά.',
@@ -268,6 +458,44 @@ const EXAMPLES = [
   'Larry Heard - Can You Feel It',
 ];
 
+/* ---------- Camelot ---------- */
+function compat(c) {
+  const n = parseInt(c, 10), L = c.slice(-1), O = L === 'A' ? 'B' : 'A';
+  const up = (n % 12) + 1, down = ((n + 10) % 12) + 1, boost = ((n + 1) % 12) + 1;
+  return { same: c, smooth: [down + L, up + L], relative: n + O, boost: boost + L };
+}
+function compatSet(c) {
+  const x = compat(c);
+  return new Set([x.same, ...x.smooth, x.relative, x.boost]);
+}
+function wheelSVG(active) {
+  const cx = 115, cy = 115;
+  const pol = (r, a) => [cx + r * Math.sin(a * Math.PI / 180), cy - r * Math.cos(a * Math.PI / 180)];
+  const cmp = active ? compatSet(active) : new Set();
+  let out = '<svg class="wheel" viewBox="0 0 230 230" role="img" aria-label="Camelot wheel">';
+  const ring = (rO, rI, letter) => {
+    for (let n = 1; n <= 12; n++) {
+      const a = (n % 12) * 30, a0 = a - 15, a1 = a + 15;
+      const [x0, y0] = pol(rO, a0), [x1, y1] = pol(rO, a1), [x2, y2] = pol(rI, a1), [x3, y3] = pol(rI, a0);
+      const id = n + letter;
+      const cls = id === active ? 'seg act' : (cmp.has(id) ? 'seg cmp' : 'seg');
+      const [tx, ty] = pol((rO + rI) / 2, a);
+      out += `<path class="${cls}" d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${rO} ${rO} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} A${rI} ${rI} 0 0 0 ${x3.toFixed(1)} ${y3.toFixed(1)}Z"/>` +
+             `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}">${id}</text>`;
+    }
+  };
+  ring(112, 76, 'B');
+  ring(72, 38, 'A');
+  return out + '</svg>';
+}
+const bpmOf = (id) => (infoMap[id] && infoMap[id].bpm) || 0;
+function isMixable(tr) {
+  const s = data && data.seed && infoMap[data.seed.id];
+  const i = infoMap[tr.id];
+  if (!s || !s.camelot || !s.bpm || !i || !i.camelot || !i.bpm) return false;
+  return compatSet(s.camelot).has(i.camelot) && Math.abs(i.bpm - s.bpm) / s.bpm <= 0.06;
+}
+
 /* ---------- Γλώσσα ---------- */
 function initLang() {
   let saved = null;
@@ -280,8 +508,10 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
   document.querySelectorAll('.lang button').forEach((b) => b.classList.toggle('on', b.dataset.lang === lang));
+  $('#demoWheel').innerHTML = wheelSVG('8A');
   renderChips();
-  if (data && data.seed) render();
+  updateRoleChips();
+  rerender();
 }
 document.querySelector('.lang').addEventListener('click', (e) => {
   const b = e.target.closest('button');
@@ -291,7 +521,7 @@ document.querySelector('.lang').addEventListener('click', (e) => {
   applyLang();
 });
 
-/* ---------- Πρόσφατες αναζητήσεις ---------- */
+/* ---------- Πρόσφατες ---------- */
 function getRecent() {
   try { return JSON.parse(localStorage.getItem('houze_recent') || '[]'); } catch (_) { return []; }
 }
@@ -314,6 +544,121 @@ $('#chips').addEventListener('click', (e) => {
   doSearch();
 });
 
+/* ---------- Set builder ---------- */
+const SEC_KEY = { intro: 'secIntro', build: 'secBuild', peak: 'secPeak', outro: 'secOutro' };
+
+function rerender() {
+  if (mode === 'set' && setData) renderSet();
+  else if (data && data.seed) render();
+}
+function updateRoleChips() {
+  document.querySelectorAll('#setbar [data-role]').forEach((b) => b.classList.toggle('on', b.dataset.role === setRole));
+}
+$('#setbar').addEventListener('click', (e) => {
+  const r = e.target.closest('[data-role]');
+  if (r) { setRole = r.dataset.role; updateRoleChips(); return; }
+  if (e.target.closest('#setBtn')) runSet();
+});
+
+async function runSet() {
+  const q = $('#q').value.trim();
+  if (!q) { $('#q').focus(); return; }
+  audio.pause(); playingId = null;
+  $('#setBtn').disabled = true; $('#btn').disabled = true;
+  $('#out').innerHTML = '';
+  $('#landing').classList.add('hidden');
+  setStatus(t('setBuilding'));
+  try {
+    const r = await fetch('/api/set?' + new URLSearchParams({ q, role: setRole }));
+    const d = await r.json();
+    if (d.error) { setStatus(I18N[lang]['err_' + d.code] || I18N[lang].err_generic, true); return; }
+    setStatus('');
+    addRecent(q); renderChips();
+    setData = d; mode = 'set';
+    renderSet();
+  } catch (err) {
+    setStatus(t('err_conn') + err.message, true);
+  } finally {
+    $('#setBtn').disabled = false; $('#btn').disabled = false;
+  }
+}
+
+function setStarts(items) {
+  let t0 = 0;
+  return items.map((x, i) => { const s = t0; t0 += (x.duration || 0) - (i < items.length - 1 ? 60 : 0); return s; });
+}
+function curveSVG(items) {
+  const pts = items.map((x, i) => ({ i, bpm: x.bpm })).filter((p) => p.bpm);
+  if (pts.length < 3) return '';
+  const W = 600, H = 90, pad = 24;
+  const min = Math.min(...pts.map((p) => p.bpm)), max = Math.max(...pts.map((p) => p.bpm));
+  const rng = Math.max(1, max - min);
+  const X = (i) => pad + (W - 2 * pad) * (items.length === 1 ? 0 : i / (items.length - 1));
+  const Y = (b) => H - 22 - (H - 44) * ((b - min) / rng);
+  const line = pts.map((p, k) => `${k ? 'L' : 'M'}${X(p.i).toFixed(1)} ${Y(p.bpm).toFixed(1)}`).join(' ');
+  const dots = pts.map((p) =>
+    `<circle class="dot${items[p.i].isSeed ? ' s' : ''}" cx="${X(p.i).toFixed(1)}" cy="${Y(p.bpm).toFixed(1)}" r="3.5"/>` +
+    `<text x="${X(p.i).toFixed(1)}" y="${(Y(p.bpm) - 9).toFixed(1)}">${Math.round(p.bpm)}</text>`).join('');
+  return `<svg class="curve" viewBox="0 0 ${W} ${H}" role="img" aria-label="BPM"><path class="ln" d="${line}"/>${dots}</svg>`;
+}
+function transText(x) {
+  const tr = x.transition;
+  if (!tr) return '';
+  const parts = [];
+  if (tr.bpmPct !== null && tr.bpmPct !== undefined) parts.push((tr.bpmPct > 0 ? '+' : '') + tr.bpmPct + '% BPM');
+  let k = t('rel_' + tr.key);
+  if (tr.from && tr.to && tr.key !== 'unknown') k += ` (${tr.from} → ${tr.to})`;
+  parts.push(k);
+  parts.push(`${t('blend')} ${x.section === 'peak' ? 16 : 32} ${t('bars')}`);
+  return '↳ ' + parts.join(' · ');
+}
+function setRow(x, i, start) {
+  const bits = [];
+  if (x.bpm) bits.push(`<b>${Math.round(x.bpm)}</b> ${esc(t('bpmWord'))}`);
+  if (x.camelot) bits.push(`<b>${esc(x.camelot)}</b>`);
+  if (x.key) bits.push(esc(x.key));
+  bits.push(`${esc(t('inAt'))} ${fmtDur(start) || '0:00'}`);
+  return `<div class="row${x.isSeed ? ' isseed' : ''}">
+    <div class="n">${String(i + 1).padStart(2, '0')}</div>
+    <img src="${esc(x.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <div class="meta"><div class="t">${esc(x.title)}${x.isSeed ? ` <span class="mixtag">${esc(t('yourTrack'))}</span>` : ''}</div><div class="a">${esc(x.artist)}</div><div class="bk">${bits.join(' · ')}</div></div>
+    <div class="dur">${fmtDur(x.duration)}</div>
+    <div class="links">${playBtn(x)}${links(x)}</div>
+  </div>`;
+}
+function renderSet() {
+  const d = setData, items = d.set || [];
+  const starts = setStarts(items);
+  const mins = Math.round((d.mixedSec || 0) / 60);
+  let html = `<div class="setmeta"><div><h3>${esc(t('setTitle'))}</h3>
+    <div class="sub2">${items.length} ${esc(t('setMeta'))} · ${esc(t('setApprox'))} ${mins} ${esc(t('setMin'))}</div></div>
+    <button type="button" class="copybtn" id="copySet">${esc(t('copySet'))}</button></div>`;
+  html += curveSVG(items);
+  let prevSec = '';
+  items.forEach((x, i) => {
+    if (x.section !== prevSec) { html += `<div class="sec">${esc(t(SEC_KEY[x.section]))}</div>`; prevSec = x.section; }
+    if (x.transition) html += `<div class="trans${x.transition.key === 'clash' ? ' clash' : ''}">${esc(transText(x))}</div>`;
+    html += setRow(x, i, starts[i]);
+  });
+  if (!d.bpmUsed) html += `<div class="note">${esc(t('noBpmSet'))}</div>`;
+  if (items.length < 10) html += `<div class="note">${esc(t('shortSet'))}</div>`;
+  $('#out').innerHTML = html;
+}
+function copySet() {
+  const items = setData.set, starts = setStarts(items);
+  const text = items.map((x, i) =>
+    `${String(i + 1).padStart(2, '0')} [${fmtDur(starts[i]) || '0:00'}] ${x.artist} - ${x.title}` +
+    (x.bpm ? ` (${Math.round(x.bpm)} BPM${x.camelot ? ', ' + x.camelot : ''})` : '')).join('\n');
+  const done = () => {
+    const b = $('#copySet');
+    if (!b) return;
+    b.textContent = t('copied');
+    setTimeout(() => { const bb = $('#copySet'); if (bb) bb.textContent = t('copySet'); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else done();
+}
+
 /* ---------- Αναζήτηση ---------- */
 $('#f').addEventListener('submit', (e) => { e.preventDefault(); doSearch(); });
 
@@ -321,9 +666,11 @@ async function doSearch() {
   const q = $('#q').value.trim();
   if (!q) return;
   audio.pause(); playingId = null;
+  mode = 'search'; setData = null;
   $('#btn').disabled = true;
   $('#out').innerHTML = '';
   $('#landing').classList.add('hidden');
+  infoMap = {}; requested = new Set(); onlyMix = false;
   setStatus(t('searching'));
   try {
     const params = new URLSearchParams({ q, min: String(MIN_SECONDS), house: '1' });
@@ -334,14 +681,37 @@ async function doSearch() {
       return;
     }
     setStatus('');
+    bpmEnabled = !!data.bpmEnabled;
     addRecent(q); renderChips();
     tab = data.similar && data.similar.length ? 'similar' : (data.versions.length ? 'versions' : 'sameArtist');
     render();
+    loadInfo();
   } catch (err) {
     setStatus(t('err_conn') + err.message, true);
   } finally {
     $('#btn').disabled = false;
   }
+}
+
+// BPM + tonality φορτώνουν μετά, για να μην καθυστερεί η αναζήτηση
+async function loadInfo() {
+  if (!data || !data.seed || !bpmEnabled) return;
+  const visible = [data.seed, ...(data[tab] || []).slice(0, 18)];
+  const need = visible.filter((x) => !requested.has(x.id));
+  if (!need.length) return;
+  need.forEach((x) => requested.add(x.id));
+  try {
+    const r = await fetch('/api/info', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tracks: need.map((x) => ({ id: x.id, artist: x.artist, title: x.title })) }),
+    });
+    const d = await r.json();
+    bpmEnabled = !!d.enabled;
+    Object.assign(infoMap, d.info || {});
+    need.forEach((x) => { if (!infoMap[x.id]) infoMap[x.id] = { none: true }; });
+    if (mode === 'search') render();
+  } catch (_) {}
 }
 
 const fmtDur = (s) => (s ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') : '');
@@ -368,13 +738,64 @@ function playBtn(tr) {
   const on = playingId == tr.id;
   return `<button class="play${on ? ' on' : ''}" data-id="${esc(tr.id)}" data-src="${esc(tr.preview)}">${on ? '❚❚' : '▶'}</button>`;
 }
+function bkLine(tr, withTag) {
+  const i = infoMap[tr.id];
+  if (!i || i.none) return '';
+  const parts = [];
+  if (i.bpm) parts.push(`<b>${Math.round(i.bpm)}</b> ${esc(t('bpmWord'))}`);
+  if (i.camelot) parts.push(`<b>${esc(i.camelot)}</b>`);
+  if (i.key) parts.push(esc(i.key));
+  if (withTag && isMixable(tr)) parts.push('<span class="mixtag">MIX</span>');
+  return parts.join(' · ');
+}
 function row(tr, i) {
   return `<div class="row">
     <div class="n">${String(i + 1).padStart(2, '0')}</div>
     <img src="${esc(tr.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-    <div class="meta"><div class="t">${esc(tr.title)}</div><div class="a">${esc(tr.artist)}</div></div>
+    <div class="meta"><div class="t">${esc(tr.title)}</div><div class="a">${esc(tr.artist)}</div><div class="bk">${bkLine(tr, true)}</div></div>
     <div class="dur">${fmtDur(tr.duration)}</div>
     <div class="links">${playBtn(tr)}${links(tr)}</div>
+  </div>`;
+}
+
+function setsLinks(s) {
+  const q = encodeURIComponent(s.artist + ' ' + baseOf(s.title));
+  return `<a href="https://www.youtube.com/results?search_query=${q}%20dj%20set" target="_blank" rel="noopener">YouTube</a>` +
+         `<a href="https://www.mixcloud.com/search/?mixcloud_query=${q}" target="_blank" rel="noopener">Mixcloud</a>` +
+         `<a href="https://soundcloud.com/search?q=${q}%20dj%20set" target="_blank" rel="noopener">SoundCloud</a>`;
+}
+const baseOf = (s) => String(s || '').replace(/[\(\[].*?[\)\]]/g, '').replace(/\s+/g, ' ').trim();
+
+function mixPanel() {
+  const s = data.seed, i = infoMap[s.id];
+  const head = `<h3>${esc(t('mixTitle'))}</h3>`;
+  let body;
+  if (!bpmEnabled) {
+    body = `<div class="mixhint">${esc(t('noBpm'))}</div>`;
+  } else if (!i) {
+    body = '<div class="mixhint">…</div>';
+  } else if (i.none || !i.camelot) {
+    body = `<div class="mixhint">${esc(t('noBpmFound'))}</div>`;
+    if (i.bpm) body = `<div class="mixrows"><div class="mixrow"><span>${esc(t('rBpm'))}</span><div><b>${Math.round(i.bpm)}</b></div></div></div>` + body;
+  } else {
+    const c = compat(i.camelot);
+    const lo = Math.round(i.bpm * 0.94), hi = Math.round(i.bpm * 1.06);
+    body = `<div class="mixrows">
+      <div class="mixrow"><span>${esc(t('rBpm'))}</span><div><b>${Math.round(i.bpm)}</b> ${esc(t('bpmWord'))} <span style="color:var(--mute)">· ${lo}–${hi} (${esc(t('pitch'))})</span></div></div>
+      <div class="mixrow"><span>${esc(t('rKey'))}</span><div><b>${esc(i.camelot)}</b> <span style="color:var(--mute)">· ${esc(i.key)}</span></div></div>
+      <div class="mixrow"><span>${esc(t('rSame'))}</span><div><b>${c.same}</b></div></div>
+      <div class="mixrow"><span>${esc(t('rSmooth'))}</span><div><b>${c.smooth.join(' · ')}</b></div></div>
+      <div class="mixrow"><span>${esc(t('rRel'))}</span><div><b>${c.relative}</b></div></div>
+      <div class="mixrow"><span>${esc(t('rBoost'))}</span><div><b>${c.boost}</b></div></div>
+    </div>
+    <div class="mixactions"><button class="toggle${onlyMix ? ' on' : ''}" id="mixToggle">${esc(t('onlyMix'))}</button></div>
+    <div class="mixhint">${esc(t('mixHint'))}</div>`;
+  }
+  return `<div class="mixpanel">
+    <div>${wheelSVG(i && i.camelot)}</div>
+    <div>${head}${body}
+      <div class="mixactions" style="margin-top:18px"><span class="k">${esc(t('setsLbl'))}</span><span class="setlinks">${setsLinks(s)}</span></div>
+    </div>
   </div>`;
 }
 
@@ -383,29 +804,34 @@ function render() {
   let html = `<div class="seed">
     <img src="${esc(s.cover || '')}" alt="">
     <div style="min-width:0"><div class="k">${esc(t('found'))}</div>
-      <div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)} ${s.duration ? '· ' + fmtDur(s.duration) : ''}</div></div>
+      <div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)} ${s.duration ? '· ' + fmtDur(s.duration) : ''}</div>
+      <div class="bk">${bkLine(s, false)}</div></div>
     ${playBtn(s)}
   </div>`;
+  html += mixPanel();
   html += '<div class="tabs">' + ['similar', 'versions', 'sameArtist'].map((k) =>
     `<button class="tab${tab === k ? ' on' : ''}" data-tab="${k}">${esc(t('tabs')[k])}<small>${(data[k] || []).length}</small></button>`).join('') + '</div>';
-  const list = data[tab] || [];
+  let list = data[tab] || [];
+  if (onlyMix) list = list.filter(isMixable);
   html += '<div class="list">' + (list.length ? list.map(row).join('') : `<div class="empty">${esc(t('empty'))}</div>`) + '</div>';
   if (tab === 'similar' && !data.houseFilter) html += `<div class="note">${esc(t('noHouse'))}</div>`;
   $('#out').innerHTML = html;
 }
 
 $('#out').addEventListener('click', (e) => {
+  if (e.target.closest('#copySet')) { copySet(); return; }
   const tb = e.target.closest('.tab');
-  if (tb) { tab = tb.dataset.tab; render(); return; }
+  if (tb) { tab = tb.dataset.tab; render(); loadInfo(); return; }
+  if (e.target.closest('#mixToggle')) { onlyMix = !onlyMix; render(); return; }
   const pb = e.target.closest('.play');
   if (pb) {
     const id = pb.dataset.id;
     if (playingId == id) { audio.pause(); playingId = null; }
     else { audio.src = pb.dataset.src; audio.play(); playingId = id; }
-    render();
+    rerender();
   }
 });
-audio.addEventListener('ended', () => { playingId = null; if (data) render(); });
+audio.addEventListener('ended', () => { playingId = null; rerender(); });
 
 initLang();
 </script>

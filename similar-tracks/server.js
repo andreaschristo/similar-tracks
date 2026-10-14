@@ -8,6 +8,7 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 const LASTFM = process.env.LASTFM_API_KEY || '';
+const DISCOGS = (process.env.DISCOGS_TOKEN || '').trim(); // Discogs: προσωπικό token (discogs.com/settings/developers)
 const GSB = process.env.GETSONGBPM_API_KEY || ''; // BPM + tonality (getsongbpm.com)
 const UA = 'SimilarTracksApp/1.0 (personal project)';
 const enc = encodeURIComponent;
@@ -78,7 +79,7 @@ function parseTitleString(s) {
   let m;
   if ((m = s.match(/^(.+?)\s+[-–—]\s+(.+)$/))) return { artist: m[1].trim(), title: m[2].trim() };
   if ((m = s.match(/^(.+?),\s*by\s+(.+)$/i))) return { artist: m[2].trim(), title: m[1].trim() };
-  if ((m = s.match(/^(.+)\s+by\s+(.+?)(?:\s+on\s+(?:Beatport|Bandcamp|SoundCloud).*)?$/i)))
+  if ((m = s.match(/^(.+)\s+by\s+(.+?)(?:\s+on\s+(?:Beatport|Bandcamp|SoundCloud|Traxsource|Juno).*)?$/i)))
     return { artist: m[2].trim(), title: m[1].trim() };
   return { artist: '', title: s };
 }
@@ -116,7 +117,10 @@ async function resolveUrl(u) {
       || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
     const t = (og && og[1]) || (html.match(/<title[^>]*>([^<]+)<\/title>/i) || [])[1];
     if (!t) throw new Error('no title');
-    const decoded = t.replace(/&amp;/g, '&').replace(/&#39;|&#x27;/g, "'").replace(/&quot;/g, '"');
+    const decoded = t.replace(/&amp;/g, '&').replace(/&#39;|&#x27;/g, "'").replace(/&quot;/g, '"')
+      .replace(/\s*\|\s*(?:Releases?|Discogs|Traxsource|Juno).*$/i, '')
+      .replace(/\s*[-–—|]\s*(?:Juno (?:Records|Download)|Traxsource|Discogs)\s*$/i, '')
+      .replace(/\s*\((?:\d+|vinyl|12"|cd)[^)]*\)\s*$/i, '');
     return parseTitleString(decoded);
   });
 
@@ -558,20 +562,85 @@ async function handleSet(q, role, minutes) {
   return { seed, role, minutes, wanted: N, bpmEnabled: !!(GSB || LASTFM), houseFilter: sim.houseFilter, ...built };
 }
 
+// ---------- Discogs: παλιά / σπάνια κομμάτια ίδιας εποχής και στυλ ----------
+async function dcGet(pathq) {
+  const r = await fetch('https://api.discogs.com' + pathq, {
+    headers: { 'User-Agent': UA, Authorization: 'Discogs token=' + DISCOGS },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!r.ok) throw new Error('discogs ' + r.status);
+  return r.json();
+}
+const HOUSE_STYLE = /house|garage|disco|acid|chicago|tribal|funk|soul|balearic|progressive|afro|latin|breakbeat|deep|tech/i;
+function dcSplit(title) {
+  const m = String(title || '').match(/^(.+?)\s+[-–]\s+(.+)$/);
+  return m ? { artist: m[1].replace(/\s*\(\d+\)$/, '').trim(), title: m[2].trim() } : { artist: '', title: String(title || '') };
+}
+async function discogsSimilar(seed) {
+  if (!DISCOGS || !seed || !seed.artist) return [];
+  return cached('dc:' + norm(seed.artist) + '|' + norm(baseTitle(seed.title)), async () => {
+    const q1 = new URLSearchParams({ type: 'release', artist: seed.artist, track: baseTitle(seed.title), per_page: '8' });
+    const base = ((await dcGet('/database/search?' + q1)).results || []);
+    let hits = base.filter((x) => (x.genre || []).includes('Electronic') || (x.style || []).some((s) => HOUSE_STYLE.test(s)));
+    if (!hits.length) hits = base;
+    const styleCount = {};
+    const years = [];
+    for (const h of hits) {
+      for (const s of h.style || []) if (HOUSE_STYLE.test(s)) styleCount[s] = (styleCount[s] || 0) + 1;
+      const y = Number(h.year); if (y > 1970) years.push(y);
+    }
+    const seedStyles = Object.keys(styleCount).sort((a, b) => styleCount[b] - styleCount[a]).slice(0, 3);
+    if (!seedStyles.length) return [];
+    years.sort((a, b) => a - b);
+    const year = years.length ? years[Math.floor(years.length / 2)] : 0;
+    const jobs = [];
+    const yrs = year ? [year - 1, year, year + 1] : [0];
+    for (const y of yrs) {
+      const p = { type: 'release', genre: 'Electronic', style: seedStyles[0], sort: 'have', sort_order: 'desc', per_page: '40' };
+      if (y) p.year = String(y);
+      jobs.push(dcGet('/database/search?' + new URLSearchParams(p)).then((d) => d.results || []).catch(() => []));
+    }
+    const all = (await Promise.all(jobs)).flat();
+    const seen = new Set([norm(seed.artist) + '|' + norm(baseTitle(seed.title))]);
+    const perArtist = {};
+    const out = [];
+    for (const x of all) {
+      const { artist, title } = dcSplit(x.title);
+      if (!artist || /various/i.test(artist)) continue;
+      const k = norm(artist) + '|' + norm(baseTitle(title));
+      const an = norm(artist);
+      if (seen.has(k) || (perArtist[an] || 0) >= 2) continue;
+      seen.add(k); perArtist[an] = (perArtist[an] || 0) + 1;
+      const xs = (x.style || []).filter((s) => HOUSE_STYLE.test(s));
+      const overlap = seedStyles.filter((s) => xs.includes(s)).length / seedStyles.length;
+      const dy = year && Number(x.year) ? Math.abs(Number(x.year) - year) : 5;
+      const pct = Math.max(5, Math.min(95, Math.round(25 + 40 * overlap + 30 * Math.max(0, 1 - dy / 6))));
+      out.push({
+        id: 'dc' + x.id, title, artist, year: x.year || '', label: ((x.label || [])[0] || '').replace(/\s*\(\d+\)$/, ''),
+        genre: (xs[0] || (x.style || [])[0] || '').toLowerCase(), cover: x.thumb || '', link: 'https://www.discogs.com' + (x.uri || ''),
+        preview: '', duration: 0, pct, have: (x.community && x.community.have) || 0, discogs: true,
+      });
+    }
+    out.sort((a, b) => b.pct - a.pct || b.have - a.have);
+    return out.slice(0, 40);
+  }, 6 * 3600e3);
+}
+
 async function handleSearch(q, opts) {
   const input = await resolveInput(q);
   const seed = await findSeed(input);
   if (!seed) {
     return { input, seed: null, code: 'notfound', error: 'Δεν βρέθηκε το τραγούδι στο Deezer. Δοκίμασε "Καλλιτέχνης - Τίτλος".' };
   }
-  const [sim, versions, same] = await Promise.all([
+  const [sim, versions, same, dc] = await Promise.all([
     similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
     findVersions(seed, input, opts).catch(() => []),
     sameArtist(seed, opts).catch(() => []),
+    discogsSimilar(seed).catch((e) => { console.log('discogs error', e.message); return []; }),
   ]);
   return {
     input, seed,
-    similar: sim.list, versions, sameArtist: same,
+    similar: sim.list, versions, sameArtist: same, discogs: dc, discogsEnabled: !!DISCOGS,
     lastfm: !!LASTFM, houseFilter: sim.houseFilter, minDur: opts.minDur, bpmEnabled: !!(GSB || LASTFM),
   };
 }

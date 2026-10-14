@@ -111,6 +111,23 @@
   .copybtn{border:1px solid var(--dim);background:transparent;color:var(--text);font:inherit;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:8px 12px;cursor:pointer;border-radius:0}
   .copybtn:hover{border-color:var(--text)}
 
+  /* Player */
+  .player{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#0a0a0a;border-top:1px solid var(--text);padding:12px 22px;display:none}
+  .player.on{display:block}
+  body.hasplayer{padding-bottom:84px}
+  .pin{max-width:980px;margin:0 auto;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:6px 16px;align-items:center}
+  .pin .play{width:34px;height:34px}
+  .ptitle{font:600 13px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pclose{border:0;background:transparent;color:var(--mute);font:inherit;font-size:16px;cursor:pointer;padding:0 4px}
+  .pclose:hover{color:var(--text)}
+  .pbar{grid-column:1 / -1;display:grid;grid-template-columns:40px 1fr 40px;gap:12px;align-items:center;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .pbar span:last-child{text-align:right}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer;margin:0}
+  input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--dim)}
+  input[type=range]::-moz-range-track{height:2px;background:var(--dim)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:14px;background:var(--text);border:0;border-radius:0;margin-top:-6px}
+  input[type=range]::-moz-range-thumb{width:10px;height:14px;background:var(--text);border:0;border-radius:0}
+
   .tabs{display:flex;gap:28px;flex-wrap:wrap;margin:30px 0 6px;border-bottom:1px solid var(--line)}
   .tab{padding:0 0 10px;border:0;border-bottom:1px solid transparent;margin-bottom:-1px;background:transparent;color:var(--mute);cursor:pointer;font:inherit;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
   .tab:hover{color:var(--text)}
@@ -224,6 +241,11 @@
           <button type="button" class="chip" data-role="peak" data-i18n="rolePeak"></button>
           <button type="button" class="chip" data-role="close" data-i18n="roleClose"></button>
         </span>
+        <span class="roles"><span class="k" data-i18n="lenLbl"></span>
+          <button type="button" class="chip" data-len="60">1h</button>
+          <button type="button" class="chip" data-len="90">1.5h</button>
+          <button type="button" class="chip" data-len="120">2h</button>
+        </span>
         <button type="button" class="setbtn" id="setBtn" data-i18n="setBtn"></button>
       </div>
       <div class="tags">
@@ -302,6 +324,14 @@
     <span><span data-i18n="footBpm"></span> <a href="https://getsongbpm.com" target="_blank" rel="noopener">GetSongBPM</a></span>
     <span data-i18n="footR"></span>
   </footer>
+  <div class="player" id="player" aria-label="Player">
+    <div class="pin">
+      <button type="button" class="play" id="pToggle">▶</button>
+      <div class="ptitle" id="pTitle"></div>
+      <button type="button" class="pclose" id="pClose" aria-label="Close">✕</button>
+      <div class="pbar"><span id="pCur">0:00</span><input type="range" id="pSeek" min="0" max="1000" value="0" step="1" aria-label="Seek"><span id="pDur">0:00</span></div>
+    </div>
+  </div>
   <audio id="audio"></audio>
 </div>
 
@@ -311,7 +341,7 @@ const audio = $('#audio');
 const MIN_SECONDS = 300; // μόνο extended (5:00+)
 let data = null, tab = 'similar', playingId = null, lang = 'en';
 let infoMap = {}, requested = new Set(), bpmEnabled = false, onlyMix = false;
-let mode = 'search', setData = null, setRole = 'peak';
+let mode = 'search', setData = null, setRole = 'peak', setLen = 120;
 
 const I18N = {
   en: {
@@ -364,8 +394,8 @@ const I18N = {
     onlyMix: 'Only tracks that mix', setsLbl: 'Hear it in DJ sets',
     mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
     bpmWord: 'BPM',
-    setLbl: 'Build a 1-hour set', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Peak', roleClose: 'Closer', setBtn: 'Build set',
-    setBuilding: 'building your set... this can take up to 30 seconds',
+    setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Peak', roleClose: 'Closer', setBtn: 'Build set',
+    setBuilding: 'building your set... a 2-hour set can take up to a minute',
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
     yourTrack: 'Your track', inAt: 'in at',
@@ -431,8 +461,8 @@ const I18N = {
     onlyMix: 'Μόνο όσα κάνουν mix', setsLbl: 'Άκουσέ το σε DJ sets',
     mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
     bpmWord: 'BPM',
-    setLbl: 'Φτιάξε set 1 ώρας', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Άνοιγμα', rolePeak: 'Peak', roleClose: 'Κλείσιμο', setBtn: 'Φτιάξε set',
-    setBuilding: 'φτιάχνω το set... μπορεί να πάρει έως 30 δευτερόλεπτα',
+    setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Άνοιγμα', rolePeak: 'Peak', roleClose: 'Κλείσιμο', setBtn: 'Φτιάξε set',
+    setBuilding: 'φτιάχνω το set... ένα set 2 ωρών μπορεί να πάρει έως ένα λεπτό',
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
     yourTrack: 'Το κομμάτι σου', inAt: 'μπαίνει στο',
@@ -553,23 +583,26 @@ function rerender() {
 }
 function updateRoleChips() {
   document.querySelectorAll('#setbar [data-role]').forEach((b) => b.classList.toggle('on', b.dataset.role === setRole));
+  document.querySelectorAll('#setbar [data-len]').forEach((b) => b.classList.toggle('on', Number(b.dataset.len) === setLen));
 }
 $('#setbar').addEventListener('click', (e) => {
   const r = e.target.closest('[data-role]');
   if (r) { setRole = r.dataset.role; updateRoleChips(); return; }
+  const l = e.target.closest('[data-len]');
+  if (l) { setLen = Number(l.dataset.len); updateRoleChips(); return; }
   if (e.target.closest('#setBtn')) runSet();
 });
 
 async function runSet() {
   const q = $('#q').value.trim();
   if (!q) { $('#q').focus(); return; }
-  audio.pause(); playingId = null;
+  hidePlayer();
   $('#setBtn').disabled = true; $('#btn').disabled = true;
   $('#out').innerHTML = '';
   $('#landing').classList.add('hidden');
   setStatus(t('setBuilding'));
   try {
-    const r = await fetch('/api/set?' + new URLSearchParams({ q, role: setRole }));
+    const r = await fetch('/api/set?' + new URLSearchParams({ q, role: setRole, len: String(setLen) }));
     const d = await r.json();
     if (d.error) { setStatus(I18N[lang]['err_' + d.code] || I18N[lang].err_generic, true); return; }
     setStatus('');
@@ -583,6 +616,10 @@ async function runSet() {
   }
 }
 
+function fmtClock(s) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`;
+}
 function setStarts(items) {
   let t0 = 0;
   return items.map((x, i) => { const s = t0; t0 += (x.duration || 0) - (i < items.length - 1 ? 60 : 0); return s; });
@@ -617,7 +654,7 @@ function setRow(x, i, start) {
   if (x.bpm) bits.push(`<b>${Math.round(x.bpm)}</b> ${esc(t('bpmWord'))}`);
   if (x.camelot) bits.push(`<b>${esc(x.camelot)}</b>`);
   if (x.key) bits.push(esc(x.key));
-  bits.push(`${esc(t('inAt'))} ${fmtDur(start) || '0:00'}`);
+  bits.push(`${esc(t('inAt'))} ${fmtClock(start)}`);
   return `<div class="row${x.isSeed ? ' isseed' : ''}">
     <div class="n">${String(i + 1).padStart(2, '0')}</div>
     <img src="${esc(x.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
@@ -641,13 +678,13 @@ function renderSet() {
     html += setRow(x, i, starts[i]);
   });
   if (!d.bpmUsed) html += `<div class="note">${esc(t('noBpmSet'))}</div>`;
-  if (items.length < 10) html += `<div class="note">${esc(t('shortSet'))}</div>`;
+  if (items.length < (d.wanted || 10)) html += `<div class="note">${esc(t('shortSet'))}</div>`;
   $('#out').innerHTML = html;
 }
 function copySet() {
   const items = setData.set, starts = setStarts(items);
   const text = items.map((x, i) =>
-    `${String(i + 1).padStart(2, '0')} [${fmtDur(starts[i]) || '0:00'}] ${x.artist} - ${x.title}` +
+    `${String(i + 1).padStart(2, '0')} [${fmtClock(starts[i])}] ${x.artist} - ${x.title}` +
     (x.bpm ? ` (${Math.round(x.bpm)} BPM${x.camelot ? ', ' + x.camelot : ''})` : '')).join('\n');
   const done = () => {
     const b = $('#copySet');
@@ -665,7 +702,7 @@ $('#f').addEventListener('submit', (e) => { e.preventDefault(); doSearch(); });
 async function doSearch() {
   const q = $('#q').value.trim();
   if (!q) return;
-  audio.pause(); playingId = null;
+  hidePlayer();
   mode = 'search'; setData = null;
   $('#btn').disabled = true;
   $('#out').innerHTML = '';
@@ -827,11 +864,56 @@ $('#out').addEventListener('click', (e) => {
   if (pb) {
     const id = pb.dataset.id;
     if (playingId == id) { audio.pause(); playingId = null; }
-    else { audio.src = pb.dataset.src; audio.play(); playingId = id; }
+    else {
+      if (currentId != id) { audio.src = pb.dataset.src; currentId = id; }
+      audio.play(); playingId = id;
+      const tr = findTrack(id);
+      if (tr) showPlayer(tr);
+    }
     rerender();
   }
 });
-audio.addEventListener('ended', () => { playingId = null; rerender(); });
+audio.addEventListener('ended', () => { playingId = null; syncPlayer(); rerender(); });
+
+/* ---------- Player με seek ---------- */
+let currentId = null;
+function findTrack(id) {
+  const pools = [data && data.seed];
+  if (data) pools.push(...(data.similar || []), ...(data.versions || []), ...(data.sameArtist || []));
+  if (setData) pools.push(...(setData.set || []));
+  return pools.find((x) => x && String(x.id) === String(id));
+}
+function fmtT(s) { return isFinite(s) ? Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0') : '0:00'; }
+function showPlayer(tr) {
+  $('#player').classList.add('on');
+  document.body.classList.add('hasplayer');
+  $('#pTitle').textContent = tr.artist + ' - ' + tr.title;
+}
+function hidePlayer() {
+  audio.pause(); playingId = null; currentId = null;
+  $('#player').classList.remove('on');
+  document.body.classList.remove('hasplayer');
+}
+function syncPlayer() {
+  $('#pToggle').textContent = audio.paused ? '▶' : '❚❚';
+  $('#pToggle').classList.toggle('on', !audio.paused);
+}
+audio.addEventListener('play', syncPlayer);
+audio.addEventListener('pause', syncPlayer);
+audio.addEventListener('loadedmetadata', () => { $('#pDur').textContent = fmtT(audio.duration); });
+audio.addEventListener('timeupdate', () => {
+  if (audio.duration) $('#pSeek').value = String(Math.round((audio.currentTime / audio.duration) * 1000));
+  $('#pCur').textContent = fmtT(audio.currentTime);
+});
+$('#pSeek').addEventListener('input', () => {
+  if (audio.duration) audio.currentTime = ($('#pSeek').value / 1000) * audio.duration;
+});
+$('#pToggle').addEventListener('click', () => {
+  if (!currentId) return;
+  if (audio.paused) { audio.play(); playingId = currentId; } else { audio.pause(); playingId = null; }
+  syncPlayer(); rerender();
+});
+$('#pClose').addEventListener('click', () => { hidePlayer(); rerender(); });
 
 initLang();
 </script>

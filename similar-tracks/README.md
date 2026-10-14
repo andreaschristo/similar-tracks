@@ -1,46 +1,28 @@
-# Similar Tracks
+# HOUZE
 
-Γράφεις τίτλο ή βάζεις link (YouTube, SoundCloud, Spotify, Beatport, Bandcamp) και βλέπεις:
+Track finder for house DJs: paste a title or a link, get extended tracks (5:00+) that mix well, with BPM, key and a two-deck practice mixer.
 
-- **Παρόμοια**: τραγούδια με ίδιο vibe/στυλ
-- **Ίδιο κομμάτι / remixes**: άλλες εκδόσεις, remixes, edits
-- **Ίδιος καλλιτέχνης**: τα πιο δημοφιλή του καλλιτέχνη
+Styles (chips under the search box): All, Soulful house, House, Classic house, Deep house, Tech house.
 
-Κάθε αποτέλεσμα έχει preview 30" (όπου υπάρχει) και συνδέσμους αναζήτησης σε YouTube, SoundCloud, Beatport, Bandcamp και Spotify.
+Run locally: `node server.js` (Node 18+, no dependencies) → http://localhost:3000
 
-## Εκτέλεση στον υπολογιστή σου
+## Environment variables (Render → Environment)
 
-1. Εγκατάστησε το Node.js (έκδοση 18 ή νεότερη): https://nodejs.org
-2. Άνοιξε τερματικό μέσα στον φάκελο και τρέξε:
+| Name | What it does |
+|---|---|
+| `LASTFM_API_KEY` | similar tracks, genre tags (soulful / house / classic / deep / tech), match % |
+| `YOUTUBE_API_KEY` | full-track playback in the bottom player |
+| `GETSONGBPM_API_KEY` | BPM, key and Camelot (also used as the BPM hint for the mixer) |
+| `DISCOGS_TOKEN` | "Discogs · same era" tab (older / rarer releases) |
+| `AI_BLOCKLIST` | optional, comma-separated artist names to hide (AI music) |
 
-   ```
-   node server.js
-   ```
-3. Πήγαινε στο http://localhost:3000
+## Files
 
-Δεν χρειάζεται `npm install`, δεν υπάρχουν εξαρτήσεις.
+- `server.js` — API + static server (put in the repo folder `similar-tracks`)
+- `public/index.html` — the whole site (put in `similar-tracks/public`)
+- `package.json`
 
-## Καλύτερες προτάσεις με Last.fm (προαιρετικό, δωρεάν)
+## Notes
 
-1. Φτιάξε API key στο https://www.last.fm/api/account/create
-2. Τρέξε:
-
-   - Mac/Linux: `LASTFM_API_KEY=το_κλειδί_σου node server.js`
-   - Windows (PowerShell): `$env:LASTFM_API_KEY="το_κλειδί_σου"; node server.js`
-
-Χωρίς key, οι προτάσεις βγαίνουν από τους «σχετικούς καλλιτέχνες» του Deezer, που δουλεύει αλλά είναι λιγότερο ακριβές για underground ηλεκτρονική.
-
-## Ανέβασμα online
-
-Δουλεύει σε οποιαδήποτε υπηρεσία που τρέχει Node (π.χ. Render, Railway, Fly.io). Start command: `node server.js`. Πρόσθεσε το `LASTFM_API_KEY` ως environment variable.
-
-## Πώς δουλεύει
-
-- Τα links αναγνωρίζονται με oEmbed (YouTube, SoundCloud), Odesli/song.link (Spotify κ.ά.) και ανάγνωση του τίτλου της σελίδας (Beatport, Bandcamp).
-- Το κομμάτι αναζητείται στο Deezer, που δίνει καλύμματα, previews και σχετικούς καλλιτέχνες χωρίς key.
-- Αν υπάρχει Last.fm key, προστίθενται προτάσεις βάσει του τι ακούνε οι ίδιοι ακροατές.
-
-## Περιορισμοί
-
-- Το Deezer δεν έχει ολόκληρο το underground κατάλογο (π.χ. κομμάτια που υπάρχουν μόνο σε Bandcamp/SoundCloud). Σε αυτή την περίπτωση γράψε «Καλλιτέχνης - Τίτλος» ή δοκίμασε ένα πιο γνωστό κομμάτι του ίδιου καλλιτέχνη.
-- Οι προτάσεις βασίζονται σε metadata και συμπεριφορά ακροατών, όχι σε ανάλυση του ήχου.
+- Render free plan sleeps when idle; first load can take ~1 minute.
+- When the site is renamed or a domain is bought, update: Render service name / custom domain, the Last.fm application homepage, the GetSongBPM backlink, the footer.

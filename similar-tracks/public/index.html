@@ -114,6 +114,7 @@
   /* Player */
   .player{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#0a0a0a;border-top:1px solid var(--text);padding:12px 22px;display:none}
   .player.on{display:block}
+.pvid{position:absolute;right:12px;bottom:calc(100% + 8px);width:200px;height:113px;background:#000;border:1px solid #333;display:none}.pvid.on{display:block}
   body.hasplayer{padding-bottom:84px}
   .pin{max-width:980px;margin:0 auto;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:6px 16px;align-items:center}
   .pin .play{width:34px;height:34px}
@@ -326,6 +327,7 @@
   </footer>
   <div class="player" id="player" aria-label="Player">
     <div class="pin">
+      <div class="pvid" id="pvid"><div id="ytp"></div></div>
       <button type="button" class="play" id="pToggle">▶</button>
       <div class="ptitle" id="pTitle"></div>
       <button type="button" class="pclose" id="pClose" aria-label="Close">✕</button>
@@ -863,20 +865,17 @@ $('#out').addEventListener('click', (e) => {
   const pb = e.target.closest('.play');
   if (pb) {
     const id = pb.dataset.id;
-    if (playingId == id) { audio.pause(); playingId = null; }
+    if (playingId == id) { pauseP(); }
+    else if (currentId == id) { playP(); }
     else {
-      if (currentId != id) { audio.src = pb.dataset.src; currentId = id; }
-      audio.play(); playingId = id;
       const tr = findTrack(id);
-      if (tr) showPlayer(tr);
+      loadTrack(id, pb.dataset.src, tr);
     }
-    rerender();
   }
 });
-audio.addEventListener('ended', () => { playingId = null; syncPlayer(); rerender(); });
 
-/* ---------- Player με seek ---------- */
-let currentId = null;
+/* ---------- Player: πλήρες κομμάτι (YouTube) + seek, fallback 30s ---------- */
+let currentId = null, mode2 = 'audio', yt = null, ytReady = false, ytQueue = null, tick = null, loadTok = 0;
 function findTrack(id) {
   const pools = [data && data.seed];
   if (data) pools.push(...(data.similar || []), ...(data.versions || []), ...(data.sameArtist || []));
@@ -887,31 +886,116 @@ function fmtT(s) { return isFinite(s) ? Math.floor(s / 60) + ':' + String(Math.f
 function showPlayer(tr) {
   $('#player').classList.add('on');
   document.body.classList.add('hasplayer');
-  $('#pTitle').textContent = tr.artist + ' - ' + tr.title;
+  $('#pTitle').textContent = tr ? tr.artist + ' - ' + tr.title : '';
 }
 function hidePlayer() {
-  audio.pause(); playingId = null; currentId = null;
+  loadTok++;
+  audio.pause();
+  try { if (yt && yt.pauseVideo) yt.pauseVideo(); } catch (_) {}
+  playingId = null; currentId = null;
+  $('#pvid').classList.remove('on');
   $('#player').classList.remove('on');
   document.body.classList.remove('hasplayer');
 }
-function syncPlayer() {
-  $('#pToggle').textContent = audio.paused ? '▶' : '❚❚';
-  $('#pToggle').classList.toggle('on', !audio.paused);
+function loadYT() {
+  if (window.YT && window.YT.Player) { initYT(); return; }
+  if (document.getElementById('ytapi')) return;
+  const sc = document.createElement('script');
+  sc.id = 'ytapi'; sc.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(sc);
+  window.onYouTubeIframeAPIReady = initYT;
 }
-audio.addEventListener('play', syncPlayer);
-audio.addEventListener('pause', syncPlayer);
+function initYT() {
+  if (yt) return;
+  yt = new YT.Player('ytp', {
+    width: '200', height: '113',
+    playerVars: { playsinline: 1, controls: 0, rel: 0, modestbranding: 1 },
+    events: {
+      onReady: () => { ytReady = true; if (ytQueue) { const v = ytQueue; ytQueue = null; yt.loadVideoById(v); } },
+      onStateChange: (e) => {
+        if (mode2 !== 'yt') return;
+        if (e.data === 1) { playingId = currentId; startTick(); }
+        else if (e.data === 2) { playingId = null; }
+        else if (e.data === 0) { playingId = null; }
+        syncPlayer(); rerender();
+      },
+      onError: () => { fallbackAudio(); },
+    },
+  });
+}
+function startTick() {
+  clearInterval(tick);
+  tick = setInterval(() => {
+    if (mode2 !== 'yt' || !yt || !yt.getDuration) return;
+    const d = yt.getDuration(), c = yt.getCurrentTime();
+    if (d) { $('#pSeek').value = String(Math.round((c / d) * 1000)); $('#pDur').textContent = fmtT(d); }
+    $('#pCur').textContent = fmtT(c);
+  }, 400);
+}
+let fbSrc = '';
+function fallbackAudio() {
+  mode2 = 'audio';
+  $('#pvid').classList.remove('on');
+  try { if (yt && yt.pauseVideo) yt.pauseVideo(); } catch (_) {}
+  if (fbSrc) { audio.src = fbSrc; audio.play(); playingId = currentId; }
+  syncPlayer(); rerender();
+}
+async function loadTrack(id, src, tr) {
+  const tok = ++loadTok;
+  audio.pause();
+  try { if (yt && yt.pauseVideo) yt.pauseVideo(); } catch (_) {}
+  currentId = id; fbSrc = src || ''; playingId = id;
+  $('#pSeek').value = '0'; $('#pCur').textContent = '0:00'; $('#pDur').textContent = '0:00';
+  showPlayer(tr); rerender();
+  let vid = null;
+  try {
+    const r = await fetch('/api/yt?artist=' + encodeURIComponent(tr ? tr.artist : '') + '&title=' + encodeURIComponent(tr ? tr.title : ''));
+    vid = (await r.json()).id;
+  } catch (_) {}
+  if (tok !== loadTok) return;
+  if (vid) {
+    mode2 = 'yt';
+    $('#pvid').classList.add('on');
+    loadYT();
+    if (ytReady && yt) yt.loadVideoById(vid); else ytQueue = vid;
+  } else {
+    fallbackAudio();
+  }
+}
+function playP() {
+  if (mode2 === 'yt' && yt && ytReady) yt.playVideo(); else { audio.play(); playingId = currentId; }
+  playingId = currentId; syncPlayer(); rerender();
+}
+function pauseP() {
+  if (mode2 === 'yt' && yt && ytReady) yt.pauseVideo(); else audio.pause();
+  playingId = null; syncPlayer(); rerender();
+}
+function isPlaying() {
+  if (mode2 === 'yt') return !!playingId;
+  return !audio.paused;
+}
+function syncPlayer() {
+  const on = isPlaying();
+  $('#pToggle').textContent = on ? '❚❚' : '▶';
+  $('#pToggle').classList.toggle('on', on);
+}
+audio.addEventListener('ended', () => { playingId = null; syncPlayer(); rerender(); });
+audio.addEventListener('play', () => { if (mode2 === 'audio') syncPlayer(); });
+audio.addEventListener('pause', () => { if (mode2 === 'audio') syncPlayer(); });
 audio.addEventListener('loadedmetadata', () => { $('#pDur').textContent = fmtT(audio.duration); });
 audio.addEventListener('timeupdate', () => {
+  if (mode2 !== 'audio') return;
   if (audio.duration) $('#pSeek').value = String(Math.round((audio.currentTime / audio.duration) * 1000));
   $('#pCur').textContent = fmtT(audio.currentTime);
 });
 $('#pSeek').addEventListener('input', () => {
-  if (audio.duration) audio.currentTime = ($('#pSeek').value / 1000) * audio.duration;
+  const f = $('#pSeek').value / 1000;
+  if (mode2 === 'yt' && yt && yt.getDuration) yt.seekTo(f * yt.getDuration(), true);
+  else if (audio.duration) audio.currentTime = f * audio.duration;
 });
 $('#pToggle').addEventListener('click', () => {
   if (!currentId) return;
-  if (audio.paused) { audio.play(); playingId = currentId; } else { audio.pause(); playingId = null; }
-  syncPlayer(); rerender();
+  if (isPlaying()) pauseP(); else playP();
 });
 $('#pClose').addEventListener('click', () => { hidePlayer(); rerender(); });
 

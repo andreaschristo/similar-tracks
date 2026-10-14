@@ -316,8 +316,11 @@ async function artistPool(seed) {
 }
 
 const pctOf = (base, bonus) => Math.max(5, Math.min(99, Math.round((base + (bonus || 0) * 0.15) * 100)));
+const GENRE_KEYS = ['any', 'house', 'deep', 'tech', 'classic'];
+const GENRE_NAME = { deep: 'deep house', tech: 'tech house', classic: 'classic house' };
 async function similar(seed, opts) {
   const { minDur, house } = opts;
+  const wantGenre = GENRE_NAME[opts.genre] || '';
   const cap = opts.cap || 40;
   const useHouse = house && !!LASTFM;
 
@@ -368,10 +371,19 @@ async function similar(seed, opts) {
     seen.add(k);
     perArtist[a] = (perArtist[a] || 0) + 1;
     out.push(t);
-    if (out.length >= cap) break;
+    if (out.length >= (wantGenre && LASTFM ? Math.max(cap, 70) : cap)) break;
   }
   out.sort((a, b) => (b.pct || 0) - (a.pct || 0));
-  return { list: out, houseFilter: useHouse };
+  if (wantGenre && LASTFM) {
+    // Συγκεκριμένο στυλ: κρατάμε μόνο ό,τι έχει αυτό το tag· αν βγουν λίγα, συμπληρώνουμε με «απλό house»
+    await pmap(out, async (x) => { x.genre = await genreOf(x.artist, x.title); }, 5, 200);
+    const exact = out.filter((x) => x.genre === wantGenre);
+    const generic = out.filter((x) => x.genre === 'house' || x.genre === '');
+    const list = exact.length >= 10 ? exact : exact.concat(generic).slice(0, Math.max(exact.length, 12));
+    list.sort((a, b) => (b.pct || 0) - (a.pct || 0));
+    return { list: list.slice(0, cap), houseFilter: useHouse };
+  }
+  return { list: out.slice(0, cap), houseFilter: useHouse };
 }
 
 // ---------- BPM + tonality (GetSongBPM) ----------
@@ -544,13 +556,13 @@ async function buildSet(seed, pool, role, N = 10) {
 }
 
 // ---------- API ----------
-async function handleSet(q, role, minutes) {
+async function handleSet(q, role, minutes, genre) {
   const input = await resolveInput(q);
   const seed = await findSeed(input);
   if (!seed) return { error: 'Δεν βρέθηκε το τραγούδι στο Deezer.', code: 'notfound' };
   const N = Math.max(6, Math.min(24, Math.round(minutes / 6))); // ~6 λεπτά ανά κομμάτι: 60'→10, 90'→15, 120'→20
   const big = N > 12;
-  const opts = { minDur: 300, house: true, cap: big ? 70 : 40 };
+  const opts = { minDur: 300, house: genre !== 'any', genre, cap: big ? 70 : 40 };
   const [sim, same] = await Promise.all([
     similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
     sameArtist(seed, opts).catch(() => []),
@@ -576,27 +588,31 @@ function dcSplit(title) {
   const m = String(title || '').match(/^(.+?)\s+[-–]\s+(.+)$/);
   return m ? { artist: m[1].replace(/\s*\(\d+\)$/, '').trim(), title: m[2].trim() } : { artist: '', title: String(title || '') };
 }
-async function discogsSimilar(seed) {
+const DC_STYLE = { deep: 'Deep House', tech: 'Tech House', classic: 'Garage House' };
+async function discogsSimilar(seed, genre) {
   if (!DISCOGS || !seed || !seed.artist) return [];
-  return cached('dc:' + norm(seed.artist) + '|' + norm(baseTitle(seed.title)), async () => {
+  const any = genre === 'any';
+  return cached('dc:' + (genre || 'house') + ':' + norm(seed.artist) + '|' + norm(baseTitle(seed.title)), async () => {
     const q1 = new URLSearchParams({ type: 'release', artist: seed.artist, track: baseTitle(seed.title), per_page: '8' });
     const base = ((await dcGet('/database/search?' + q1)).results || []);
-    let hits = base.filter((x) => (x.genre || []).includes('Electronic') || (x.style || []).some((s) => HOUSE_STYLE.test(s)));
+    let hits = any ? base : base.filter((x) => (x.genre || []).includes('Electronic') || (x.style || []).some((s) => HOUSE_STYLE.test(s)));
     if (!hits.length) hits = base;
     const styleCount = {};
     const years = [];
     for (const h of hits) {
-      for (const s of h.style || []) if (HOUSE_STYLE.test(s)) styleCount[s] = (styleCount[s] || 0) + 1;
+      for (const s of h.style || []) if (any || HOUSE_STYLE.test(s)) styleCount[s] = (styleCount[s] || 0) + 1;
       const y = Number(h.year); if (y > 1970) years.push(y);
     }
-    const seedStyles = Object.keys(styleCount).sort((a, b) => styleCount[b] - styleCount[a]).slice(0, 3);
+    let seedStyles = Object.keys(styleCount).sort((a, b) => styleCount[b] - styleCount[a]).slice(0, 3);
+    if (DC_STYLE[genre]) seedStyles = [DC_STYLE[genre]];
+    const dcGenre = any ? ((hits[0] && (hits[0].genre || [])[0]) || 'Electronic') : 'Electronic';
     if (!seedStyles.length) return [];
     years.sort((a, b) => a - b);
     const year = years.length ? years[Math.floor(years.length / 2)] : 0;
     const jobs = [];
     const yrs = year ? [year - 1, year, year + 1] : [0];
     for (const y of yrs) {
-      const p = { type: 'release', genre: 'Electronic', style: seedStyles[0], sort: 'have', sort_order: 'desc', per_page: '40' };
+      const p = { type: 'release', genre: dcGenre, style: seedStyles[0], sort: 'have', sort_order: 'desc', per_page: '40' };
       if (y) p.year = String(y);
       jobs.push(dcGet('/database/search?' + new URLSearchParams(p)).then((d) => d.results || []).catch(() => []));
     }
@@ -611,7 +627,7 @@ async function discogsSimilar(seed) {
       const an = norm(artist);
       if (seen.has(k) || (perArtist[an] || 0) >= 2) continue;
       seen.add(k); perArtist[an] = (perArtist[an] || 0) + 1;
-      const xs = (x.style || []).filter((s) => HOUSE_STYLE.test(s));
+      const xs = (x.style || []).filter((s) => any || HOUSE_STYLE.test(s));
       const overlap = seedStyles.filter((s) => xs.includes(s)).length / seedStyles.length;
       const dy = year && Number(x.year) ? Math.abs(Number(x.year) - year) : 5;
       const pct = Math.max(5, Math.min(95, Math.round(25 + 40 * overlap + 30 * Math.max(0, 1 - dy / 6))));
@@ -636,12 +652,12 @@ async function handleSearch(q, opts) {
     similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
     findVersions(seed, input, opts).catch(() => []),
     sameArtist(seed, opts).catch(() => []),
-    discogsSimilar(seed).catch((e) => { console.log('discogs error', e.message); return []; }),
+    discogsSimilar(seed, opts.genre).catch((e) => { console.log('discogs error', e.message); return []; }),
   ]);
   return {
     input, seed,
     similar: sim.list, versions, sameArtist: same, discogs: dc, discogsEnabled: !!DISCOGS,
-    lastfm: !!LASTFM, houseFilter: sim.houseFilter, minDur: opts.minDur, bpmEnabled: !!(GSB || LASTFM),
+    lastfm: !!LASTFM, houseFilter: sim.houseFilter, genre: opts.genre, minDur: opts.minDur, bpmEnabled: !!(GSB || LASTFM),
   };
 }
 
@@ -736,7 +752,8 @@ const server = http.createServer(async (req, res) => {
     if (!q) { res.statusCode = 400; return res.end(JSON.stringify({ error: 'Γράψε τίτλο ή link.' })); }
     try {
       const minutes = [60, 90, 120].includes(Number(u.searchParams.get('len'))) ? Number(u.searchParams.get('len')) : 120;
-      return res.end(JSON.stringify(await handleSet(q, role, minutes)));
+      const g = GENRE_KEYS.includes(u.searchParams.get('genre')) ? u.searchParams.get('genre') : 'house';
+      return res.end(JSON.stringify(await handleSet(q, role, minutes, g)));
     } catch (e) {
       return res.end(JSON.stringify({ error: e.message || 'Κάτι πήγε στραβά.', code: e.code || 'generic' }));
     }
@@ -745,8 +762,9 @@ const server = http.createServer(async (req, res) => {
     const q = (u.searchParams.get('q') || '').trim();
     const opts = {
       minDur: Math.max(0, Number(u.searchParams.get('min') ?? 300) || 0),
-      house: u.searchParams.get('house') !== '0',
+      genre: GENRE_KEYS.includes(u.searchParams.get('genre')) ? u.searchParams.get('genre') : 'house',
     };
+    opts.house = opts.genre !== 'any' && u.searchParams.get('house') !== '0';
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     if (!q) { res.statusCode = 400; return res.end(JSON.stringify({ error: 'Γράψε τίτλο ή link.' })); }
     try {

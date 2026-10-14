@@ -525,8 +525,32 @@ async function handleSearch(q, opts) {
   };
 }
 
+/* ---------- Πλήρες κομμάτι: βρίσκει βίντεο στο YouTube ---------- */
+async function ytFind(artist, title) {
+  const q = `${artist} ${title}`.replace(/\s+/g, ' ').trim();
+  return cached('yt:' + q.toLowerCase(), async () => {
+    const r = await fetch('https://www.youtube.com/results?search_query=' + encodeURIComponent(q + ' extended') + '&hl=en', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'Accept-Language': 'en-US,en;q=0.9', Cookie: 'CONSENT=YES+1; SOCS=CAI' },
+      signal: AbortSignal.timeout(10000),
+    });
+    const html = await r.text();
+    const ids = [];
+    const re = /"videoId":"([\w-]{11})"/g;
+    let m;
+    while ((m = re.exec(html)) && ids.length < 5) if (!ids.includes(m[1])) ids.push(m[1]);
+    return ids[0] || null;
+  }, 7 * 864e5);
+}
+
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://localhost');
+  if (u.pathname === '/api/yt') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    try {
+      const id = await ytFind(u.searchParams.get('artist') || '', u.searchParams.get('title') || '');
+      return res.end(JSON.stringify({ id }));
+    } catch (_) { return res.end(JSON.stringify({ id: null })); }
+  }
   if (u.pathname === '/api/info' && req.method === 'POST') {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {

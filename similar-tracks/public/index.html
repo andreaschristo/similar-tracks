@@ -166,19 +166,29 @@
   .mx{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line)}
   .mx h4{margin:0 0 14px;font:700 10px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
   .decks{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .deck{border:1px solid var(--line);padding:14px}
+  .deck{border:1px solid var(--line);padding:14px;min-width:0}
+  .dhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .dhead>div:first-child{min-width:0}
   .deck .dn{font:700 10px var(--mono);letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
   .deck .dt{font:600 14px/1.3 var(--sans);margin:6px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .deck .da{font-size:11px;color:var(--mute);margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .deck .drow{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;margin-bottom:10px}
-  .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;margin-top:2px}
-  .deck label{font:10px var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin:10px 0 6px;display:flex;justify-content:space-between;align-items:center}
-  .deck label b{display:inline-block;min-width:54px;text-align:center;color:var(--text);font-weight:600}
+  .deck .da{font-size:11px;color:var(--mute);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dbpm{text-align:right;white-space:nowrap}
+  .dbpm b{font:600 26px var(--mono);letter-spacing:-.02em;display:block;line-height:1}
+  .dbpm span{font:700 9px var(--mono);letter-spacing:.2em;color:var(--mute)}
+  .dbpm small{display:block;font:9px var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+  .wave{width:100%;height:64px;display:block;background:rgba(255,255,255,.03);cursor:pointer}
+  .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;margin:4px 0 10px}
+  .deck .drow{display:grid;grid-template-columns:34px auto 1fr 52px;gap:10px;align-items:center;margin-bottom:12px}
+  .lp{background:transparent;border:1px solid var(--line);color:var(--mute);font:700 9px var(--mono);letter-spacing:.16em;padding:8px 9px;cursor:pointer;border-radius:0}
+  .lp.on{border-color:var(--text);color:var(--text)}
+  .tempo{display:grid;grid-template-columns:24px 1fr 24px;gap:6px;align-items:center}
+  .tpct{font:600 11px var(--mono);text-align:right}
   .nudge{width:24px;height:24px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;border-radius:0;font:600 13px var(--mono);padding:0}
   .nudge:hover{border-color:var(--text)}
-  .dlvl{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:center;font:10px var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
-  .lvl{height:6px;background:rgba(255,255,255,.07)}
-  .lvl i{display:block;height:100%;width:0;background:var(--text);transition:width .15s}
+  .eq{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .eq label{display:block;font:9px var(--mono);letter-spacing:.14em;color:var(--mute)}
+  .eq label span{display:block;margin-bottom:2px}
+  .eq label em{font-style:normal;color:var(--text);font-size:10px}
   .mx input[type=range]{width:100%;accent-color:#fff;background:transparent}
   .xfade{margin:18px 0 8px}
   .xlab{display:flex;justify-content:space-between;font:10px var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:6px}
@@ -186,7 +196,8 @@
   .mxbtns>button{background:transparent;border:1px solid var(--line);color:var(--text);font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:10px 13px;cursor:pointer;border-radius:0}
   .mxbtns>button:hover{border-color:var(--text)}
   .mxbtns>button.strong{background:var(--text);color:var(--bg);border-color:var(--text)}
-  .mxopt{display:inline-flex;gap:6px}
+  .mxopt{display:inline-flex;gap:6px;align-items:center}
+  .mxl{font:10px var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
   .mxchip{background:transparent;border:1px solid var(--line);color:var(--mute);font:600 11px var(--mono);padding:8px 10px;cursor:pointer;border-radius:0}
   .mxchip.on,.mxchip:hover{border-color:var(--text);color:var(--text)}
   .mxnote{font:11px var(--mono);color:var(--mute);margin-top:12px;line-height:1.7;min-height:18px}
@@ -439,9 +450,10 @@ const I18N = {
     trBoostK: 'Energy boost: +2 on the wheel, it lifts the room.', trClashK: 'The keys clash. Keep the blend short or cut on a break.',
     trGap: 'Tempo gap', trPitchB: 'Pitch B by', trFar: 'Tempos too far apart. Use a cut, an echo out or a break.', trHalfD: 'B runs at double or half the tempo of A. Mix on the beat grid at x2 or /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Long blend: bring B in on a phrase start, swap the bass around bar 16, then ease the highs.', trTipShort: 'Short blend: bring B in on a phrase start, cut the bass of A first and drop it on the downbeat.',
-    mxTitle: 'Mixer · 30-second previews', mxBoth: 'Play both', mxAuto: 'Auto blend', mxSync: 'Sync B to A', mxStopAll: 'Stop', mxTempo: 'Tempo', mxFade: 'Crossfader', mxLevel: 'Level',
-    mxNoPrev: 'No preview available for this track.', mxNoSync: 'Sync needs BPM data for both tracks.', mxSynced: 'B tempo set to', mxBlending: 'Blending A → B…', mxDone: 'Blend finished. B keeps playing.',
-    mxNote: 'Mix by hand with the crossfader and tempo sliders, or press Auto blend and let the app fade from A to B. Each preview lasts 30 seconds.',
+    mxTitle: 'Mixer · 30-second previews, looped in bars', mxBoth: 'Play both (synced)', mxAuto: 'Auto blend', mxSync: 'Sync B to A', mxStopAll: 'Stop', mxFade: 'Crossfader',
+    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'detected', mx_database: 'database', mxBars: 'bars',
+    mxNoSync: 'Sync needs the tempo of both tracks.', mxSynced: 'B now runs at', mxBlending: 'Blending A → B with a bass swap in the middle…', mxDone: 'Blend finished. B keeps playing.', mxWaitLoad: 'Wait until both decks have loaded.',
+    mxNote: 'Each preview loops in bars, so you can blend for as long as you like. Move the tempo sliders while it plays, change the EQ (double-click resets), click the waveform to jump.',
     noBpmFound: 'BPM and key were not found for this track.',
     mixTitle: 'Harmonic mixing',
     rBpm: 'Tempo', rKey: 'Key', rSame: 'Perfect', rSmooth: 'Smooth', rRel: 'Relative', rBoost: 'Energy boost',
@@ -514,9 +526,10 @@ const I18N = {
     trBoostK: 'Ώθηση ενέργειας: +2 στον τροχό, ανεβάζει την πίστα.', trClashK: 'Τα key συγκρούονται. Κράτα το blend σύντομο ή κάνε cut σε break.',
     trGap: 'Διαφορά tempo', trPitchB: 'Pitch στο B', trFar: 'Τα tempo απέχουν πολύ. Κάνε cut, echo out ή break.', trHalfD: 'Το B τρέχει στο διπλάσιο ή μισό tempo από το A. Μίξη στο beat grid ×2 ή /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Μεγάλο blend: μπες με το B στην αρχή φράσης, κάνε swap στα μπάσα γύρω στο bar 16 και μετά κατέβασε σιγά τα πρίμα.', trTipShort: 'Μικρό blend: μπες με το B στην αρχή φράσης, κόψε πρώτα τα μπάσα του A και άφησέ τα στο downbeat.',
-    mxTitle: 'Mixer · previews 30″', mxBoth: 'Play και τα δύο', mxAuto: 'Αυτόματο blend', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ', mxTempo: 'Tempo', mxFade: 'Crossfader', mxLevel: 'Ένταση',
-    mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxNoSync: 'Το Sync θέλει BPM και για τα δύο κομμάτια.', mxSynced: 'Tempo του B:', mxBlending: 'Blend A → B…', mxDone: 'Το blend τελείωσε. Το B συνεχίζει.',
-    mxNote: 'Μίξε με το χέρι με το crossfader και τα tempo sliders, ή πάτα Αυτόματο blend και άφησε την εφαρμογή να κάνει το crossfade από το A στο B. Κάθε preview διαρκεί 30 δευτερόλεπτα.',
+    mxTitle: 'Mixer · previews 30″ σε loop ανά bars', mxBoth: 'Play και τα δύο (sync)', mxAuto: 'Αυτόματο blend', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ', mxFade: 'Crossfader',
+    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'εντοπίστηκε', mx_database: 'βάση', mxBars: 'bars',
+    mxNoSync: 'Το Sync θέλει το tempo και των δύο κομματιών.', mxSynced: 'Το B τρέχει τώρα στα', mxBlending: 'Blend A → B με bass swap στη μέση…', mxDone: 'Το blend τελείωσε. Το B συνεχίζει.', mxWaitLoad: 'Περίμενε να φορτώσουν και τα δύο decks.',
+    mxNote: 'Κάθε preview κάνει loop ανά bars, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα τα tempo sliders την ώρα που παίζει, άλλαξε το EQ (διπλό κλικ το μηδενίζει), κάνε κλικ στο κύμα για να πας αλλού.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
     mixTitle: 'Αρμονική μίξη',
     rBpm: 'Ταχύτητα', rKey: 'Κλειδί', rSame: 'Τέλειο', rSmooth: 'Ομαλό', rRel: 'Σχετικό', rBoost: 'Ενέργεια',
@@ -879,177 +892,383 @@ function setsLinks(s) {
 }
 const baseOf = (s) => String(s || '').replace(/[\(\[].*?[\)\]]/g, '').replace(/\s+/g, ' ').trim();
 
-/* ---------- Mixer: 2 decks + crossfader + αυτόματο blend (previews 30") ---------- */
-const MX = {
-  a: { audio: new Audio(), id: null, rate: 1 },
-  b: { audio: new Audio(), id: null, rate: 1 },
-  xf: 0, blend: 12, auto: null, tick: null,
-};
-MX.a.audio.preload = 'auto'; MX.b.audio.preload = 'auto';
-function mxApplyVol() {
+/* ---------- Mixer (Web Audio): 2 decks, live tempo, EQ, loops, BPM detection ---------- */
+let MXCTX = null;
+const MX = { a: null, b: null, xf: 0, bars: 16, auto: null, tick: null, master: null, msg: '' };
+const mxClamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+function mxCtx() {
+  if (!MXCTX) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    MXCTX = new AC();
+    MX.master = MXCTX.createGain(); MX.master.gain.value = 0.9; MX.master.connect(MXCTX.destination);
+  }
+  if (MXCTX.state === 'suspended') MXCTX.resume();
+  return MXCTX;
+}
+function mxNewDeck(k) {
+  const c = mxCtx();
+  const low = c.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 200;
+  const mid = c.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 1000; mid.Q.value = 0.8;
+  const high = c.createBiquadFilter(); high.type = 'highshelf'; high.frequency.value = 3500;
+  const gain = c.createGain();
+  low.connect(mid); mid.connect(high); high.connect(gain); gain.connect(MX.master);
+  return { k, id: null, tr: null, buf: null, status: '', bpm: 0, bpmSrc: '', first: 0, peaks: null, src: null,
+    playing: false, startedAt: 0, startOff: 0, pausedAt: 0, rate: 1, loop: true, ls: 0, le: 0, loopBars: 0,
+    eq: { low: 0, mid: 0, high: 0 }, nodes: { low, mid, high, gain } };
+}
+function mxPos(D) {
+  if (!D.buf) return 0;
+  if (!D.playing) return D.pausedAt;
+  let p = D.startOff + (MXCTX.currentTime - D.startedAt) * D.rate;
+  if (D.loop && D.le > D.ls) { if (p >= D.le) p = D.ls + ((p - D.ls) % (D.le - D.ls)); }
+  else p = Math.min(p, D.buf.duration);
+  return p;
+}
+function mxKill(D) {
+  if (D.src) { const s = D.src; D.src = null; s.onended = null; try { s.stop(); } catch (_) {} }
+  D.playing = false;
+}
+function mxPlay(D, off) {
+  if (!D.buf) return;
+  mxKill(D);
+  const c = mxCtx();
+  const s = c.createBufferSource();
+  s.buffer = D.buf; s.loop = D.loop; s.loopStart = D.ls; s.loopEnd = D.le;
+  s.playbackRate.value = D.rate;
+  s.connect(D.nodes.low);
+  s.onended = () => { if (D.src === s) { D.src = null; D.playing = false; D.pausedAt = 0; } };
+  s.start(0, mxClamp(off, 0, D.buf.duration - 0.02));
+  D.src = s; D.startedAt = c.currentTime; D.startOff = off; D.playing = true;
+}
+function mxPause(D) { if (!D.playing) return; D.pausedAt = mxPos(D); mxKill(D); }
+function mxRebase(D) { if (D.playing) { const p = mxPos(D); D.startOff = p; D.startedAt = MXCTX.currentTime; } }
+function mxSetRate(D, r) {
+  r = mxClamp(r, 0.85, 1.15);
+  mxRebase(D);
+  D.rate = r;
+  if (D.src) D.src.playbackRate.value = r;
+}
+function mxApplyXf() {
+  if (!MX.a) return;
   const x = MX.xf / 100;
-  MX.a.audio.volume = Math.max(0, Math.min(1, Math.cos(x * Math.PI / 2)));
-  MX.b.audio.volume = Math.max(0, Math.min(1, Math.sin(x * Math.PI / 2)));
+  MX.a.nodes.gain.gain.value = Math.cos(x * Math.PI / 2);
+  MX.b.nodes.gain.gain.value = Math.sin(x * Math.PI / 2);
+}
+function mxSetEq(D, band, db) { D.eq[band] = db; D.nodes[band].gain.value = db; }
+function mxLoopRegion(D) {
+  const dur = D.buf.duration;
+  if (D.bpm) {
+    const beat = 60 / D.bpm;
+    for (const bars of [8, 4, 2]) {
+      const len = bars * 4 * beat;
+      if (D.first + len <= dur - 0.05) { D.ls = D.first; D.le = D.first + len; D.loopBars = bars; return; }
+    }
+  }
+  D.ls = 0; D.le = dur; D.loopBars = 0;
+}
+function mxPeaks(buf, cols) {
+  const d = buf.getChannelData(0), step = Math.floor(d.length / cols), out = [];
+  for (let i = 0; i < cols; i++) {
+    let m = 0;
+    for (let j = i * step; j < (i + 1) * step; j += 8) { const v = Math.abs(d[j]); if (v > m) m = v; }
+    out.push(m);
+  }
+  const mx = Math.max(...out) || 1;
+  return out.map((v) => v / mx);
+}
+// Εντοπισμός BPM + πρώτου beat από τα μπάσα του preview
+async function mxDetect(buf) {
+  const sr = buf.sampleRate, n = buf.length;
+  const oc = new OfflineAudioContext(1, n, sr);
+  const s = oc.createBufferSource(); s.buffer = buf;
+  const f = oc.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 150; f.Q.value = 0.7;
+  s.connect(f); f.connect(oc.destination); s.start();
+  const x = (await oc.startRendering()).getChannelData(0);
+  const hop = Math.round(sr * 0.005), frames = Math.floor(n / hop);
+  const env = new Float32Array(frames);
+  for (let i = 0; i < frames; i++) {
+    let sum = 0;
+    for (let j = i * hop; j < (i + 1) * hop; j++) sum += x[j] * x[j];
+    env[i] = Math.sqrt(sum / hop);
+  }
+  const nov = new Float32Array(frames);
+  let tot = 0;
+  for (let i = 1; i < frames; i++) { nov[i] = Math.max(0, env[i] - env[i - 1]); tot += nov[i]; }
+  const avg = tot / frames || 1e-9;
+  let best = { score: 0, bpm: 0, ph: 0 };
+  for (let bpm = 100; bpm <= 150; bpm += 0.1) {
+    const p = 12000 / bpm; // πλαίσια (5ms) ανά beat
+    const pulses = Math.floor((frames - 2) / p);
+    if (pulses < 8) continue;
+    for (let ph = 0; ph < p; ph += 0.5) {
+      let sc = 0;
+      for (let j = 0; j < pulses; j++) {
+        const idx = Math.round(ph + j * p);
+        const a = nov[idx], b1 = nov[idx - 1] || 0, c1 = nov[idx + 1] || 0;
+        sc += Math.max(a, b1, c1);
+      }
+      sc /= pulses;
+      if (bpm >= 118 && bpm <= 132) sc *= 1.04;
+      if (sc > best.score) best = { score: sc, bpm, ph };
+    }
+  }
+  if (!best.bpm || best.score < avg * 1.6) return null;
+  // το πρώτο beat: πρώτη κορυφή κοντά στη φάση
+  const per = 12000 / best.bpm;
+  let pk = Math.round(best.ph), pv = 0;
+  for (let i = Math.max(1, Math.round(best.ph) - 3); i <= Math.round(best.ph) + 3; i++) if (nov[i] > pv) { pv = nov[i]; pk = i; }
+  let first = pk * 0.005;
+  while (first >= per * 0.005 * 1.0 && first - per * 0.005 >= 0) first -= per * 0.005;
+  return { bpm: Math.round(best.bpm * 10) / 10, first };
+}
+function mxDecode(ab) {
+  const c = mxCtx();
+  return new Promise((res, rej) => { const p = c.decodeAudioData(ab, res, rej); if (p && p.catch) p.catch(rej); });
+}
+async function mxLoadDeck(D, tr) {
+  if (D.id === tr.id) return;
+  mxKill(D);
+  Object.assign(D, { id: tr.id, tr, buf: null, peaks: null, bpm: 0, bpmSrc: '', first: 0, rate: 1, pausedAt: 0, ls: 0, le: 0, loopBars: 0, status: tr.preview ? 'loading' : 'nopreview' });
+  mxSetEq(D, 'low', 0); mxSetEq(D, 'mid', 0); mxSetEq(D, 'high', 0);
+  if (D.k === 'b') { MX.xf = 0; mxApplyXf(); }
+  if (!tr.preview) return;
+  try {
+    const r = await fetch('/api/audio?u=' + encodeURIComponent(tr.preview));
+    if (!r.ok) throw new Error('audio ' + r.status);
+    const buf = await mxDecode(await r.arrayBuffer());
+    if (D.id !== tr.id) return;
+    D.buf = buf; D.peaks = mxPeaks(buf, 240);
+    D.status = 'analyzing'; mxRender();
+    await new Promise((r2) => setTimeout(r2, 30));
+    let an = null;
+    try { an = await mxDetect(buf); } catch (_) {}
+    if (D.id !== tr.id) return;
+    if (an) { D.bpm = an.bpm; D.first = an.first; D.bpmSrc = 'detected'; }
+    else { const i = infoMap[tr.id]; if (i && i.bpm) { D.bpm = i.bpm; D.first = 0; D.bpmSrc = 'database'; } }
+    mxLoopRegion(D);
+    D.status = 'ready';
+  } catch (e) {
+    if (D.id === tr.id) D.status = 'error';
+  }
+  mxRender();
+}
+function mxAlignOff(Bd, Ad) {
+  if (!Ad.bpm || !Bd.bpm || !Ad.buf) return Bd.ls;
+  const beatA = 60 / Ad.bpm, beatB = 60 / Bd.bpm;
+  const beats = (mxPos(Ad) - Ad.ls) / beatA;
+  const frac = ((beats % 16) + 16) % 16;
+  let off = Bd.ls + frac * beatB;
+  if (Bd.le > Bd.ls && off >= Bd.le) off = Bd.ls + ((off - Bd.ls) % (Bd.le - Bd.ls));
+  return off;
 }
 function mxStopAuto() { if (MX.auto) { clearInterval(MX.auto); MX.auto = null; } }
-function mxStop(silent) {
+function mxStopAll() {
   mxStopAuto();
-  MX.a.audio.pause(); MX.b.audio.pause();
-  if (!silent) mxRefresh();
+  if (MX.a) { mxPause(MX.a); mxPause(MX.b); }
 }
-function mxLoad(k, tr) {
-  const d = MX[k];
-  if (d.id !== tr.id) {
-    d.audio.pause();
-    d.audio.src = tr.preview || '';
-    if (tr.preview) d.audio.load();
-    d.id = tr.id; d.rate = 1; d.audio.playbackRate = 1;
-    if (k === 'b') { MX.xf = 0; mxApplyVol(); }
-  }
-}
-function mxDeckHTML(k, tr) {
-  const d = MX[k], n = k.toUpperCase();
+// συμβατότητα με το υπόλοιπο site
+function mxStop() { mxStopAll(); mxPaint(); }
+
+const mxFmt = (s) => fmtT(s);
+function mxDeckHTML(D) {
+  const k = D.k, n = k.toUpperCase();
+  const tr = D.tr;
+  const pct = ((D.rate - 1) * 100).toFixed(1);
+  const stat = { loading: t('mxLoading'), analyzing: t('mxAnalyzing'), nopreview: t('mxNoPrev'), error: t('mxError') }[D.status] || '';
   const i = infoMap[tr.id] || {};
-  const meta = [i.bpm ? Math.round(i.bpm) + ' ' + t('bpmWord') : '', i.camelot || '', i.genre || ''].filter(Boolean).join(' · ');
-  const pct = ((d.rate - 1) * 100).toFixed(1);
-  if (!tr.preview) {
-    return `<div class="deck"><div class="dn">DECK ${n}</div><div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div><div class="mixhint" style="margin:0">${esc(t('mxNoPrev'))}</div></div>`;
-  }
-  return `<div class="deck"><div class="dn">DECK ${n}${meta ? ' · ' + esc(meta) : ''}</div>
-    <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div>
+  const tags = [i.camelot || '', i.genre || ''].filter(Boolean).join(' · ');
+  let body;
+  if (D.status !== 'ready') {
+    body = `<div class="mixhint" style="margin:6px 0 0" id="mxst-${k}">${esc(stat)}</div>`;
+  } else {
+    body = `<canvas class="wave" id="mxw-${k}" data-mxw="${k}" width="640" height="64"></canvas>
+    <div class="dtime"><span id="mxc-${k}">0:00</span><span>${D.loopBars ? D.loopBars + ' ' + esc(t('mxBars')) + ' loop' : '30″'}</span></div>
     <div class="drow"><button type="button" class="play" data-mxa="play-${k}" id="mxp-${k}">▶</button>
-      <div><input type="range" min="0" max="1000" value="0" data-mx="seek-${k}" id="mxs-${k}" aria-label="Seek ${n}"><div class="dtime"><span id="mxc-${k}">0:00</span><span id="mxd-${k}">0:30</span></div></div></div>
-    <div class="dlvl"><span>${esc(t('mxLevel'))}</span><div class="lvl"><i id="mxl-${k}"></i></div></div>
-    <label><span>${esc(t('mxTempo'))}</span><span><button type="button" class="nudge" data-mxa="nd-${k}">−</button><b id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</b><button type="button" class="nudge" data-mxa="nu-${k}">+</button></span></label>
-    <input type="range" min="-150" max="150" value="${Math.round((d.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}"></div>`;
+      <button type="button" class="lp${D.loop ? ' on' : ''}" data-mxa="loop-${k}" id="mxlp-${k}">LOOP</button>
+      <div class="tempo"><button type="button" class="nudge" data-mxa="nd-${k}">−</button>
+        <input type="range" min="-100" max="100" value="${Math.round((D.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}">
+        <button type="button" class="nudge" data-mxa="nu-${k}">+</button></div>
+      <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
+    <div class="eq">${['low', 'mid', 'high'].map((b) => `<label><span>${b.toUpperCase()}</span><input type="range" min="-24" max="6" step="0.5" value="${D.eq[b]}" data-mx="eq${b}-${k}" id="mxe-${b}-${k}" aria-label="${b} ${n}"><em id="mxev-${b}-${k}">${D.eq[b]}</em></label>`).join('')}</div>`;
+  }
+  return `<div class="deck"><div class="dhead"><div><div class="dn">DECK ${n}${tags ? ' · ' + esc(tags) : ''}</div>
+      <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div></div>
+      <div class="dbpm"><b id="mxb-${k}">${D.bpm ? (D.bpm * D.rate).toFixed(1) : '—'}</b><span>BPM</span><small id="mxbs-${k}">${esc(D.bpmSrc ? t('mx_' + D.bpmSrc) : '')}</small></div></div>
+    ${body}</div>`;
 }
-function mixerHTML(A, B) {
-  const chips = [8, 12, 16].map((n) => `<button type="button" class="mxchip${MX.blend === n ? ' on' : ''}" data-mxa="blend-${n}">${n}″</button>`).join('');
+function mxHTML() {
+  const chips = [8, 16, 32].map((n) => `<button type="button" class="mxchip${MX.bars === n ? ' on' : ''}" data-mxa="bars-${n}">${n}</button>`).join('');
   return `<div class="mx"><h4>${esc(t('mxTitle'))}</h4>
-    <div class="decks">${mxDeckHTML('a', A)}${mxDeckHTML('b', B)}</div>
+    <div class="decks">${mxDeckHTML(MX.a)}${mxDeckHTML(MX.b)}</div>
     <div class="xfade"><div class="xlab"><span>A</span><span>${esc(t('mxFade'))}</span><span>B</span></div>
       <input type="range" min="0" max="100" value="${Math.round(MX.xf)}" data-mx="xf" id="mxx" aria-label="Crossfader"></div>
     <div class="mxbtns"><button type="button" data-mxa="both">${esc(t('mxBoth'))}</button>
       <button type="button" data-mxa="sync">${esc(t('mxSync'))}</button>
       <button type="button" data-mxa="auto" class="strong">${esc(t('mxAuto'))}</button>
-      <span class="mxopt">${chips}</span>
+      <span class="mxopt"><span class="mxl">${esc(t('mxBars'))}</span>${chips}</span>
       <button type="button" data-mxa="stop">${esc(t('mxStopAll'))}</button></div>
-    <div class="mxnote" id="mxmsg">${esc(t('mxNote'))}</div></div>`;
+    <div class="mxnote" id="mxmsg">${esc(MX.msg || t('mxNote'))}</div></div>`;
+}
+function mxRender() {
+  const host = document.getElementById('mixerHost');
+  if (!host || !MX.a || !pairB || !data) return;
+  host.innerHTML = mxHTML();
+  mxPaint();
 }
 function mountMixer() {
-  const host = $('#mixerHost');
-  if (!host || !pairB || !data) { mxStop(true); return; }
+  const host = document.getElementById('mixerHost');
+  if (!host || !pairB || !data) { if (MX.a) mxStopAll(); return; }
+  if (!MX.a) { MX.a = mxNewDeck('a'); MX.b = mxNewDeck('b'); }
   const A = pairA || data.seed, B = pairB;
-  mxLoad('a', A); mxLoad('b', B);
-  host.innerHTML = mixerHTML(A, B);
-  mxApplyVol();
-  if (!MX.tick) MX.tick = setInterval(mxRefresh, 200);
-  mxRefresh();
+  mxLoadDeck(MX.a, A); mxLoadDeck(MX.b, B);
+  host.innerHTML = mxHTML();
+  mxApplyXf();
+  if (!MX.tick) MX.tick = setInterval(mxPaint, 100);
+  mxPaint();
 }
-function mxMsg(s) { const m = document.getElementById('mxmsg'); if (m) m.textContent = s || t('mxNote'); }
-function mxRefresh() {
-  for (const k of ['a', 'b']) {
-    const au = MX[k].audio;
+function mxMsg(s) { MX.msg = s || ''; const m = document.getElementById('mxmsg'); if (m) m.textContent = s || t('mxNote'); }
+function mxDraw(D) {
+  const cv = document.getElementById('mxw-' + D.k);
+  if (!cv || !D.peaks) return;
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height, dur = D.buf.duration;
+  g.clearRect(0, 0, W, H);
+  if (D.loopBars) { g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect((D.ls / dur) * W, 0, ((D.le - D.ls) / dur) * W, H); }
+  const cw = W / D.peaks.length;
+  g.fillStyle = 'rgba(255,255,255,.55)';
+  D.peaks.forEach((v, i) => { const h = Math.max(1, v * (H - 6)); g.fillRect(i * cw, (H - h) / 2, Math.max(1, cw - 1), h); });
+  if (D.bpm) {
+    g.fillStyle = 'rgba(255,255,255,.18)';
+    const beat = 60 / D.bpm;
+    for (let tm = D.first; tm < dur; tm += beat) g.fillRect((tm / dur) * W, 0, 1, 7);
+  }
+  g.fillStyle = '#fff';
+  g.fillRect((mxPos(D) / dur) * W - 1, 0, 2, H);
+}
+function mxPaint() {
+  if (!MX.a) return;
+  for (const D of [MX.a, MX.b]) {
+    const k = D.k;
     const btn = document.getElementById('mxp-' + k);
-    if (!btn) continue;
-    btn.textContent = au.paused ? '▶' : '❚❚';
-    btn.classList.toggle('on', !au.paused);
-    const dur = isFinite(au.duration) && au.duration > 0 ? au.duration : 30;
-    const sk = document.getElementById('mxs-' + k);
-    if (sk && document.activeElement !== sk) sk.value = String(Math.round((au.currentTime / dur) * 1000));
-    const c = document.getElementById('mxc-' + k), dd = document.getElementById('mxd-' + k);
-    if (c) c.textContent = fmtT(au.currentTime);
-    if (dd) dd.textContent = fmtT(dur);
-    const l = document.getElementById('mxl-' + k);
-    if (l) l.style.width = Math.round(au.volume * 100) + '%';
+    if (btn) { btn.textContent = D.playing ? '❚❚' : '▶'; btn.classList.toggle('on', D.playing); }
+    const c = document.getElementById('mxc-' + k);
+    if (c && D.buf) c.textContent = mxFmt(mxPos(D));
+    const bb = document.getElementById('mxb-' + k);
+    if (bb && D.bpm) bb.textContent = (D.bpm * D.rate).toFixed(1);
+    const tl = document.getElementById('mxt-' + k);
+    if (tl) { const p = (D.rate - 1) * 100; tl.textContent = (p >= 0 ? '+' : '') + p.toFixed(1) + '%'; }
+    const r = document.getElementById('mxr-' + k);
+    if (r && document.activeElement !== r) r.value = String(Math.round((D.rate - 1) * 1000));
+    if (D.buf) mxDraw(D);
   }
   const x = document.getElementById('mxx');
   if (x && document.activeElement !== x) x.value = String(Math.round(MX.xf));
 }
-function mxPlayDeck(k) {
+function mxSetXf(v) { MX.xf = mxClamp(v, 0, 100); mxApplyXf(); const x = document.getElementById('mxx'); if (x) x.value = String(Math.round(MX.xf)); }
+function mxEqUI(D, b) {
+  const e = document.getElementById('mxe-' + b + '-' + D.k), v = document.getElementById('mxev-' + b + '-' + D.k);
+  if (e) e.value = String(D.eq[b]);
+  if (v) v.textContent = String(Math.round(D.eq[b] * 10) / 10);
+}
+function mxPrep() {
   if (typeof isPlaying === 'function' && isPlaying()) pauseP();
-  const au = MX[k].audio;
-  if (!au.src) return Promise.resolve();
-  au.playbackRate = MX[k].rate;
-  return au.play().catch(() => {});
+  mxCtx();
 }
-function mxSetRate(k, rate) {
-  rate = Math.max(0.75, Math.min(1.25, rate));
-  MX[k].rate = rate;
-  MX[k].audio.playbackRate = rate;
-  const r = document.getElementById('mxr-' + k), tl = document.getElementById('mxt-' + k);
-  const pct = ((rate - 1) * 100).toFixed(1);
-  if (r) r.value = String(Math.round((rate - 1) * 1000));
-  if (tl) tl.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+function mxSyncTempo() {
+  const A = MX.a, B = MX.b;
+  if (!A.bpm || !B.bpm) { mxMsg(t('mxNoSync')); return false; }
+  mxSetRate(B, (A.bpm * A.rate) / B.bpm);
+  return true;
 }
-function mxSetXf(v) {
-  MX.xf = Math.max(0, Math.min(100, v));
-  mxApplyVol();
-  const x = document.getElementById('mxx'); if (x) x.value = String(Math.round(MX.xf));
-}
-function mxWait(au, ms) {
-  return new Promise((res) => {
-    if (au.readyState >= 3 || !au.src) return res();
-    const done = () => { au.removeEventListener('canplay', done); res(); };
-    au.addEventListener('canplay', done);
-    setTimeout(done, ms);
-  });
+function mxAuto() {
+  const A = MX.a, B = MX.b;
+  if (A.status !== 'ready' || B.status !== 'ready') { mxMsg(t('mxWaitLoad')); return; }
+  mxPrep(); mxStopAuto();
+  A.loop = true; B.loop = true;
+  mxSyncTempo();
+  mxSetEq(A, 'low', 0); mxSetEq(B, 'low', -24); ['low'].forEach((b) => { mxEqUI(A, b); mxEqUI(B, b); });
+  if (!A.playing) mxPlay(A, A.ls);
+  mxSetXf(0);
+  mxPlay(B, mxAlignOff(B, A));
+  const eff = (A.bpm || 124) * A.rate;
+  const total = (MX.bars * 4 * 60) / eff; // δευτερόλεπτα
+  const t0 = performance.now();
+  mxMsg(t('mxBlending'));
+  MX.auto = setInterval(() => {
+    const p = Math.min(1, (performance.now() - t0) / 1000 / total);
+    mxSetXf(p * 100);
+    // bass swap γύρω από τη μέση
+    const q = mxClamp((p - 0.45) / 0.1, 0, 1);
+    mxSetEq(A, 'low', -24 * q); mxSetEq(B, 'low', -24 * (1 - q));
+    mxEqUI(A, 'low'); mxEqUI(B, 'low');
+    if (p >= 1) { mxStopAuto(); mxPause(A); mxSetEq(A, 'low', 0); mxEqUI(A, 'low'); mxMsg(t('mxDone')); }
+  }, 50);
 }
 $('#out').addEventListener('input', (e) => {
   const el = e.target.closest('[data-mx]');
-  if (!el) return;
-  const [what, k] = el.dataset.mx.split('-');
-  if (what === 'xf') { mxStopAuto(); MX.xf = Number(el.value); mxApplyVol(); return; }
-  if (what === 'tempo') { mxSetRate(k, 1 + Number(el.value) / 1000); return; }
-  if (what === 'seek') {
-    const au = MX[k].audio;
-    const dur = isFinite(au.duration) && au.duration > 0 ? au.duration : 30;
-    au.currentTime = (Number(el.value) / 1000) * dur;
-  }
+  if (!el || !MX.a) return;
+  const key = el.dataset.mx;
+  if (key === 'xf') { mxStopAuto(); MX.xf = Number(el.value); mxApplyXf(); return; }
+  const [what, k] = key.split('-');
+  const D = MX[k];
+  if (what === 'tempo') { mxSetRate(D, 1 + Number(el.value) / 1000); return; }
+  if (what.startsWith('eq')) { const b = what.slice(2); mxSetEq(D, b, Number(el.value)); const v = document.getElementById('mxev-' + b + '-' + k); if (v) v.textContent = String(Math.round(D.eq[b] * 10) / 10); }
 });
-$('#out').addEventListener('click', async (e) => {
+$('#out').addEventListener('dblclick', (e) => {
+  const el = e.target.closest('[data-mx^="eq"]');
+  if (!el || !MX.a) return;
+  const [what, k] = el.dataset.mx.split('-');
+  const b = what.slice(2);
+  mxSetEq(MX[k], b, 0); mxEqUI(MX[k], b);
+});
+$('#out').addEventListener('click', (e) => {
+  const cv = e.target.closest('canvas[data-mxw]');
+  if (cv && MX.a) {
+    const D = MX[cv.dataset.mxw];
+    if (!D.buf) return;
+    const rect = cv.getBoundingClientRect();
+    const off = ((e.clientX - rect.left) / rect.width) * D.buf.duration;
+    if (D.playing) { mxPlay(D, off); } else { D.pausedAt = off; }
+    mxPaint();
+    return;
+  }
   const b = e.target.closest('[data-mxa]');
-  if (!b) return;
-  const act = b.dataset.mxa;
-  const A = pairA || data.seed, B = pairB;
+  if (!b || !MX.a) return;
+  const act = b.dataset.mxa, A = MX.a, B = MX.b;
   if (act === 'play-a' || act === 'play-b') {
-    const k = act.slice(-1), au = MX[k].audio;
-    if (au.paused) await mxPlayDeck(k); else au.pause();
-    mxRefresh();
+    const D = MX[act.slice(-1)];
+    if (D.status !== 'ready') return;
+    mxPrep();
+    if (D.playing) mxPause(D);
+    else if (D.k === 'b' && A.playing) mxPlay(B, mxAlignOff(B, A));
+    else mxPlay(D, D.pausedAt > 0 ? D.pausedAt : D.ls);
+    mxPaint();
+  } else if (act.startsWith('loop-')) {
+    const D = MX[act.slice(-1)];
+    mxRebase(D);
+    D.loop = !D.loop;
+    if (D.src) { D.src.loop = D.loop; D.src.loopStart = D.ls; D.src.loopEnd = D.le; }
+    const btn = document.getElementById('mxlp-' + D.k); if (btn) btn.classList.toggle('on', D.loop);
   } else if (act === 'both') {
-    mxStopAuto();
-    MX.a.audio.currentTime = 0; MX.b.audio.currentTime = 0;
+    if (A.status !== 'ready' || B.status !== 'ready') { mxMsg(t('mxWaitLoad')); return; }
+    mxPrep(); mxStopAuto();
+    mxSyncTempo();
     if (MX.xf === 0 || MX.xf === 100) mxSetXf(50);
-    await Promise.all([mxWait(MX.a.audio, 3000), mxWait(MX.b.audio, 3000)]);
-    mxPlayDeck('a'); mxPlayDeck('b'); mxRefresh();
+    mxPlay(A, A.ls); mxPlay(B, mxAlignOff(B, A));
+    mxMsg('');
   } else if (act === 'sync') {
-    const ia = infoMap[A.id], ib = infoMap[B.id];
-    if (!ia || !ib || !ia.bpm || !ib.bpm) { mxMsg(t('mxNoSync')); return; }
-    mxSetRate('b', (ia.bpm * MX.a.rate) / ib.bpm);
-    mxMsg(t('mxSynced') + ' ' + document.getElementById('mxt-b').textContent);
+    if (!mxSyncTempo()) return;
+    if (A.playing && B.playing) mxPlay(B, mxAlignOff(B, A));
+    mxMsg(t('mxSynced') + ' ' + (B.bpm * B.rate).toFixed(1) + ' BPM');
   } else if (act === 'auto') {
-    mxStopAuto();
-    const ia = infoMap[A.id], ib = infoMap[B.id];
-    if (ia && ib && ia.bpm && ib.bpm) mxSetRate('b', (ia.bpm * MX.a.rate) / ib.bpm);
-    MX.b.audio.currentTime = 0;
-    mxSetXf(0);
-    await Promise.all([mxWait(MX.a.audio, 3000), mxWait(MX.b.audio, 3000)]);
-    if (MX.a.audio.paused) { MX.a.audio.currentTime = 0; await mxPlayDeck('a'); }
-    await mxPlayDeck('b');
-    mxMsg(t('mxBlending'));
-    const steps = MX.blend * 10;
-    MX.auto = setInterval(() => {
-      mxSetXf(MX.xf + 100 / steps);
-      if (MX.xf >= 100) { mxStopAuto(); MX.a.audio.pause(); mxMsg(t('mxDone')); }
-    }, 100);
+    mxAuto();
   } else if (act === 'stop') {
-    mxStop(); mxMsg();
-  } else if (act.startsWith('blend-')) {
-    MX.blend = Number(act.slice(6));
+    mxStopAll(); mxMsg(''); mxPaint();
+  } else if (act.startsWith('bars-')) {
+    MX.bars = Number(act.slice(5));
     document.querySelectorAll('.mxchip').forEach((c) => c.classList.toggle('on', c.dataset.mxa === act));
   } else if (act.startsWith('nd-') || act.startsWith('nu-')) {
-    const k = act.slice(-1);
-    mxSetRate(k, MX[k].rate + (act.startsWith('nu-') ? 0.002 : -0.002));
+    const D = MX[act.slice(-1)];
+    mxSetRate(D, D.rate + (act.startsWith('nu-') ? 0.001 : -0.001));
   }
 });
 

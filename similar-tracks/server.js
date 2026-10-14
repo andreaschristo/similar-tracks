@@ -40,6 +40,7 @@ async function cached(key, fn, ttl = 3600e3) {
   const c = cache.get(key);
   if (c && c.t > Date.now()) return c.v;
   const v = await fn();
+  if (v === null && key.startsWith('yt:')) return v;
   cache.set(key, { v, t: Date.now() + ttl });
   if (cache.size > 3000) cache.delete(cache.keys().next().value);
   return v;
@@ -526,19 +527,39 @@ async function handleSearch(q, opts) {
 }
 
 /* ---------- Πλήρες κομμάτι: βρίσκει βίντεο στο YouTube ---------- */
-async function ytFind(artist, title) {
+const YTKEY = process.env.YOUTUBE_API_KEY || '';
+const PIPED = ['https://pipedapi.kavin.rocks', 'https://pipedapi.adminforge.de', 'https://api.piped.private.coffee'];
+async function ytFind(artist, title, why) {
   const q = `${artist} ${title}`.replace(/\s+/g, ' ').trim();
   return cached('yt:' + q.toLowerCase(), async () => {
-    const r = await fetch('https://www.youtube.com/results?search_query=' + encodeURIComponent(q + ' extended') + '&hl=en', {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'Accept-Language': 'en-US,en;q=0.9', Cookie: 'CONSENT=YES+1; SOCS=CAI' },
-      signal: AbortSignal.timeout(10000),
-    });
-    const html = await r.text();
-    const ids = [];
-    const re = /"videoId":"([\w-]{11})"/g;
-    let m;
-    while ((m = re.exec(html)) && ids.length < 5) if (!ids.includes(m[1])) ids.push(m[1]);
-    return ids[0] || null;
+    // 1) Επίσημο YouTube API (αν υπάρχει key)
+    if (YTKEY) {
+      try {
+        const j = await getJSON('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=3&videoEmbeddable=true&q=' + encodeURIComponent(q + ' extended') + '&key=' + YTKEY);
+        const it = (j.items || []).find((x) => x.id && x.id.videoId);
+        if (it) return it.id.videoId;
+      } catch (e) { if (why) why.push('api:' + e.message.slice(0, 60)); }
+    }
+    // 2) Piped (ανοιχτά instances)
+    for (const base of PIPED) {
+      try {
+        const j = await getJSON(base + '/search?q=' + encodeURIComponent(q + ' extended') + '&filter=videos');
+        const it = (j.items || []).find((x) => x.url && /watch\?v=/.test(x.url) && x.duration > 240);
+        if (it) return it.url.split('v=')[1].slice(0, 11);
+      } catch (e) { if (why) why.push('piped:' + e.message.slice(0, 40)); }
+    }
+    // 3) Σελίδα αναζήτησης YouTube
+    try {
+      const r = await fetch('https://www.youtube.com/results?search_query=' + encodeURIComponent(q + ' extended') + '&hl=en', {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'Accept-Language': 'en-US,en;q=0.9', Cookie: 'CONSENT=YES+1; SOCS=CAI' },
+        signal: AbortSignal.timeout(10000),
+      });
+      const html = await r.text();
+      const m = /"videoId":"([\w-]{11})"/.exec(html);
+      if (m) return m[1];
+      if (why) why.push('yt:status ' + r.status + ' len ' + html.length);
+    } catch (e) { if (why) why.push('yt:' + e.message.slice(0, 40)); }
+    return null;
   }, 7 * 864e5);
 }
 
@@ -547,8 +568,9 @@ const server = http.createServer(async (req, res) => {
   if (u.pathname === '/api/yt') {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
-      const id = await ytFind(u.searchParams.get('artist') || '', u.searchParams.get('title') || '');
-      return res.end(JSON.stringify({ id }));
+      const why = [];
+      const id = await ytFind(u.searchParams.get('artist') || '', u.searchParams.get('title') || '', why);
+      return res.end(JSON.stringify(u.searchParams.get('debug') ? { id, why, key: !!YTKEY } : { id }));
     } catch (_) { return res.end(JSON.stringify({ id: null })); }
   }
   if (u.pathname === '/api/info' && req.method === 'POST') {

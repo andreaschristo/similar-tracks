@@ -466,6 +466,44 @@ function slotOfRole(role, N) {
 }
 const BLEND_SEC = 60; // μέση επικάλυψη ανά μετάβαση
 
+// ---- Ρόλος του DJ: ο ρόλος αλλάζει την ΕΝΕΡΓΕΙΑ μέσα στο ίδιο στυλ (όλοι μπορεί να παίζουν deep house) ----
+// Ενέργεια από tags του Last.fm (χαλαρό ↔ δυναμικό) και από το BPM όταν υπάρχει.
+const LOW_TAG = /chill|mellow|relax|smooth|lounge|ambient|downtempo|sunset|late.?night|dreamy|calm|warm|laid.?back|intimate|cozy|slow/;
+const HIGH_TAG = /energetic|energy|dance|party|club|upbeat|banger|driving|peak|hard|bounce|groovy|funky|jackin|festival|rave|pumping|heavy|dancefloor/;
+const EMO_TAG = /uplifting|euphoric|emotional|soulful|vocal|melodic|anthem|feel.?good|happy|summer|hands.?up|gospel|joy|beautiful|love/;
+async function ttagsOf(artist, title) {
+  if (!LASTFM || !artist) return [];
+  try {
+    const tt = await cached('ttags:' + norm(artist) + '|' + norm(baseTitle(title)), async () => {
+      const d = await lf('track.gettoptags', { artist, track: baseTitle(title) });
+      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
+    }, 7 * 24 * 3600e3);
+    if (tt.length) return tt;
+    return await cached('tags:' + norm(artist), async () => {
+      const d = await lf('artist.gettoptags', { artist });
+      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
+    });
+  } catch (_) { return []; }
+}
+function energyRaw(t) {
+  let e = 0.5;
+  for (const tg of t.tags || []) { if (LOW_TAG.test(tg)) e -= 0.12; if (HIGH_TAG.test(tg)) e += 0.12; }
+  e = Math.max(0.05, Math.min(0.95, e));
+  const b = t.info && t.info.bpm;
+  return b ? 0.6 * Math.max(0, Math.min(1, (b - 116) / 16)) + 0.4 * e : e;
+}
+function emotiveOf(t) {
+  let e = 0.4;
+  for (const tg of t.tags || []) if (EMO_TAG.test(tg)) e += 0.2;
+  return Math.min(1, e);
+}
+// Στόχος (σε ποσοστιαία κλίμακα 0..1 μέσα στους υποψήφιους) στη θέση i του set
+function roleEnergy(role, i, N) {
+  const p = N > 1 ? i / (N - 1) : 0;
+  if (role === 'open') return 0.08 + 0.37 * p;                     // opener: πιο χαλαρά, ανεβαίνει σιγά-σιγά
+  if (role === 'close') return 0.82 - 0.17 * p;                    // closer: δυναμικά και χορευτικά, αλλά με άλλο χρώμα
+  return p < 0.4 ? 0.5 + 0.4 * (p / 0.4) : 0.9 - 0.05 * ((p - 0.4) / 0.6); // headliner: πολύ υψηλή ενέργεια
+}
 async function buildSet(seed, pool, role, N = 10) {
   const slot = slotOfRole(role, N);
   const seen = new Set([norm(seed.artist) + '|' + norm(baseTitle(seed.title))]);
@@ -479,10 +517,18 @@ async function buildSet(seed, pool, role, N = 10) {
   }
 
   // BPM + tonality για το seed και τους υποψήφιους
+  if (LASTFM) await pmap([seed, ...cands], async (t) => { t.genre = await genreOf(t.artist, t.title); t.tags = await ttagsOf(t.artist, t.title); }, 5, 200);
   const infos = await pmap([seed, ...cands], (t) => trackInfo(t.artist, t.title), 6, 200);
   seed.info = infos[0] || null;
   cands.forEach((t, i) => { t.info = infos[i + 1] || null; });
 
+  // Η ενέργεια κάθε υποψηφίου σε σχέση με τους υπόλοιπους (0 = ο πιο χαλαρός, 1 = ο πιο δυναμικός)
+  const raws = cands.map(energyRaw);
+  const sorted = [...raws].sort((x, y) => x - y);
+  cands.forEach((t, i) => {
+    const lo = sorted.indexOf(raws[i]), hi = sorted.lastIndexOf(raws[i]);
+    t.eRank = cands.length > 1 ? (lo + hi) / 2 / (cands.length - 1) : 0.5;
+  });
   const sBpm = seed.info && seed.info.bpm;
   const known = cands.filter((t) => t.info && t.info.bpm).length;
   const useBpm = !!sBpm && known >= 6;
@@ -519,6 +565,8 @@ async function buildSet(seed, pool, role, N = 10) {
       } else {
         cost += idx * 0.15; // χωρίς BPM: σειρά ομοιότητας
       }
+      cost += Math.abs((c.eRank == null ? 0.5 : c.eRank) - roleEnergy(role, i, N)) * 5; // ρόλος: ενέργεια μέσα στο ίδιο στυλ
+      if (role === 'close') cost += (1 - emotiveOf(c)) * 1.2; // closer: δυναμικό αλλά με πιο μελωδικό / uplifting χρώμα
       if (picked.some((p) => p && norm(p.artist) === norm(c.artist))) cost += 2;
       const d = c.duration || 0;
       if (d < 360) cost += 0.8;
@@ -546,7 +594,7 @@ async function buildSet(seed, pool, role, N = 10) {
     }
     return {
       id: t.id, title: t.title, artist: t.artist, cover: t.cover, preview: t.preview, link: t.link,
-      duration: t.duration || 0, section, isSeed,
+      duration: t.duration || 0, section, isSeed, genre: t.genre || '',
       bpm: (t.info && t.info.bpm) || 0, key: (t.info && t.info.key) || '', camelot: (t.info && t.info.camelot) || '',
       transition,
     };

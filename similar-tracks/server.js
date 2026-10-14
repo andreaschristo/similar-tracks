@@ -263,11 +263,12 @@ async function artistPool(seed) {
       if (a && !names.has(norm(a.name))) { names.add(norm(a.name)); out.push({ ...a }); }
     }
   }
-  return out.slice(0, 30);
+  return out.slice(0, 40);
 }
 
 async function similar(seed, opts) {
   const { minDur, house } = opts;
+  const cap = opts.cap || 40;
   const useHouse = house && !!LASTFM;
 
   const [lfTracks, pool] = await Promise.all([
@@ -278,7 +279,7 @@ async function similar(seed, opts) {
   // Τι είδος είναι κάθε καλλιτέχνης (house / ουδέτερο / όχι house)
   const kinds = {};
   if (useHouse) {
-    const names = [...new Set([...lfTracks.map((t) => t.artist), ...pool.map((a) => a.name)])].slice(0, 45);
+    const names = [...new Set([...lfTracks.map((t) => t.artist), ...pool.map((a) => a.name)])].slice(0, cap > 40 ? 70 : 45);
     await pmap(names, async (n) => { kinds[norm(n)] = await artistKind(n); }, 6, 250);
   }
   const kind = (n) => kinds[norm(n)] || 'neutral';
@@ -290,7 +291,7 @@ async function similar(seed, opts) {
     if (ok(t)) cands.push({ ...t, score: 0.6 + 0.8 * (t.match || 0) + houseBonus(t.artist) + lenScore(t) });
   }
 
-  const usable = pool.filter((a) => !(useHouse && kind(a.name) === 'reject')).slice(0, 16);
+  const usable = pool.filter((a) => !(useHouse && kind(a.name) === 'reject')).slice(0, cap > 40 ? 26 : 16);
   const tops = await pmap(usable, async (a, i) => {
     if (!a.id) {
       const r = await resolveDzArtist(a.name);
@@ -316,7 +317,7 @@ async function similar(seed, opts) {
     seen.add(k);
     perArtist[a] = (perArtist[a] || 0) + 1;
     out.push(t);
-    if (out.length >= 40) break;
+    if (out.length >= cap) break;
   }
   return { list: out, houseFilter: useHouse };
 }
@@ -384,15 +385,24 @@ function camRel(a, b) {
   return 'clash';
 }
 const KEY_COST = { same: 0, smooth: 0.5, relative: 0.7, boost: 1.5, unknown: 2.5, clash: 6 };
-// Ενέργεια ανά θέση: σταδιακή άνοδος, κορυφή στη μέση, ήπια πτώση στο τέλος
-const ARC = [0, 0.15, 0.35, 0.55, 0.75, 0.95, 1, 0.9, 0.55, 0.25];
-const SECTION = ['intro', 'intro', 'build', 'build', 'build', 'peak', 'peak', 'peak', 'outro', 'outro'];
-const SLOT_OF_ROLE = { open: 0, peak: 6, close: 9 };
+// Ενέργεια ανά θέση p (0..1): άνοδος μέχρι ~55%, κορυφή μέχρι ~75%, ήπια πτώση στο τέλος
+function arcAt(i, N) {
+  const p = N > 1 ? i / (N - 1) : 0;
+  if (p <= 0.55) return p / 0.55;
+  if (p <= 0.75) return 1;
+  return 1 - 0.75 * ((p - 0.75) / 0.25);
+}
+function sectionAt(i, N) {
+  const p = N > 1 ? i / (N - 1) : 0;
+  return p < 0.15 ? 'intro' : p < 0.45 ? 'build' : p < 0.8 ? 'peak' : 'outro';
+}
+function slotOfRole(role, N) {
+  return role === 'open' ? 0 : role === 'close' ? N - 1 : Math.round((N - 1) * 0.65);
+}
 const BLEND_SEC = 60; // μέση επικάλυψη ανά μετάβαση
 
-async function buildSet(seed, pool, role) {
-  const N = 10;
-  const slot = SLOT_OF_ROLE[role] ?? 6;
+async function buildSet(seed, pool, role, N = 10) {
+  const slot = slotOfRole(role, N);
   const seen = new Set([norm(seed.artist) + '|' + norm(baseTitle(seed.title))]);
   const cands = [];
   for (const t of pool) {
@@ -400,11 +410,11 @@ async function buildSet(seed, pool, role) {
     if (seen.has(k)) continue;
     seen.add(k);
     cands.push({ ...t });
-    if (cands.length >= 32) break;
+    if (cands.length >= Math.min(60, N * 3)) break;
   }
 
   // BPM + tonality για το seed και τους υποψήφιους
-  const infos = await pmap([seed, ...cands], (t) => trackInfo(t.artist, t.title), 4, 300);
+  const infos = await pmap([seed, ...cands], (t) => trackInfo(t.artist, t.title), 6, 200);
   seed.info = infos[0] || null;
   cands.forEach((t, i) => { t.info = infos[i + 1] || null; });
 
@@ -418,8 +428,8 @@ async function buildSet(seed, pool, role) {
     // κράτα όσα είναι σε λογικό εύρος γύρω από το seed (±8%) ή δεν έχουν BPM
     pickable = cands.filter((t) => !(t.info && t.info.bpm) || Math.abs(t.info.bpm - sBpm) / sBpm <= 0.08);
     const span = 0.06;
-    const low = sBpm / (1 + span * ARC[slot]);
-    target = (i) => low * (1 + span * ARC[i]);
+    const low = sBpm / (1 + span * arcAt(slot, N));
+    target = (i) => low * (1 + span * arcAt(i, N));
   }
 
   const picked = new Array(N).fill(null);
@@ -456,7 +466,7 @@ async function buildSet(seed, pool, role) {
   }
 
   const items = [];
-  picked.forEach((t, i) => { if (t) items.push({ t, section: SECTION[i], isSeed: i === slot }); });
+  picked.forEach((t, i) => { if (t) items.push({ t, section: sectionAt(i, N), isSeed: i === slot }); });
   const set = items.map(({ t, section, isSeed }, idx) => {
     const prev = idx > 0 ? items[idx - 1].t : null;
     let transition = null;
@@ -482,17 +492,19 @@ async function buildSet(seed, pool, role) {
 }
 
 // ---------- API ----------
-async function handleSet(q, role) {
+async function handleSet(q, role, minutes) {
   const input = await resolveInput(q);
   const seed = await findSeed(input);
   if (!seed) return { error: 'Δεν βρέθηκε το τραγούδι στο Deezer.', code: 'notfound' };
-  const opts = { minDur: 300, house: true };
+  const N = Math.max(6, Math.min(24, Math.round(minutes / 6))); // ~6 λεπτά ανά κομμάτι: 60'→10, 90'→15, 120'→20
+  const big = N > 12;
+  const opts = { minDur: 300, house: true, cap: big ? 70 : 40 };
   const [sim, same] = await Promise.all([
     similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
     sameArtist(seed, opts).catch(() => []),
   ]);
-  const built = await buildSet(seed, [...sim.list, ...same.slice(0, 6)], role);
-  return { seed, role, bpmEnabled: !!GSB, houseFilter: sim.houseFilter, ...built };
+  const built = await buildSet(seed, [...sim.list, ...same.slice(0, big ? 10 : 6)], role, N);
+  return { seed, role, minutes, wanted: N, bpmEnabled: !!GSB, houseFilter: sim.houseFilter, ...built };
 }
 
 async function handleSearch(q, opts) {
@@ -536,7 +548,8 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     if (!q) { res.statusCode = 400; return res.end(JSON.stringify({ error: 'Γράψε τίτλο ή link.' })); }
     try {
-      return res.end(JSON.stringify(await handleSet(q, role)));
+      const minutes = [60, 90, 120].includes(Number(u.searchParams.get('len'))) ? Number(u.searchParams.get('len')) : 120;
+      return res.end(JSON.stringify(await handleSet(q, role, minutes)));
     } catch (e) {
       return res.end(JSON.stringify({ error: e.message || 'Κάτι πήγε στραβά.', code: e.code || 'generic' }));
     }

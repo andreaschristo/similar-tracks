@@ -95,12 +95,20 @@
   .setbtn:hover{background:var(--text);color:var(--bg)}
   .setbtn:disabled{opacity:.35;cursor:wait}
   .roles{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  .genrebar{flex-direction:column;align-items:stretch;gap:12px}
+  .setbar{flex-direction:column;align-items:stretch;gap:12px}
+  .sbgrid{display:grid;grid-template-columns:3fr 3fr 1.4fr;gap:0 16px;align-items:end}
+  .sbgroup{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .sbgroup .cells{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line)}
+  .sbgroup .chip{border:0;border-right:1px solid var(--line);padding:14px 6px;text-align:center;width:100%;min-width:0}
+  .sbgroup .chip:last-child{border-right:0}
+  .sbgroup .chip.on{border-color:var(--line)}
+  .sbgo .setbtn{width:100%;height:48px;padding:0 10px}
+  .genrebar{border-top:0;margin-top:0;gap:12px}
   .genrebar .roles{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid var(--line);width:100%}
   .genrebar .chip{border:0;border-right:1px solid var(--line);padding:14px 6px;text-align:center;width:100%;min-width:0}
   .genrebar .chip:last-child{border-right:0}
   .genrebar .chip.on{border-color:var(--line)}
-  @media (max-width:760px){.genrebar .roles{grid-template-columns:repeat(3,1fr)}.genrebar .chip{border-bottom:1px solid var(--line)}.genrebar .chip:nth-child(3n){border-right:0}}
+  @media (max-width:760px){.sbgrid{grid-template-columns:1fr;gap:14px}.genrebar .roles{grid-template-columns:repeat(3,1fr)}.genrebar .chip{border-bottom:1px solid var(--line)}.genrebar .chip:nth-child(3n){border-right:0}}
   .setmeta{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:center;justify-content:space-between;margin-top:30px}
   .setmeta h3{margin:0;font:800 24px var(--sans);letter-spacing:.04em}
   .setmeta .sub2{color:var(--mute);font-size:12px;margin-top:4px}
@@ -339,17 +347,22 @@
 
       <div class="setbar" id="setbar">
         <span class="k" data-i18n="setLbl"></span>
-        <span class="roles"><span class="k" data-i18n="roleLbl"></span>
-          <button type="button" class="chip" data-role="open" data-i18n="roleOpen"></button>
-          <button type="button" class="chip" data-role="peak" data-i18n="rolePeak"></button>
-          <button type="button" class="chip" data-role="close" data-i18n="roleClose"></button>
-        </span>
-        <span class="roles"><span class="k" data-i18n="lenLbl"></span>
-          <button type="button" class="chip" data-len="60">1h</button>
-          <button type="button" class="chip" data-len="90">1.5h</button>
-          <button type="button" class="chip" data-len="120">2h</button>
-        </span>
-        <button type="button" class="setbtn" id="setBtn" data-i18n="setBtn"></button>
+        <div class="sbgrid">
+          <div class="sbgroup"><span class="k" data-i18n="roleLbl"></span>
+            <div class="cells">
+              <button type="button" class="chip" data-role="open" data-i18n="roleOpen"></button>
+              <button type="button" class="chip" data-role="peak" data-i18n="rolePeak"></button>
+              <button type="button" class="chip" data-role="close" data-i18n="roleClose"></button>
+            </div></div>
+          <div class="sbgroup"><span class="k" data-i18n="lenLbl"></span>
+            <div class="cells">
+              <button type="button" class="chip" data-len="60">1h</button>
+              <button type="button" class="chip" data-len="90">1.5h</button>
+              <button type="button" class="chip" data-len="120">2h</button>
+            </div></div>
+          <div class="sbgroup sbgo"><span class="k">&nbsp;</span>
+            <button type="button" class="setbtn" id="setBtn" data-i18n="setBtn"></button></div>
+        </div>
       </div>
       <div class="setbar genrebar" id="genrebar">
         <span class="k" data-i18n="genLbl"></span>
@@ -515,7 +528,7 @@ const I18N = {
     mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
     bpmWord: 'BPM',
     genLbl: 'Style', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'All',
-    setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Peak', roleClose: 'Closer', setBtn: 'Build set',
+    setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Peak', roleClose: 'Closer', setBtn: 'Build',
     setBuilding: 'building your set... a 2-hour set can take up to a minute',
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
@@ -593,7 +606,7 @@ const I18N = {
     mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
     bpmWord: 'BPM',
     genLbl: 'Στυλ', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Όλα',
-    setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Άνοιγμα', rolePeak: 'Peak', roleClose: 'Κλείσιμο', setBtn: 'Φτιάξε set',
+    setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Άνοιγμα', rolePeak: 'Peak', roleClose: 'Κλείσιμο', setBtn: 'Φτιάξε',
     setBuilding: 'φτιάχνω το set... ένα set 2 ωρών μπορεί να πάρει έως ένα λεπτό',
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',

@@ -8,6 +8,7 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 const LASTFM = process.env.LASTFM_API_KEY || '';
+const GSB = process.env.GETSONGBPM_API_KEY || ''; // BPM + tonality (getsongbpm.com)
 const UA = 'SimilarTracksApp/1.0 (personal project)';
 const enc = encodeURIComponent;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -320,7 +321,180 @@ async function similar(seed, opts) {
   return { list: out, houseFilter: useHouse };
 }
 
+// ---------- BPM + tonality (GetSongBPM) ----------
+const CAM_MAJ = { C: '8B', G: '9B', D: '10B', A: '11B', E: '12B', B: '1B', 'F#': '2B', Gb: '2B', 'C#': '3B', Db: '3B', 'G#': '4B', Ab: '4B', 'D#': '5B', Eb: '5B', 'A#': '6B', Bb: '6B', F: '7B' };
+const CAM_MIN = { A: '8A', E: '9A', B: '10A', 'F#': '11A', Gb: '11A', 'C#': '12A', Db: '12A', 'G#': '1A', Ab: '1A', 'D#': '2A', Eb: '2A', 'A#': '3A', Bb: '3A', F: '4A', C: '5A', G: '6A', D: '7A' };
+function toCamelot(k) {
+  if (!k) return '';
+  let s = String(k).replace(/♯/g, '#').replace(/♭/g, 'b').trim();
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  const m = s.match(/^([A-G][#b]?)(m|min|minor)?$/);
+  if (!m) return '';
+  return (m[2] ? CAM_MIN[m[1]] : CAM_MAJ[m[1]]) || '';
+}
+async function gsb(p, params) {
+  const q = new URLSearchParams({ api_key: GSB, ...params });
+  return getJSON('https://api.getsong.co' + p + '?' + q);
+}
+async function trackInfo(artist, title) {
+  if (!GSB || !artist || !title) return null;
+  const key = 'gsb:' + norm(artist) + '|' + norm(baseTitle(title));
+  try {
+    return await cached(key, async () => {
+      const s = await gsb('/search/', { type: 'both', lookup: `song:${baseTitle(title)} artist:${artist}`, limit: '5' });
+      const list = Array.isArray(s.search) ? s.search : [];
+      if (!list.length) return null;
+      const pick = list.find((x) => x.artist && norm(x.artist.name) === norm(artist)) || list[0];
+      let tempo = pick.tempo, keyOf = pick.key_of;
+      if (!tempo || !keyOf) {
+        const d = await gsb('/song/', { id: pick.id });
+        const sg = d.song || {};
+        tempo = tempo || sg.tempo;
+        keyOf = keyOf || sg.key_of;
+      }
+      const bpm = Number(tempo) || 0;
+      if (!bpm && !keyOf) return null;
+      return { bpm, key: keyOf || '', camelot: toCamelot(keyOf) };
+    }, 7 * 24 * 3600e3);
+  } catch (_) {
+    return null; // λάθος δικτύου / όριο αιτημάτων: δεν αποθηκεύεται στη cache
+  }
+}
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let b = '';
+    req.on('data', (c) => { b += c; if (b.length > 1e5) { req.destroy(); reject(new Error('too big')); } });
+    req.on('end', () => resolve(b));
+    req.on('error', reject);
+  });
+}
+
+// ---------- DJ set builder ----------
+function compat(c) {
+  const n = parseInt(c, 10), L = c.slice(-1), O = L === 'A' ? 'B' : 'A';
+  return { same: c, smooth: [(((n + 10) % 12) + 1) + L, ((n % 12) + 1) + L], relative: n + O, boost: (((n + 1) % 12) + 1) + L };
+}
+function camRel(a, b) {
+  if (!a || !b) return 'unknown';
+  if (a === b) return 'same';
+  const x = compat(a);
+  if (x.smooth.includes(b)) return 'smooth';
+  if (x.relative === b) return 'relative';
+  if (x.boost === b) return 'boost';
+  return 'clash';
+}
+const KEY_COST = { same: 0, smooth: 0.5, relative: 0.7, boost: 1.5, unknown: 2.5, clash: 6 };
+// Ενέργεια ανά θέση: σταδιακή άνοδος, κορυφή στη μέση, ήπια πτώση στο τέλος
+const ARC = [0, 0.15, 0.35, 0.55, 0.75, 0.95, 1, 0.9, 0.55, 0.25];
+const SECTION = ['intro', 'intro', 'build', 'build', 'build', 'peak', 'peak', 'peak', 'outro', 'outro'];
+const SLOT_OF_ROLE = { open: 0, peak: 6, close: 9 };
+const BLEND_SEC = 60; // μέση επικάλυψη ανά μετάβαση
+
+async function buildSet(seed, pool, role) {
+  const N = 10;
+  const slot = SLOT_OF_ROLE[role] ?? 6;
+  const seen = new Set([norm(seed.artist) + '|' + norm(baseTitle(seed.title))]);
+  const cands = [];
+  for (const t of pool) {
+    const k = norm(t.artist) + '|' + norm(baseTitle(t.title));
+    if (seen.has(k)) continue;
+    seen.add(k);
+    cands.push({ ...t });
+    if (cands.length >= 32) break;
+  }
+
+  // BPM + tonality για το seed και τους υποψήφιους
+  const infos = await pmap([seed, ...cands], (t) => trackInfo(t.artist, t.title), 4, 300);
+  seed.info = infos[0] || null;
+  cands.forEach((t, i) => { t.info = infos[i + 1] || null; });
+
+  const sBpm = seed.info && seed.info.bpm;
+  const known = cands.filter((t) => t.info && t.info.bpm).length;
+  const useBpm = !!sBpm && known >= 6;
+
+  let pickable = cands;
+  let target = () => 0;
+  if (useBpm) {
+    // κράτα όσα είναι σε λογικό εύρος γύρω από το seed (±8%) ή δεν έχουν BPM
+    pickable = cands.filter((t) => !(t.info && t.info.bpm) || Math.abs(t.info.bpm - sBpm) / sBpm <= 0.08);
+    const span = 0.06;
+    const low = sBpm / (1 + span * ARC[slot]);
+    target = (i) => low * (1 + span * ARC[i]);
+  }
+
+  const picked = new Array(N).fill(null);
+  picked[slot] = seed;
+  const used = new Set();
+  const order = [];
+  for (let i = slot + 1; i < N; i++) order.push([i, i - 1]);
+  for (let i = slot - 1; i >= 0; i--) order.push([i, i + 1]);
+
+  for (const [i, ref] of order) {
+    const refT = picked[ref];
+    let best = null, bestCost = Infinity;
+    pickable.forEach((c, idx) => {
+      if (used.has(c.id)) return;
+      let cost = 0;
+      if (useBpm) {
+        const b = c.info && c.info.bpm;
+        const tg = target(i);
+        cost += b ? (Math.abs(b - tg) / tg) * 200 : 3;
+        cost += KEY_COST[camRel(refT.info && refT.info.camelot, c.info && c.info.camelot)];
+        if (b && refT.info && refT.info.bpm) cost += (Math.abs(b - refT.info.bpm) / refT.info.bpm) * 50;
+      } else {
+        cost += idx * 0.15; // χωρίς BPM: σειρά ομοιότητας
+      }
+      if (picked.some((p) => p && norm(p.artist) === norm(c.artist))) cost += 2;
+      const d = c.duration || 0;
+      if (d < 360) cost += 0.8;
+      if (d > 540) cost += 0.5;
+      if (cost < bestCost) { best = c; bestCost = cost; }
+    });
+    if (!best) continue;
+    picked[i] = best;
+    used.add(best.id);
+  }
+
+  const items = [];
+  picked.forEach((t, i) => { if (t) items.push({ t, section: SECTION[i], isSeed: i === slot }); });
+  const set = items.map(({ t, section, isSeed }, idx) => {
+    const prev = idx > 0 ? items[idx - 1].t : null;
+    let transition = null;
+    if (prev) {
+      const pb = prev.info && prev.info.bpm, cb = t.info && t.info.bpm;
+      transition = {
+        bpmPct: pb && cb ? Math.round(((cb - pb) / pb) * 1000) / 10 : null,
+        key: camRel(prev.info && prev.info.camelot, t.info && t.info.camelot),
+        from: (prev.info && prev.info.camelot) || '',
+        to: (t.info && t.info.camelot) || '',
+      };
+    }
+    return {
+      id: t.id, title: t.title, artist: t.artist, cover: t.cover, preview: t.preview, link: t.link,
+      duration: t.duration || 0, section, isSeed,
+      bpm: (t.info && t.info.bpm) || 0, key: (t.info && t.info.key) || '', camelot: (t.info && t.info.camelot) || '',
+      transition,
+    };
+  });
+  const totalSec = set.reduce((a, x) => a + x.duration, 0);
+  const mixedSec = Math.max(0, totalSec - Math.max(0, set.length - 1) * BLEND_SEC);
+  return { set, totalSec, mixedSec, bpmUsed: useBpm };
+}
+
 // ---------- API ----------
+async function handleSet(q, role) {
+  const input = await resolveInput(q);
+  const seed = await findSeed(input);
+  if (!seed) return { error: 'Δεν βρέθηκε το τραγούδι στο Deezer.', code: 'notfound' };
+  const opts = { minDur: 300, house: true };
+  const [sim, same] = await Promise.all([
+    similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
+    sameArtist(seed, opts).catch(() => []),
+  ]);
+  const built = await buildSet(seed, [...sim.list, ...same.slice(0, 6)], role);
+  return { seed, role, bpmEnabled: !!GSB, houseFilter: sim.houseFilter, ...built };
+}
+
 async function handleSearch(q, opts) {
   const input = await resolveInput(q);
   const seed = await findSeed(input);
@@ -335,12 +509,38 @@ async function handleSearch(q, opts) {
   return {
     input, seed,
     similar: sim.list, versions, sameArtist: same,
-    lastfm: !!LASTFM, houseFilter: sim.houseFilter, minDur: opts.minDur,
+    lastfm: !!LASTFM, houseFilter: sim.houseFilter, minDur: opts.minDur, bpmEnabled: !!GSB,
   };
 }
 
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://localhost');
+  if (u.pathname === '/api/info' && req.method === 'POST') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    try {
+      const body = JSON.parse((await readBody(req)) || '{}');
+      const list = (body.tracks || []).slice(0, 20);
+      const info = {};
+      if (GSB) {
+        const r = await pmap(list, async (t) => ({ id: t.id, info: await trackInfo(t.artist, t.title) }), 4, 300);
+        for (const x of r) if (x && x.info) info[x.id] = x.info;
+      }
+      return res.end(JSON.stringify({ enabled: !!GSB, info }));
+    } catch (_) {
+      return res.end(JSON.stringify({ enabled: !!GSB, info: {} }));
+    }
+  }
+  if (u.pathname === '/api/set') {
+    const q = (u.searchParams.get('q') || '').trim();
+    const role = ['open', 'peak', 'close'].includes(u.searchParams.get('role')) ? u.searchParams.get('role') : 'peak';
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    if (!q) { res.statusCode = 400; return res.end(JSON.stringify({ error: 'Γράψε τίτλο ή link.' })); }
+    try {
+      return res.end(JSON.stringify(await handleSet(q, role)));
+    } catch (e) {
+      return res.end(JSON.stringify({ error: e.message || 'Κάτι πήγε στραβά.', code: e.code || 'generic' }));
+    }
+  }
   if (u.pathname === '/api/search') {
     const q = (u.searchParams.get('q') || '').trim();
     const opts = {

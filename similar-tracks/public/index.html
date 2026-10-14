@@ -348,11 +348,12 @@
       <div class="setbar genrebar" id="genrebar">
         <span class="k" data-i18n="genLbl"></span>
         <span class="roles">
+          <button type="button" class="chip" data-genre="any" data-i18n="gAny"></button>
+          <button type="button" class="chip" data-genre="soulful" data-i18n="gSoulful"></button>
           <button type="button" class="chip" data-genre="house" data-i18n="gHouse"></button>
+          <button type="button" class="chip" data-genre="classic" data-i18n="gClassic"></button>
           <button type="button" class="chip" data-genre="deep" data-i18n="gDeep"></button>
           <button type="button" class="chip" data-genre="tech" data-i18n="gTech"></button>
-          <button type="button" class="chip" data-genre="classic" data-i18n="gClassic"></button>
-          <button type="button" class="chip" data-genre="any" data-i18n="gAny"></button>
         </span>
       </div>
       <div class="tags">
@@ -445,7 +446,7 @@ const MIN_SECONDS = 300; // μόνο extended (5:00+)
 let data = null, tab = 'similar', playingId = null, lang = 'en';
 let infoMap = {}, requested = new Set(), bpmEnabled = false, onlyMix = false, pairA = null, pairB = null;
 let genre = 'house';
-try { const g0 = localStorage.getItem('houze_genre'); if (['house', 'deep', 'tech', 'classic', 'any'].includes(g0)) genre = g0; } catch (_) {}
+try { const g0 = localStorage.getItem('houze_genre'); if (['soulful', 'house', 'classic', 'deep', 'tech', 'any'].includes(g0)) genre = g0; } catch (_) {}
 let mode = 'search', setData = null, setRole = 'peak', setLen = 120;
 
 const I18N = {
@@ -508,7 +509,7 @@ const I18N = {
     onlyMix: 'Only tracks that mix', setsLbl: 'Hear it in DJ sets',
     mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
     bpmWord: 'BPM',
-    genLbl: 'Style', gHouse: 'House (all)', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Any / random',
+    genLbl: 'Style', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'All',
     setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'Your track is the', roleOpen: 'Opener', rolePeak: 'Peak', roleClose: 'Closer', setBtn: 'Build set',
     setBuilding: 'building your set... a 2-hour set can take up to a minute',
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
@@ -585,7 +586,7 @@ const I18N = {
     onlyMix: 'Μόνο όσα κάνουν mix', setsLbl: 'Άκουσέ το σε DJ sets',
     mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
     bpmWord: 'BPM',
-    genLbl: 'Στυλ', gHouse: 'House (όλα)', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Οποιοδήποτε / random',
+    genLbl: 'Στυλ', gSoulful: 'Soulful house', gHouse: 'House', gDeep: 'Deep house', gTech: 'Tech house', gClassic: 'Classic house', gAny: 'Όλα',
     setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Το κομμάτι σου είναι το', roleOpen: 'Άνοιγμα', rolePeak: 'Peak', roleClose: 'Κλείσιμο', setBtn: 'Φτιάξε set',
     setBuilding: 'φτιάχνω το set... ένα set 2 ωρών μπορεί να πάρει έως ένα λεπτό',
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',

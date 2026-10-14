@@ -527,7 +527,8 @@ async function handleSearch(q, opts) {
 }
 
 /* ---------- Πλήρες κομμάτι: βρίσκει βίντεο στο YouTube ---------- */
-const YTKEY = process.env.YOUTUBE_API_KEY || '';
+const YTKEY = (process.env.YOUTUBE_API_KEY || process.env.YT_API_KEY || '').trim();
+console.log('YouTube key loaded:', !!YTKEY, '| env names:', Object.keys(process.env).filter((k) => /API|KEY/i.test(k)).join(','));
 const PIPED = ['https://pipedapi.kavin.rocks', 'https://pipedapi.adminforge.de', 'https://api.piped.private.coffee'];
 async function ytFind(artist, title, why) {
   const q = `${artist} ${title}`.replace(/\s+/g, ' ').trim();
@@ -570,7 +571,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const why = [];
       const id = await ytFind(u.searchParams.get('artist') || '', u.searchParams.get('title') || '', why);
-      return res.end(JSON.stringify(u.searchParams.get('debug') ? { id, why, key: !!YTKEY } : { id }));
+      return res.end(JSON.stringify(u.searchParams.get('debug') ? { id, why, key: !!YTKEY, envNames: Object.keys(process.env).filter((k) => /API|KEY/i.test(k)), v: 3 } : { id }));
     } catch (_) { return res.end(JSON.stringify({ id: null })); }
   }
   if (u.pathname === '/api/info' && req.method === 'POST') {

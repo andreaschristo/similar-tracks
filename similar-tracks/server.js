@@ -209,7 +209,8 @@ async function artistKind(name) {
 const GENRES = [
   ['deep house', /deep.?house/],
   ['tech house', /tech.?house/],
-  ['classic house', /classic house|chicago house|old.?school house|garage house|disco house|funky house|soulful house|acid house/],
+  ['soulful house', /soulful.?house|vocal house|gospel house|soulful/],
+  ['classic house', /classic house|chicago house|old.?school house|garage house|disco house|funky house|acid house/],
   ['progressive house', /progressive house/],
   ['afro house', /afro.?house/],
   ['melodic house', /melodic house/],
@@ -316,8 +317,8 @@ async function artistPool(seed) {
 }
 
 const pctOf = (base, bonus) => Math.max(5, Math.min(99, Math.round((base + (bonus || 0) * 0.15) * 100)));
-const GENRE_KEYS = ['any', 'house', 'deep', 'tech', 'classic'];
-const GENRE_NAME = { deep: 'deep house', tech: 'tech house', classic: 'classic house' };
+const GENRE_KEYS = ['any', 'house', 'soulful', 'classic', 'deep', 'tech'];
+const GENRE_NAME = { soulful: 'soulful house', classic: 'classic house', deep: 'deep house', tech: 'tech house' };
 async function similar(seed, opts) {
   const { minDur, house } = opts;
   const wantGenre = GENRE_NAME[opts.genre] || '';
@@ -588,7 +589,7 @@ function dcSplit(title) {
   const m = String(title || '').match(/^(.+?)\s+[-–]\s+(.+)$/);
   return m ? { artist: m[1].replace(/\s*\(\d+\)$/, '').trim(), title: m[2].trim() } : { artist: '', title: String(title || '') };
 }
-const DC_STYLE = { deep: 'Deep House', tech: 'Tech House', classic: 'Garage House' };
+const DC_STYLE = { soulful: 'Garage House', classic: 'Chicago House', deep: 'Deep House', tech: 'Tech House' };
 async function discogsSimilar(seed, genre) {
   if (!DISCOGS || !seed || !seed.artist) return [];
   const any = genre === 'any';

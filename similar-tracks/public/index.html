@@ -164,22 +164,23 @@
   .trbtns button{background:transparent;border:1px solid var(--line);color:var(--mute);font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:7px 10px;cursor:pointer;border-radius:0}
   .trbtns button:hover{border-color:var(--text);color:var(--text)}
   .mx{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line)}
-  .mx h4{margin:0 0 12px;font:700 10px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
-  .decks{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .deck{border:1px solid var(--line);padding:14px}
-  .deck .dn{font:700 10px var(--mono);letter-spacing:.2em;color:var(--mute)}
-  .deck .dt{font:600 13px/1.3 var(--sans);margin:4px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .deck .da{font-size:11px;color:var(--mute);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .deck .drow{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;margin-bottom:10px}
-  .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between}
-  .deck label{display:block;font:10px var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin:8px 0 4px;display:flex;justify-content:space-between}
-  .mx input[type=range]{width:100%;accent-color:#fff;background:transparent}
-  .xfade{margin:16px 0 6px}
-  .mxbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-  .mxbtns button{background:transparent;border:1px solid var(--line);color:var(--text);font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:9px 12px;cursor:pointer;border-radius:0}
-  .mxbtns button:hover{border-color:var(--text)}
-  .mxnote{font-size:11px;color:var(--dim);margin-top:10px;line-height:1.6}
-  @media(max-width:760px){.decks{grid-template-columns:1fr}.trhead{grid-template-columns:1fr}.trarrow{display:none}}
+  .mx h4{margin:0 0 14px;font:700 10px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
+  .mxgo{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .gobtn{background:var(--text);color:var(--bg);border:1px solid var(--text);font:700 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;padding:13px 20px;cursor:pointer;border-radius:0}
+  .gobtn.on{background:transparent;color:var(--text)}
+  .mxopt{display:flex;align-items:center;gap:8px;font:10px var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+  .mxchip{background:transparent;border:1px solid var(--line);color:var(--mute);font:600 11px var(--mono);padding:7px 11px;cursor:pointer;border-radius:0}
+  .mxchip.on,.mxchip:hover{border-color:var(--text);color:var(--text)}
+  .tl{position:relative;margin:20px 0 6px;padding:2px 0}
+  .tlin{position:relative;margin-left:26px}
+  .tlrow{position:relative;margin:6px 0}
+  .tll{position:absolute;left:-24px;top:50%;transform:translateY(-50%);font:700 10px var(--mono);color:var(--mute)}
+  .tlbar{position:relative;height:14px;background:rgba(255,255,255,.04)}
+  .tlbar i{position:absolute;top:0;bottom:0;background:rgba(255,255,255,.28)}
+  .tlblend{position:absolute;top:0;bottom:0;background:rgba(255,255,255,.07);border-left:1px dashed var(--dim);border-right:1px dashed var(--dim);pointer-events:none}
+  .tlhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0;pointer-events:none}
+  .mxstat{font:11px var(--mono);color:var(--mute);margin-top:10px;line-height:1.6;min-height:18px}
+  @media(max-width:760px){.trhead{grid-template-columns:1fr}.trarrow{display:none}}
   .trverdict{font:600 14px/1.5 var(--sans);margin:6px 0 2px}
   .trverdict.bad{color:var(--mute)}
   .play.on{background:var(--text);color:var(--bg);border-color:var(--text)}
@@ -428,9 +429,9 @@ const I18N = {
     trBoostK: 'Energy boost: +2 on the wheel, it lifts the room.', trClashK: 'The keys clash. Keep the blend short or cut on a break.',
     trGap: 'Tempo gap', trPitchB: 'Pitch B by', trFar: 'Tempos too far apart. Use a cut, an echo out or a break.', trHalfD: 'B runs at double or half the tempo of A. Mix on the beat grid at x2 or /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Long blend: bring B in on a phrase start, swap the bass around bar 16, then ease the highs.', trTipShort: 'Short blend: bring B in on a phrase start, cut the bass of A first and drop it on the downbeat.',
-    mxTitle: 'Mini mixer · 30-second previews', mxPlay: 'Play', mxPause: 'Pause', mxBoth: 'Play both', mxAuto: 'Auto blend 12s', mxSync: 'Sync B to A', mxStopAll: 'Stop',
-    mxTempo: 'Tempo', mxFade: 'Crossfader', mxNoPrev: 'No preview available for this track.', mxNote: 'Previews are 30 seconds long. Use the mixer to test how two tracks sit together, not to mix a whole track.', mxNoSync: 'Sync needs BPM data for both tracks.',
-    noBpm: 'BPM and key need a GetSongBPM API key on the server.',
+    mxTitle: 'Auto transition · 30-second previews', mxGo: 'Play transition', mxStopBtn: 'Stop', mxBlendLbl: 'Blend length',
+    mxLoading: 'Loading both tracks…', mxPhaseA: 'A is playing', mxPhaseBlend: 'Blending A → B', mxPhaseB: 'B is playing', mxDone: 'Done', mxSynced: 'B tempo adjusted',
+    mxNoPrev: 'No preview available for one of the tracks.', mxNote: 'One press plays a sample of the transition: B enters after 4 seconds and the app fades between them, matching the tempo when BPM is known.',
     noBpmFound: 'BPM and key were not found for this track.',
     mixTitle: 'Harmonic mixing',
     rBpm: 'Tempo', rKey: 'Key', rSame: 'Perfect', rSmooth: 'Smooth', rRel: 'Relative', rBoost: 'Energy boost',
@@ -503,9 +504,9 @@ const I18N = {
     trBoostK: 'Ώθηση ενέργειας: +2 στον τροχό, ανεβάζει την πίστα.', trClashK: 'Τα key συγκρούονται. Κράτα το blend σύντομο ή κάνε cut σε break.',
     trGap: 'Διαφορά tempo', trPitchB: 'Pitch στο B', trFar: 'Τα tempo απέχουν πολύ. Κάνε cut, echo out ή break.', trHalfD: 'Το B τρέχει στο διπλάσιο ή μισό tempo από το A. Μίξη στο beat grid ×2 ή /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Μεγάλο blend: μπες με το B στην αρχή φράσης, κάνε swap στα μπάσα γύρω στο bar 16 και μετά κατέβασε σιγά τα πρίμα.', trTipShort: 'Μικρό blend: μπες με το B στην αρχή φράσης, κόψε πρώτα τα μπάσα του A και άφησέ τα στο downbeat.',
-    mxTitle: 'Μίνι mixer · previews 30″', mxPlay: 'Play', mxPause: 'Παύση', mxBoth: 'Play και τα δύο', mxAuto: 'Αυτόματο blend 12″', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ',
-    mxTempo: 'Tempo', mxFade: 'Crossfader', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxNote: 'Τα previews διαρκούν 30 δευτερόλεπτα. Χρησιμοποίησε το mixer για να δοκιμάσεις πώς ταιριάζουν δύο κομμάτια, όχι για να μιξάρεις ολόκληρο κομμάτι.', mxNoSync: 'Το Sync θέλει BPM και για τα δύο κομμάτια.',
-    noBpm: 'Τα BPM και η tonality χρειάζονται GetSongBPM API key στον server.',
+    mxTitle: 'Αυτόματη μετάβαση · previews 30″', mxGo: 'Παίξε τη μετάβαση', mxStopBtn: 'Στοπ', mxBlendLbl: 'Διάρκεια blend',
+    mxLoading: 'Φορτώνουν και τα δύο κομμάτια…', mxPhaseA: 'Παίζει το A', mxPhaseBlend: 'Blend A → B', mxPhaseB: 'Παίζει το B', mxDone: 'Τέλος', mxSynced: 'Tempo του B',
+    mxNoPrev: 'Δεν υπάρχει preview για ένα από τα κομμάτια.', mxNote: 'Με ένα πάτημα ακούς δείγμα της μετάβασης: το B μπαίνει μετά από 4 δευτερόλεπτα και η εφαρμογή κάνει το crossfade, με ίδιο tempo όταν υπάρχουν BPM.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
     mixTitle: 'Αρμονική μίξη',
     rBpm: 'Ταχύτητα', rKey: 'Κλειδί', rSame: 'Τέλειο', rSmooth: 'Ομαλό', rRel: 'Σχετικό', rBoost: 'Ενέργεια',
@@ -868,141 +869,119 @@ function setsLinks(s) {
 }
 const baseOf = (s) => String(s || '').replace(/[\(\[].*?[\)\]]/g, '').replace(/\s+/g, ' ').trim();
 
-/* ---------- Μίνι mixer (2 decks, previews 30") ---------- */
+/* ---------- Αυτόματη μετάβαση A → B (previews 30") ---------- */
 const MX = {
-  a: { audio: new Audio(), id: null, rate: 1, tr: null },
-  b: { audio: new Audio(), id: null, rate: 1, tr: null },
-  xf: 0, auto: null, tick: null,
+  a: new Audio(), b: new Audio(), aId: null, bId: null,
+  blend: 12, enter: 4, run: null, phase: '', note: '',
 };
-MX.a.audio.preload = 'auto'; MX.b.audio.preload = 'auto';
-function mxApplyVol() {
-  const x = MX.xf / 100;
-  MX.a.audio.volume = Math.max(0, Math.min(1, Math.cos(x * Math.PI / 2)));
-  MX.b.audio.volume = Math.max(0, Math.min(1, Math.sin(x * Math.PI / 2)));
+MX.a.preload = 'auto'; MX.b.preload = 'auto';
+const MX_LEN = 30;
+function mxLoad(A, B) {
+  if (MX.aId !== A.id) { MX.a.pause(); MX.a.src = A.preview || ''; MX.aId = A.id; if (A.preview) MX.a.load(); }
+  if (MX.bId !== B.id) { MX.b.pause(); MX.b.src = B.preview || ''; MX.bId = B.id; if (B.preview) MX.b.load(); }
 }
-function mxStop() {
-  clearInterval(MX.auto); MX.auto = null;
-  MX.a.audio.pause(); MX.b.audio.pause();
-  mxRefresh();
+function mxStop(silent) {
+  if (MX.run) { clearInterval(MX.run); MX.run = null; }
+  MX.a.pause(); MX.b.pause();
+  MX.a.volume = 1; MX.b.volume = 1;
+  MX.a.playbackRate = 1; MX.b.playbackRate = 1;
+  MX.phase = ''; MX.note = '';
+  if (!silent) mxRefresh();
 }
-function mxLoad(k, tr) {
-  const d = MX[k];
-  if (d.id !== tr.id) {
-    d.audio.pause();
-    d.audio.src = tr.preview || '';
-    d.id = tr.id; d.rate = 1; d.audio.playbackRate = 1;
-    if (k === 'b') MX.xf = 0;
-  }
-  d.tr = tr;
-}
-function mxDeckHTML(k, tr) {
-  const d = MX[k], n = k.toUpperCase();
-  const i = infoMap[tr.id] || {};
-  const meta = [i.bpm ? Math.round(i.bpm) + ' ' + t('bpmWord') : '', i.camelot || ''].filter(Boolean).join(' · ');
-  const pct = ((d.rate - 1) * 100).toFixed(1);
-  if (!tr.preview) {
-    return `<div class="deck"><div class="dn">DECK ${n}</div><div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div><div class="mixhint" style="margin:0">${esc(t('mxNoPrev'))}</div></div>`;
-  }
-  return `<div class="deck"><div class="dn">DECK ${n}${meta ? ' · ' + esc(meta) : ''}</div>
-    <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div>
-    <div class="drow"><button type="button" class="play" data-mxa="play-${k}" id="mxp-${k}">▶</button>
-      <div><input type="range" min="0" max="1000" value="0" data-mx="seek-${k}" id="mxs-${k}" aria-label="Seek ${n}"><div class="dtime"><span id="mxc-${k}">0:00</span><span id="mxd-${k}">0:30</span></div></div></div>
-    <label><span>${esc(t('mxTempo'))}</span><span id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></label>
-    <input type="range" min="-150" max="150" value="${Math.round((d.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}"></div>`;
+function mxPhaseText() {
+  return { load: t('mxLoading'), a: t('mxPhaseA'), blend: t('mxPhaseBlend'), b: t('mxPhaseB'), done: t('mxDone') }[MX.phase] || '';
 }
 function mixerHTML(A, B) {
+  const end = MX.enter + MX.blend;
+  const pc = (s) => (s / MX_LEN * 100).toFixed(2) + '%';
+  const chips = [8, 12, 16].map((n) => `<button type="button" class="mxchip${MX.blend === n ? ' on' : ''}" data-mxa="blend-${n}">${n}″</button>`).join('');
+  const ok = A.preview && B.preview;
   return `<div class="mx"><h4>${esc(t('mxTitle'))}</h4>
-    <div class="decks">${mxDeckHTML('a', A)}${mxDeckHTML('b', B)}</div>
-    <div class="xfade"><label style="display:flex;justify-content:space-between;font:10px var(--mono);letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:6px"><span>A</span><span>${esc(t('mxFade'))}</span><span>B</span></label>
-      <input type="range" min="0" max="100" value="${Math.round(MX.xf)}" data-mx="xf" id="mxx" aria-label="Crossfader"></div>
-    <div class="mxbtns"><button type="button" data-mxa="both">${esc(t('mxBoth'))}</button><button type="button" data-mxa="auto">${esc(t('mxAuto'))}</button><button type="button" data-mxa="sync">${esc(t('mxSync'))}</button><button type="button" data-mxa="stop">${esc(t('mxStopAll'))}</button></div>
-    <div class="mxnote" id="mxmsg">${esc(t('mxNote'))}</div></div>`;
+    ${ok ? `<div class="mxgo"><button type="button" class="gobtn" data-mxa="go" id="mxgo">▶ ${esc(t('mxGo'))}</button>
+      <div class="mxopt"><span>${esc(t('mxBlendLbl'))}</span>${chips}</div></div>
+    <div class="tl" id="mxtl"><div class="tlin">
+      <div class="tlrow"><span class="tll">A</span><div class="tlbar"><i style="left:0;width:${pc(end)}"></i></div></div>
+      <div class="tlrow"><span class="tll">B</span><div class="tlbar"><i style="left:${pc(MX.enter)};width:${pc(MX_LEN - MX.enter)}"></i></div></div>
+      <div class="tlblend" style="left:${pc(MX.enter)};width:${pc(MX.blend)}"></div>
+      <div class="tlhead" id="mxhead"></div>
+    </div></div>
+    <div class="mxstat" id="mxstat">${esc(t('mxNote'))}</div>` : `<div class="mixhint" style="margin:0">${esc(t('mxNoPrev'))}</div>`}
+    </div>`;
 }
 function mountMixer() {
   const host = $('#mixerHost');
-  if (!host || !pairB || !data) { mxStop(); return; }
+  if (!host || !pairB || !data) { if (MX.run) mxStop(true); return; }
   const A = pairA || data.seed, B = pairB;
-  mxLoad('a', A); mxLoad('b', B);
+  mxLoad(A, B);
   host.innerHTML = mixerHTML(A, B);
-  mxApplyVol();
-  if (!MX.tick) MX.tick = setInterval(mxRefresh, 250);
   mxRefresh();
 }
 function mxRefresh() {
-  for (const k of ['a', 'b']) {
-    const au = MX[k].audio;
-    const btn = document.getElementById('mxp-' + k);
-    if (!btn) continue;
-    btn.textContent = au.paused ? '▶' : '❚❚';
-    btn.classList.toggle('on', !au.paused);
-    const dur = isFinite(au.duration) && au.duration > 0 ? au.duration : 30;
-    const sk = document.getElementById('mxs-' + k);
-    if (sk && document.activeElement !== sk) sk.value = String(Math.round((au.currentTime / dur) * 1000));
-    const c = document.getElementById('mxc-' + k), dd = document.getElementById('mxd-' + k);
-    if (c) c.textContent = fmtT(au.currentTime);
-    if (dd) dd.textContent = fmtT(dur);
+  const btn = document.getElementById('mxgo');
+  if (btn) {
+    const run = !!MX.run;
+    btn.textContent = run ? '❚❚ ' + t('mxStopBtn') : '▶ ' + t('mxGo');
+    btn.classList.toggle('on', run);
   }
-  const x = document.getElementById('mxx');
-  if (x && document.activeElement !== x) x.value = String(Math.round(MX.xf));
+  const st = document.getElementById('mxstat');
+  if (st) st.textContent = MX.run || MX.phase ? (mxPhaseText() + (MX.note ? ' · ' + MX.note : '')) : t('mxNote');
 }
-function mxPlayDeck(k) {
+function mxWait(au, ms) {
+  return new Promise((res) => {
+    if (au.readyState >= 3) return res();
+    const done = () => { au.removeEventListener('canplay', done); res(); };
+    au.addEventListener('canplay', done);
+    setTimeout(done, ms);
+  });
+}
+async function mxStart() {
   if (typeof isPlaying === 'function' && isPlaying()) pauseP();
-  const au = MX[k].audio;
-  if (!au.src) return;
-  au.playbackRate = MX[k].rate;
-  au.play().catch(() => {});
-}
-function mxSetRate(k, rate) {
-  MX[k].rate = rate;
-  MX[k].audio.playbackRate = rate;
-  const r = document.getElementById('mxr-' + k), tl = document.getElementById('mxt-' + k);
-  const pct = ((rate - 1) * 100).toFixed(1);
-  if (r) r.value = String(Math.round((rate - 1) * 1000));
-  if (tl) tl.textContent = (pct >= 0 ? '+' : '') + pct + '%';
-}
-$('#out').addEventListener('input', (e) => {
-  const el = e.target.closest('[data-mx]');
-  if (!el) return;
-  const [what, k] = el.dataset.mx.split('-');
-  if (what === 'xf') { MX.xf = Number(el.value); mxApplyVol(); return; }
-  if (what === 'tempo') { mxSetRate(k, 1 + Number(el.value) / 1000); return; }
-  if (what === 'seek') {
-    const au = MX[k].audio;
-    const dur = isFinite(au.duration) && au.duration > 0 ? au.duration : 30;
-    au.currentTime = (Number(el.value) / 1000) * dur;
+  const A = pairA || data.seed, B = pairB;
+  mxStop(true);
+  MX.phase = 'load'; mxRefresh();
+  // ίδιο tempo: το B προσαρμόζεται στο A
+  const ia = infoMap[A.id], ib = infoMap[B.id];
+  MX.note = '';
+  if (ia && ib && ia.bpm && ib.bpm) {
+    const r = Math.max(0.85, Math.min(1.15, ia.bpm / ib.bpm));
+    MX.b.playbackRate = r;
+    const pct = (r - 1) * 100;
+    MX.note = t('mxSynced') + ' ' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
   }
-});
+  MX.a.currentTime = 0; MX.b.currentTime = 0;
+  MX.a.volume = 1; MX.b.volume = 0;
+  await Promise.all([mxWait(MX.a, 4000), mxWait(MX.b, 4000)]);
+  if (MX.phase !== 'load') return; // ακυρώθηκε
+  try { await MX.a.play(); } catch (_) { MX.phase = ''; mxRefresh(); return; }
+  const t0 = performance.now();
+  let bOn = false;
+  MX.phase = 'a'; mxRefresh();
+  MX.run = setInterval(() => {
+    const s = (performance.now() - t0) / 1000;
+    const head = document.getElementById('mxhead');
+    if (head) head.style.left = Math.min(100, (s / MX_LEN) * 100) + '%';
+    if (!bOn && s >= MX.enter) { bOn = true; MX.b.play().catch(() => {}); }
+    const p = Math.max(0, Math.min(1, (s - MX.enter) / MX.blend));
+    if (s >= MX.enter) {
+      MX.a.volume = Math.max(0, Math.min(1, Math.cos(p * Math.PI / 2)));
+      MX.b.volume = Math.max(0, Math.min(1, Math.sin(p * Math.PI / 2)));
+    }
+    const ph = s < MX.enter ? 'a' : (s < MX.enter + MX.blend ? 'blend' : 'b');
+    if (ph !== MX.phase) { MX.phase = ph; mxRefresh(); }
+    if (s >= MX.enter + MX.blend && !MX.a.paused) MX.a.pause();
+    if (s >= MX_LEN || (bOn && MX.b.ended)) {
+      clearInterval(MX.run); MX.run = null; MX.a.pause(); MX.b.pause(); MX.phase = 'done';
+      MX.a.volume = 1; MX.b.volume = 1; MX.a.playbackRate = 1; MX.b.playbackRate = 1;
+      mxRefresh();
+    }
+  }, 50);
+}
 $('#out').addEventListener('click', (e) => {
   const b = e.target.closest('[data-mxa]');
   if (!b) return;
   const act = b.dataset.mxa;
-  if (act === 'play-a' || act === 'play-b') {
-    const k = act.slice(-1), au = MX[k].audio;
-    if (au.paused) mxPlayDeck(k); else au.pause();
-    mxRefresh();
-  } else if (act === 'both') {
-    clearInterval(MX.auto); MX.auto = null;
-    MX.a.audio.currentTime = 0; MX.b.audio.currentTime = 0;
-    mxPlayDeck('a'); mxPlayDeck('b'); mxRefresh();
-  } else if (act === 'auto') {
-    clearInterval(MX.auto);
-    MX.xf = 0; mxApplyVol();
-    MX.a.audio.currentTime = 0; MX.b.audio.currentTime = 0;
-    mxPlayDeck('a'); mxPlayDeck('b');
-    MX.auto = setInterval(() => {
-      MX.xf = Math.min(100, MX.xf + 100 / 120);
-      mxApplyVol(); mxRefresh();
-      if (MX.xf >= 100) { clearInterval(MX.auto); MX.auto = null; }
-    }, 100);
-  } else if (act === 'sync') {
-    const ia = infoMap[(pairA || data.seed).id], ib = infoMap[pairB.id];
-    const msg = document.getElementById('mxmsg');
-    if (!ia || !ib || !ia.bpm || !ib.bpm) { if (msg) msg.textContent = t('mxNoSync'); return; }
-    const target = ia.bpm * MX.a.rate;
-    mxSetRate('b', Math.max(0.85, Math.min(1.15, target / ib.bpm)));
-  } else if (act === 'stop') {
-    mxStop();
-  }
+  if (act === 'go') { if (MX.run || MX.phase === 'load') { mxStop(); } else { mxStart(); } }
+  else if (act.startsWith('blend-')) { MX.blend = Number(act.slice(6)); mxStop(true); mountMixer(); }
 });
 
 function relOf(a, b) {

@@ -186,7 +186,7 @@
   .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;margin:4px 0 10px}
   .deck .drow{display:grid;grid-template-columns:1fr 52px;gap:10px;align-items:center;margin-bottom:14px}
   .trow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
-  .grow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+  .grow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
   .grow button{background:transparent;border:1px solid var(--line);color:var(--mute);font:700 9px var(--mono);letter-spacing:.08em;padding:8px 2px;cursor:pointer;border-radius:0;touch-action:manipulation}
   .grow button:hover{color:var(--text);border-color:var(--text)}
   .tb{background:transparent;border:1px solid var(--line);color:var(--text);font:700 10px var(--mono);letter-spacing:.12em;padding:11px 4px;cursor:pointer;border-radius:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
@@ -1000,28 +1000,40 @@ function mxPeaks(buf, cols) {
   return out.map((v) => v / mx);
 }
 // Εντοπισμός BPM + πρώτου beat από τα μπάσα του preview
-async function mxDetect(buf) {
+async function mxDetect(buf, prior) {
   const sr = buf.sampleRate, n = buf.length;
   const oc = new OfflineAudioContext(1, n, sr);
   const s = oc.createBufferSource(); s.buffer = buf;
   const f = oc.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 150; f.Q.value = 0.7;
   s.connect(f); f.connect(oc.destination); s.start();
   const x = (await oc.startRendering()).getChannelData(0);
+  const raw = buf.getChannelData(0);
   const hop = Math.round(sr * 0.005), FT = hop / sr, FPM = 60 / FT, frames = Math.floor(n / hop);
-  const env = new Float32Array(frames);
-  for (let i = 0; i < frames; i++) {
-    let sum = 0;
-    for (let j = i * hop; j < (i + 1) * hop; j++) sum += x[j] * x[j];
-    env[i] = Math.sqrt(sum / hop);
-  }
-  const nov = new Float32Array(frames);
-  let tot = 0;
-  for (let i = 1; i < frames; i++) { nov[i] = Math.max(0, env[i] - env[i - 1]); tot += nov[i]; }
-  const avg = tot / frames || 1e-9;
+  const novOf = (src) => {
+    const env = new Float32Array(frames);
+    for (let i = 0; i < frames; i++) {
+      let sum = 0;
+      for (let j = i * hop; j < (i + 1) * hop; j++) sum += src[j] * src[j];
+      env[i] = Math.sqrt(sum / hop);
+    }
+    const nv = new Float32Array(frames);
+    let tt = 0;
+    for (let i = 1; i < frames; i++) { nv[i] = Math.max(0, env[i] - env[i - 1]); tt += nv[i]; }
+    const m = tt / frames || 1e-9;
+    for (let i = 0; i < frames; i++) nv[i] /= m;
+    return nv;
+  };
+  // κοντά στα kicks (χαμηλά) + γενικό onset (hats / snare) με μικρότερο βάρος
+  const nl = novOf(x), nb = novOf(raw);
   const sm = new Float32Array(frames);
-  for (let i = 1; i < frames - 1; i++) sm[i] = 0.25 * nov[i - 1] + 0.5 * nov[i] + 0.25 * nov[i + 1];
+  for (let i = 1; i < frames - 1; i++) {
+    const v = (i2) => nl[i2] + 0.4 * nb[i2];
+    sm[i] = 0.25 * v(i - 1) + 0.5 * v(i) + 0.25 * v(i + 1);
+  }
+  let tot = 0; for (let i = 0; i < frames; i++) tot += sm[i];
+  const avg = tot / frames || 1e-9;
   const lo = Math.min(300, Math.floor(frames * 0.08)), hi = frames - lo;
-  const at = (x) => { const i = Math.floor(x), f = x - i; return (sm[i] || 0) * (1 - f) + (sm[i + 1] || 0) * f; };
+  const at = (xx) => { const i = Math.floor(xx), fr = xx - i; return (sm[i] || 0) * (1 - fr) + (sm[i + 1] || 0) * fr; };
   const score = (bpm, ph) => {
     const p = FPM / bpm, pulses = Math.floor((hi - lo - ph - 1) / p);
     if (pulses < 8) return 0;
@@ -1029,18 +1041,34 @@ async function mxDetect(buf) {
     for (let j = 0; j < pulses; j++) sc += at(lo + ph + j * p);
     return sc / pulses;
   };
-  let best = { score: 0, bpm: 0, ph: 0 };
-  for (let bpm = 100; bpm <= 150; bpm += 0.1) {
-    const p = FPM / bpm;
-    for (let ph = 0; ph < p; ph += 1) {
-      let sc = score(bpm, ph);
-      if (bpm >= 118 && bpm <= 132) sc *= 1.03;
-      if (sc > best.score) best = { score: sc, bpm, ph };
+  const search = (b0, b1, step, bonus) => {
+    let best = { score: 0, bpm: 0, ph: 0 };
+    for (let bpm = b0; bpm <= b1 + 1e-9; bpm += step) {
+      const p = FPM / bpm;
+      for (let ph = 0; ph < p; ph += 1) {
+        let sc = score(bpm, ph);
+        if (bonus && bpm >= 118 && bpm <= 132) sc *= 1.03;
+        if (sc > best.score) best = { score: sc, bpm, ph };
+      }
     }
+    return best;
+  };
+  // Αν ξέρουμε το BPM από τη βάση, ψάχνουμε μόνο κοντά του (και σε μισό/διπλό tempo)
+  let pr = prior > 0 ? prior : 0;
+  while (pr && pr < 100) pr *= 2;
+  while (pr && pr > 150) pr /= 2;
+  let best, usedPrior = false;
+  if (pr) {
+    best = search(pr * 0.985, pr * 1.015, 0.02, false);
+    usedPrior = true;
+    if (!best.bpm) return null;
+  } else {
+    best = search(100, 150, 0.1, true);
+    if (!best.bpm || best.score < avg * 1.6) return null;
   }
-  if (!best.bpm || best.score < avg * 1.6) return null;
   let fine = { score: 0, bpm: best.bpm, ph: best.ph };
-  for (let bpm = best.bpm - 0.12; bpm <= best.bpm + 0.12; bpm += 0.01) {
+  const span = usedPrior ? 0.03 : 0.12;
+  for (let bpm = best.bpm - span; bpm <= best.bpm + span + 1e-9; bpm += 0.01) {
     for (let ph = best.ph - 3; ph <= best.ph + 3; ph += 0.25) {
       if (ph < 0) continue;
       const sc = score(bpm, ph);
@@ -1050,7 +1078,10 @@ async function mxDetect(buf) {
   const per = (FPM / fine.bpm) * FT;
   let first = (lo + fine.ph) * FT + 0.004;
   while (first - per >= 0) first -= per;
-  return { bpm: Math.round(fine.bpm * 100) / 100, first };
+  // αν η βάση έχει ακέραιο BPM και η ανίχνευση βγήκε πολύ κοντά (±0.3), προτίμησε τον ακέραιο
+  let bpmOut = fine.bpm;
+  if (usedPrior && Math.abs(prior - fine.bpm) < 0.3) bpmOut = prior;
+  return { bpm: Math.round(bpmOut * 100) / 100, first, prior: usedPrior, conf: fine.score / avg };
 }
 function mxDecode(ab) {
   const c = mxCtx();
@@ -1072,9 +1103,10 @@ async function mxLoadDeck(D, tr) {
     D.status = 'analyzing'; mxRender();
     await new Promise((r2) => setTimeout(r2, 30));
     let an = null;
-    try { an = await mxDetect(buf); } catch (_) {}
+    const pi = infoMap[tr.id]; const prior = pi && pi.bpm ? Number(pi.bpm) : 0;
+    try { an = await mxDetect(buf, prior); } catch (_) {}
     if (D.id !== tr.id) return;
-    if (an) { D.bpm = an.bpm; D.first = an.first; D.bpmSrc = 'detected'; }
+    if (an) { D.bpm = an.bpm; D.first = an.first; D.bpmSrc = an.prior ? 'database' : 'detected'; }
     else { const i = infoMap[tr.id]; if (i && i.bpm) { D.bpm = i.bpm; D.first = 0; D.bpmSrc = 'database'; } }
     mxLoopRegion(D);
     D.cue = D.ls; D.pausedAt = D.cue;
@@ -1121,7 +1153,7 @@ function mxDeckHTML(D) {
   } else {
     body = `<canvas class="wave" id="mxw-${k}" data-mxw="${k}" width="640" height="64"></canvas>
     <div class="dtime"><span id="mxc-${k}">0:00</span><span>${D.loopBars ? D.loopBars + ' ' + esc(t('mxBars')) + ' loop' : '30″'}</span></div>
-    <div class="grow"><button type="button" data-mxa="g-bm-${k}">BPM −</button><button type="button" data-mxa="g-bp-${k}">BPM +</button><button type="button" data-mxa="g-gl-${k}">◀ GRID</button><button type="button" data-mxa="g-gr-${k}">GRID ▶</button><button type="button" data-mxa="g-one-${k}">SET 1</button></div>
+    <div class="grow"><button type="button" data-mxa="g-bm-${k}">BPM −</button><button type="button" data-mxa="g-bp-${k}">BPM +</button><button type="button" data-mxa="g-gl-${k}">◀ GRID</button><button type="button" data-mxa="g-gr-${k}">GRID ▶</button><button type="button" data-mxa="g-one-${k}">SET 1</button><button type="button" data-mxa="g-tap-${k}">TAP</button><button type="button" data-mxa="g-hf-${k}">½ / ×2</button></div>
     <div class="trow">
       <button type="button" class="tb cue" data-mxcue="${k}" id="mxcue-${k}">CUE</button>
       <button type="button" class="tb dplay" data-mxa="play-${k}" id="mxp-${k}">▶ PLAY</button>
@@ -1363,6 +1395,27 @@ $('#out').addEventListener('click', (e) => {
     else if (what === 'gl') D.first = (((D.first - 0.01) % beat) + beat) % beat;
     else if (what === 'gr') D.first = (((D.first + 0.01) % beat) + beat) % beat;
     else if (what === 'one') { D.first = D.playing ? mxPos(D) : D.pausedAt; D.cue = D.first; }
+    else if (what === 'hf') { mxRebase(D); D.bpm = D.bpm < 100 ? D.bpm * 2 : D.bpm > 140 ? D.bpm / 2 : (D.bpm >= 120 ? D.bpm / 2 : D.bpm * 2); D.bpmSrc = 'manual'; }
+    else if (what === 'tap') {
+      const now = performance.now();
+      if (!D.taps || now - D.tapLast > 2000) D.taps = [];
+      D.tapLast = now;
+      D.taps.push({ rt: now, pos: (D.playing ? mxPos(D) : D.pausedAt) - 0.06 });
+      if (D.taps.length >= 4) {
+        const T = D.taps, n = T.length;
+        const rtPer = (T[n - 1].rt - T[0].rt) / 1000 / (n - 1);
+        const bpm = 60 / (rtPer * D.rate);
+        if (bpm >= 70 && bpm <= 190) {
+          D.bpm = Math.round(bpm * 10) / 10; D.bpmSrc = 'manual';
+          const per = 60 / D.bpm; let sx = 0, sy = 0;
+          for (const tp of T) { const a = ((tp.pos % per) + per) % per / per * 2 * Math.PI; sx += Math.cos(a); sy += Math.sin(a); }
+          let ph = Math.atan2(sy, sx) / (2 * Math.PI); if (ph < 0) ph += 1;
+          D.first = ph * per;
+          mxMsg('TAP ' + D.k.toUpperCase() + ': ' + D.bpm.toFixed(1) + ' BPM');
+        }
+      } else mxMsg('TAP ' + D.k.toUpperCase() + ' (' + D.taps.length + '/4)');
+      if (D.taps.length < 4) return;
+    }
     mxRegrid(D);
     const bbs = document.getElementById('mxbs-' + kk); if (bbs) bbs.textContent = D.bpmSrc ? t('mx_' + D.bpmSrc) : '';
   } else if (act.startsWith('loop-')) {

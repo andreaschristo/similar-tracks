@@ -45,9 +45,10 @@
   #f:focus-within{border-color:var(--mute) !important}
   /* Είδος που μπορεί να είναι λάθος: διακεκομμένο πλαίσιο + «?» */
   .gtag.unsure{border-style:dashed;cursor:help}
-  /* Είδος που επιλέχθηκε αυτόματα από το κομμάτι */
-  #genrebar .chip.auto{position:relative}
-  #genrebar .chip.auto::after{content:"AUTO";position:absolute;top:4px;right:6px;font:700 7.5px var(--mono);letter-spacing:.14em;opacity:.55}
+  /* Το είδος του κομματιού που έψαξες: μικρό σημάδι πάνω στο κουμπί */
+  #genrebar .chip.mine{position:relative;color:var(--text)}
+  #genrebar .chip.mine::after{content:attr(data-mark);position:absolute;top:4px;left:0;right:0;text-align:center;font:700 7.5px var(--mono);letter-spacing:.16em;opacity:.6}
+  #genrebar .chip.mine::before{content:"";position:absolute;left:50%;bottom:5px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:currentColor}
   /* Διακόπτης λειτουργίας: FIND TRACKS | BUILD A SET */
   .modes{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);margin:0 0 12px}
   .modes button{height:58px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer;font:700 12px var(--mono);letter-spacing:.2em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 10px}
@@ -665,7 +666,7 @@ let data = null, tab = 'similar', playingId = null, lang = 'en';
 let infoMap = {}, requested = new Set(), bpmEnabled = false, onlyMix = false, pairA = null, pairB = null;
 let genre = 'any'; // αρχική θέση: All
 let genreLocked = false; // true = ο χρήστης διάλεξε είδος· αλλιώς το βρίσκουμε αυτόματα από το κομμάτι
-let genreAuto = false;
+let seedGenreKey = ''; // το είδος του κομματιού που έψαξες (σημάδι στο κουμπί)
 let mode = 'search', setData = null, setRole = 'peak', setLen = 120;
 
 const I18N = {
@@ -673,7 +674,7 @@ const I18N = {
     eyebrow: 'Track finder for house DJs',
     tagline: 'Find your next record.',
     sub: 'Paste a title or a link · extended tracks 5:00+ · BPM · key · harmonic mixing',
-    placeholder: 'Artist - Title, or paste a link', searchLbl: 'Search', modeFind: 'Find tracks', modeFindSub: '40+ tracks that mix with yours', modeBuild: 'Build a set', modeBuildSub: 'A ready, ordered DJ set', wListen: 'Listeners', wSound: 'Sound', wKey: 'Key', gNoteArtist: "Genre guessed from the artist's tags, not the track: may be wrong", gNoteMixed: 'Mixed tags (e.g. deep and tech): genre may be wrong', gNoteBpm: 'BPM is unusual for house: the genre tag may be wrong',
+    placeholder: 'Artist - Title, or paste a link', searchLbl: 'Search', modeFind: 'Find tracks', modeFindSub: '40+ tracks that mix with yours', modeBuild: 'Build a set', modeBuildSub: 'A ready, ordered DJ set', wListen: 'Listeners', wSound: 'Sound', wKey: 'Key', mineMark: 'YOUR TRACK', mineTip: 'Your track is this genre. Results stay open to every house genre that fits its style; click to show only this genre.', gNoteArtist: "Genre guessed from the artist's tags, not the track: may be wrong", gNoteMixed: 'Mixed tags (e.g. deep and tech): genre may be wrong', gNoteBpm: 'BPM is unusual for house: the genre tag may be wrong',
     go: 'Find',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Try', recentLbl: 'Recent',
@@ -752,7 +753,7 @@ const I18N = {
     eyebrow: 'Εργαλείο αναζήτησης για house DJs',
     tagline: 'Βρες το επόμενο κομμάτι.',
     sub: 'Βάλε τίτλο ή link · extended κομμάτια 5:00+ · BPM · κλειδί · αρμονική μίξη',
-    placeholder: 'Καλλιτέχνης - Τίτλος, ή βάλε ένα link', searchLbl: 'Αναζήτηση', modeFind: 'Βρες κομμάτια', modeFindSub: '40+ κομμάτια που ταιριάζουν με το δικό σου', modeBuild: 'Φτιάξε set', modeBuildSub: 'Έτοιμο DJ set, με σειρά', wListen: 'Ακροατές', wSound: 'Ήχος', wKey: 'Κλειδί', gNoteArtist: 'Το είδος βγήκε από τα tags του καλλιτέχνη, όχι του κομματιού: μπορεί να είναι λάθος', gNoteMixed: 'Μπερδεμένα tags (π.χ. deep και tech): το είδος μπορεί να είναι λάθος', gNoteBpm: 'Ασυνήθιστο BPM για house: το tag μπορεί να είναι λάθος',
+    placeholder: 'Καλλιτέχνης - Τίτλος, ή βάλε ένα link', searchLbl: 'Αναζήτηση', modeFind: 'Βρες κομμάτια', modeFindSub: '40+ κομμάτια που ταιριάζουν με το δικό σου', modeBuild: 'Φτιάξε set', modeBuildSub: 'Έτοιμο DJ set, με σειρά', wListen: 'Ακροατές', wSound: 'Ήχος', wKey: 'Κλειδί', mineMark: 'ΤΟ ΚΟΜΜΑΤΙ ΣΟΥ', mineTip: 'Το κομμάτι σου είναι αυτό το είδος. Τα αποτελέσματα μένουν ανοιχτά σε όλα τα house είδη που ταιριάζουν στο ύφος του· πάτα για να δεις μόνο αυτό το είδος.', gNoteArtist: 'Το είδος βγήκε από τα tags του καλλιτέχνη, όχι του κομματιού: μπορεί να είναι λάθος', gNoteMixed: 'Μπερδεμένα tags (π.χ. deep και tech): το είδος μπορεί να είναι λάθος', gNoteBpm: 'Ασυνήθιστο BPM για house: το tag μπορεί να είναι λάθος',
     go: 'Βρες',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Δοκίμασε', recentLbl: 'Πρόσφατα',
@@ -949,17 +950,24 @@ function rerender() {
   else if (data && data.seed) render();
 }
 function updateGenreChips() {
-  document.querySelectorAll('#genrebar [data-genre]').forEach((b) => { b.classList.toggle('on', b.dataset.genre === genre); b.classList.toggle('auto', genreAuto && b.dataset.genre === genre); });
+  document.querySelectorAll('#genrebar [data-genre]').forEach((b) => {
+    b.classList.toggle('on', b.dataset.genre === genre);
+    const mine = !!seedGenreKey && b.dataset.genre === seedGenreKey;
+    b.classList.toggle('mine', mine);
+    b.dataset.mark = mine ? t('mineMark') : '';
+    b.title = mine ? t('mineTip') : '';
+  });
 }
 $('#genrebar').addEventListener('click', (e) => {
   const g = e.target.closest('[data-genre]');
   if (!g) return;
-  genre = g.dataset.genre; genreLocked = true; genreAuto = false; updateGenreChips();
+  genre = g.dataset.genre; genreLocked = true; updateGenreChips();
   if ($('#q').value.trim() && (data || setData)) { if (mode === 'set') runSet(); else doSearch(); }
 });
 // Το είδος που χρησιμοποίησε ο server (αυτόματο από το κομμάτι ή αυτό που διάλεξες)
 function applyGenreFrom(d) {
-  if (d && d.genre) { genre = d.genre; genreAuto = !!d.autoGenre; }
+  if (d && d.genre) genre = d.genre;
+  if (d) seedGenreKey = d.seedGenreKey || '';
   genreLocked = false; // η επόμενη νέα αναζήτηση βρίσκει ξανά μόνη της το είδος
   updateGenreChips();
 }

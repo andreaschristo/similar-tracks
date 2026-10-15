@@ -543,6 +543,37 @@
     form{flex-direction:column}
     button.go{padding:16px}
   }
+  /* ===== Αρχική σελίδα: ίδιο σύστημα με τα πάνελ των αποτελεσμάτων (πλαίσιο, μπάρα τίτλου, mono γράμματα) ===== */
+  #landing .block{border:1px solid var(--line);margin:36px 0 0;padding:0}
+  #landing .block h2{margin:0;padding:12px 16px;background:#141414;border-bottom:1px solid var(--line);font:600 9.5px var(--mono);letter-spacing:.14em;color:var(--mute)}
+  #landing .block h2::after{display:none}
+  #landing .steps,#landing .genres{border:0}
+  #landing .feats{border:0;grid-template-columns:repeat(3,1fr)}
+  #landing .step,#landing .feat,#landing .genre{padding:22px 20px}
+  #landing .step h3,#landing .feat h3,#landing .genre h3{font:700 11.5px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;margin:0 0 10px;color:var(--text)}
+  #landing .step p,#landing .feat p,#landing .genre p,#landing .harm p,#landing .harm li span{font:12px/1.65 var(--mono);text-align:left;hyphens:manual;-webkit-hyphens:manual;color:var(--mute)}
+  #landing .step .num{font:700 28px/1 var(--mono);color:var(--dim);letter-spacing:0;margin-bottom:16px}
+  #landing .feat .mk{font:600 9.5px var(--mono);letter-spacing:.16em;color:var(--dim);margin-bottom:12px}
+  #landing .genre .bpm{font:700 24px/1 var(--mono);letter-spacing:0;margin:0 0 14px}
+  #landing .genre .bpm small{font:600 9.5px var(--mono);letter-spacing:.16em;margin-left:6px}
+  #landing .harm{grid-template-columns:290px 1fr;gap:0;align-items:stretch}
+  #landing #demoWheel{display:flex;align-items:center;justify-content:center;padding:24px;border-right:1px solid var(--line)}
+  #landing #demoWheel svg{width:100%;max-width:230px;height:auto}
+  #landing .harm>div:last-child{display:flex;flex-direction:column;min-width:0}
+  #landing .harm p{margin:0;padding:16px;border-bottom:1px solid var(--line)}
+  #landing .harm ul{border:0;flex:1;display:flex;flex-direction:column}
+  #landing .harm li{flex:1;grid-template-columns:170px 1fr;gap:0;padding:0;border-bottom:1px solid var(--line);align-items:stretch}
+  #landing .harm li:nth-child(odd){background:rgba(255,255,255,.025)}
+  #landing .harm li:last-child{border-bottom:0}
+  #landing .harm li b{display:flex;align-items:center;padding:13px 16px;border-right:1px solid var(--line);font:600 9.5px var(--mono);letter-spacing:.14em;color:var(--mute)}
+  #landing .harm li span{display:flex;align-items:center;padding:13px 16px;color:var(--text)}
+  #landing .faq details{padding:0;border:0;border-bottom:1px solid var(--line)}
+  #landing .faq details:first-of-type{border-top:0}
+  #landing .faq details:last-of-type{border-bottom:0}
+  #landing .faq summary{padding:15px 16px;font:600 12.5px var(--mono);letter-spacing:.02em}
+  #landing .faq summary:hover{background:rgba(255,255,255,.03)}
+  #landing .faq p{margin:0;padding:0 16px 16px;font:12px/1.7 var(--mono);max-width:none}
+  @media (max-width:760px){#landing .feats{grid-template-columns:1fr}#landing .harm{grid-template-columns:1fr}#landing #demoWheel{border-right:0;border-bottom:1px solid var(--line)}#landing .harm li{grid-template-columns:110px 1fr}}
 </style>
 </head>
 <body>
@@ -703,11 +734,11 @@ const I18N = {
     tryLbl: 'Try', recentLbl: 'Recent',
     howTitle: 'How it works',
     s1t: 'Drop a track', s1d: 'Type artist and title, or paste a link from YouTube, SoundCloud, Spotify, Beatport, Bandcamp, Traxsource, Discogs or Juno.',
-    s2t: 'We read the genre', s2d: 'Related artists and listener data narrow it down to the genre you pick: house, soulful, classic, deep or tech. Or choose All for no genre filter.',
+    s2t: 'We read the style', s2d: 'We detect the genre of your track and find tracks close to its style across every house genre. Pick a genre to show only that one.',
     s3t: 'Dig and mix', s3d: 'Get extended cuts of 5:00 and up, with BPM, key and a clear view of what blends with your track.',
     featTitle: 'Built for DJs',
     f1t: 'Extended only', f1d: 'No radio edits. Every result runs 5:00 or longer, so it is ready for the mix.',
-    f2t: 'Pick your genre', f2d: 'Soulful, House, Classic, Deep or Tech House, with no techno, trance or pop slipping in. Or choose All and explore any genre.',
+    f2t: 'Pick your genre', f2d: 'House, Soulful, Classic, Deep or Tech House. No techno, progressive, trance or pop, ever. Choose All to mix across genres by style.',
     f3t: 'BPM and key', f3d: 'Tempo and musical key for every track, so you can plan the set before you buy.',
     f4t: 'Harmonic mixing', f4d: 'Camelot keys, compatible keys and a pitch range of plus or minus 6%. One tap to show only tracks that mix.',
     f5t: 'Versions and remixes', f5d: 'See other mixes of the same record in one place.',
@@ -787,11 +818,11 @@ const I18N = {
     tryLbl: 'Δοκίμασε', recentLbl: 'Πρόσφατα',
     howTitle: 'Πώς λειτουργεί',
     s1t: 'Βάλε ένα κομμάτι', s1d: 'Γράψε καλλιτέχνη και τίτλο ή κάνε επικόλληση link από YouTube, SoundCloud, Spotify, Beatport, Bandcamp, Traxsource, Discogs ή Juno.',
-    s2t: 'Διαβάζουμε το είδος', s2d: 'Σχετικοί καλλιτέχνες και δεδομένα ακροατών περιορίζουν τα αποτελέσματα στο είδος που διαλέγεις: house, soulful, classic, deep ή tech. Ή διάλεξε Όλα για χωρίς φίλτρο είδους.',
+    s2t: 'Διαβάζουμε το ύφος', s2d: 'Βρίσκουμε το είδος του κομματιού σου και φέρνουμε κομμάτια κοντά στο ύφος του, από όλα τα house είδη. Διάλεξε είδος για να δεις μόνο αυτό.',
     s3t: 'Σκάψε και μίξε', s3d: 'Πάρε extended εκδόσεις 5:00 και πάνω, με BPM, tonality και καθαρή εικόνα για το τι ταιριάζει με το κομμάτι σου.',
     featTitle: 'Φτιαγμένο για DJs',
     f1t: 'Μόνο extended', f1d: 'Χωρίς radio edits. Κάθε αποτέλεσμα διαρκεί 5:00 ή περισσότερο, έτοιμο για mix.',
-    f2t: 'Διάλεξε είδος', f2d: 'Soulful, House, Classic, Deep ή Tech House, χωρίς techno, trance ή pop να παρεισφρέουν. Ή διάλεξε Όλα και εξερεύνησε οποιοδήποτε είδος.',
+    f2t: 'Διάλεξε είδος', f2d: 'House, Soulful, Classic, Deep ή Tech House. Ποτέ techno, progressive, trance ή pop. Διάλεξε Όλα για μίξη ανάμεσα σε είδη, με βάση το ύφος.',
     f3t: 'BPM και tonality', f3d: 'Ταχύτητα και μουσικό κλειδί για κάθε κομμάτι, ώστε να οργανώνεις το set πριν αγοράσεις.',
     f4t: 'Αρμονική μίξη', f4d: 'Camelot κλειδιά, συμβατά κλειδιά και περιθώριο pitch ±6%. Με ένα πάτημα βλέπεις μόνο όσα κάνουν mix.',
     f5t: 'Εκδόσεις και remixes', f5d: 'Δες άλλα mixes του ίδιου κομματιού σε ένα σημείο.',

@@ -94,6 +94,29 @@
   .tag{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);border:1px solid var(--line);padding:4px 10px}
 
   #status{margin:30px 0 0;color:var(--mute);font-size:13px;letter-spacing:.05em}
+  /* Ένδειξη αναζήτησης */
+  #status.loading{margin-top:36px}
+  .loader{border:1px solid var(--line)}
+  .lhead{display:flex;align-items:center;gap:14px;padding:16px 18px;background:#141414;border-bottom:1px solid var(--line);font:12px var(--mono)}
+  .lhead b{font:700 13px var(--mono);letter-spacing:.2em;color:var(--text);text-transform:uppercase}
+  .lhead .lq{flex:1;min-width:0;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lhead .lt{font:700 13px var(--mono);color:var(--text);font-variant-numeric:tabular-nums}
+  .spin{width:12px;height:12px;flex:none;border:2px solid var(--text);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .lbar{height:3px;background:var(--line)}
+  .lbar i{display:block;height:100%;width:0;background:var(--text);transition:width .25s linear}
+  .lsteps{list-style:none;margin:0;padding:0;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+  .lsteps li{display:flex;align-items:center;gap:10px;padding:16px 16px;border-right:1px solid var(--line);font:11.5px/1.35 var(--mono);color:var(--dim);transition:color .3s}
+  .lsteps li:last-child{border-right:0}
+  .lsteps .ln{flex:none;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border:1px solid currentColor;font:700 9.5px var(--mono)}
+  .lsteps li.done{color:var(--mute)}
+  .lsteps li.done .ln{background:var(--mute);border-color:var(--mute);color:var(--bg);font-size:0}
+  .lsteps li.done .ln::after{content:"✓";font-size:11px}
+  .lsteps li.now{color:var(--text);background:rgba(255,255,255,.03)}
+  .lsteps li.now .ln{animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .lnote{padding:12px 18px;border-top:1px solid var(--line);font:11px/1.5 var(--mono);color:var(--mute)}
+  @media (max-width:760px){.lsteps{grid-auto-flow:row}.lsteps li{border-right:0;border-bottom:1px solid var(--line);padding:11px 14px}.lsteps li:last-child{border-bottom:0}.lhead .lq{display:none}}
   #status.err{color:#c9534f}
 
   /* Αποτελέσματα */
@@ -709,6 +732,11 @@ const I18N = {
     q4: 'Can I play the full tracks here?', a4: 'No. Previews are 30 seconds. Use the links on each track to find the full version on your platform.',
     footL: 'HOUZE. For diggers and DJs.', footBpm: 'BPM and key data:', footR: 'Tracks via Deezer and Last.fm.',
     searching: 'searching... this can take a few seconds',
+    ldSearch: 'Searching', ldSet: 'Building your set',
+    ldSearchSteps: ['Finding your track', 'Similar tracks and listeners', 'Genre and style', 'BPM and key', 'Ranking by match'],
+    ldSetSteps: ['Finding your track', 'Collecting tracks that fit', 'Genre, energy and style', 'BPM and key', 'Ordering by energy', 'Checking transitions'],
+    ldNote: 'Usually 10 to 20 seconds. Searches you have done before are much faster.',
+    ldSlow: 'Still working: the free server may be waking up, the first search can take up to a minute.',
     found: 'found',
     tabs: { similar: 'Similar', versions: 'Remixes / versions', sameArtist: 'Same artist', discogs: 'Discogs · same era' }, dcNote: 'From Discogs: releases of the same era and style. No audio here: press play to look for the track on YouTube, or use the links (TS, DC, JN, BP…) to find it in the shops.', dcOpen: 'Open on Discogs', noYt: 'not found on YouTube',
     empty: 'No results here.',
@@ -788,6 +816,11 @@ const I18N = {
     q4: 'Μπορώ να ακούσω ολόκληρα τα κομμάτια εδώ;', a4: 'Όχι. Τα preview είναι 30 δευτερολέπτων. Χρησιμοποίησε τα links κάθε κομματιού για να βρεις την πλήρη έκδοση στην πλατφόρμα σου.',
     footL: 'HOUZE. Για diggers και DJs.', footBpm: 'Δεδομένα BPM και tonality:', footR: 'Κομμάτια από Deezer και Last.fm.',
     searching: 'ψάχνω... μπορεί να πάρει λίγα δευτερόλεπτα',
+    ldSearch: 'Αναζήτηση', ldSet: 'Φτιάχνω το set σου',
+    ldSearchSteps: ['Βρίσκω το κομμάτι σου', 'Παρόμοια κομμάτια και ακροατές', 'Είδος και ύφος', 'BPM και κλειδί', 'Ταξινόμηση με βάση το match'],
+    ldSetSteps: ['Βρίσκω το κομμάτι σου', 'Μαζεύω κομμάτια που ταιριάζουν', 'Είδος, ενέργεια και ύφος', 'BPM και κλειδί', 'Σειρά με βάση την ενέργεια', 'Έλεγχος μεταβάσεων'],
+    ldNote: 'Συνήθως 10 έως 20 δευτερόλεπτα. Όσα έχεις ξαναψάξει βγαίνουν πολύ πιο γρήγορα.',
+    ldSlow: 'Δουλεύει ακόμα: ο δωρεάν server μπορεί να «ξυπνάει», η πρώτη αναζήτηση μπορεί να πάρει έως ένα λεπτό.',
     found: 'βρέθηκε',
     tabs: { similar: 'Παρόμοια', versions: 'Remixes / εκδόσεις', sameArtist: 'Ίδιος artist', discogs: 'Discogs · ίδια εποχή' }, dcNote: 'Από το Discogs: κυκλοφορίες της ίδιας εποχής και στυλ. Εδώ δεν υπάρχει ήχος: πάτα play για να ψάξει το κομμάτι στο YouTube, ή χρησιμοποίησε τα links (TS, DC, JN, BP…) για να το βρεις στα καταστήματα.', dcOpen: 'Άνοιγμα στο Discogs', noYt: 'δεν βρέθηκε στο YouTube',
     empty: 'Δεν βρέθηκαν αποτελέσματα εδώ.',
@@ -991,7 +1024,7 @@ async function runSet() {
   $('#setBtn').disabled = true; $('#btn').disabled = true;
   $('#out').innerHTML = '';
   $('#landing').classList.add('hidden');
-  setStatus(t('setBuilding'));
+  startLoading('set', q);
   try {
     const r = await fetch('/api/set?' + new URLSearchParams({ q, role: setRole, len: String(setLen), genre: genreLocked ? genre : 'auto' }));
     const d = await r.json();
@@ -1126,7 +1159,7 @@ async function doSearch() {
   $('#out').innerHTML = '';
   $('#landing').classList.add('hidden');
   infoMap = {}; requested = new Set(); onlyMix = false; pairA = null; pairB = null;
-  setStatus(t('searching'));
+  startLoading('search', q);
   try {
     const params = new URLSearchParams({ q, min: String(MIN_SECONDS), house: '1', genre: genreLocked ? genre : 'auto' });
     const r = await fetch('/api/search?' + params);
@@ -1177,9 +1210,40 @@ async function loadInfo() {
 
 const fmtDur = (s) => (s ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') : '');
 function setStatus(msg, err) {
+  stopLoading();
   const s = $('#status');
   s.textContent = msg;
   s.className = err ? 'err' : '';
+}
+// ---------- Ένδειξη αναζήτησης: τίτλος, χρόνος, μπάρα προόδου και βήματα ----------
+let loadTimer = null;
+function stopLoading() { if (loadTimer) { clearInterval(loadTimer); loadTimer = null; } }
+function startLoading(kind, q) {
+  stopLoading();
+  const s = $('#status');
+  s.className = 'loading';
+  const steps = t(kind === 'set' ? 'ldSetSteps' : 'ldSearchSteps');
+  const at = kind === 'set' ? [0, 2, 6, 12, 20, 30] : [0, 1.5, 4, 7, 10];
+  const T = kind === 'set' ? 22 : 9;
+  const t0 = Date.now();
+  s.innerHTML = `<div class="loader" role="status" aria-live="polite">
+    <div class="lhead"><span class="spin"></span><b>${esc(t(kind === 'set' ? 'ldSet' : 'ldSearch'))}</b><span class="lq">${esc(q)}</span><span class="lt" id="ldT">0s</span></div>
+    <div class="lbar"><i id="ldBar"></i></div>
+    <ol class="lsteps" id="ldSteps">${steps.map((x, i) => `<li><span class="ln">${String(i + 1).padStart(2, '0')}</span><span>${esc(x)}</span></li>`).join('')}</ol>
+    <div class="lnote" id="ldNote">${esc(t('ldNote'))}</div>
+  </div>`;
+  const tick = () => {
+    const sec = (Date.now() - t0) / 1000;
+    const bar = document.getElementById('ldBar'); if (!bar) return stopLoading();
+    bar.style.width = (95 * (1 - Math.exp(-sec / T))).toFixed(1) + '%';
+    document.getElementById('ldT').textContent = Math.floor(sec) + 's';
+    let cur = 0; at.forEach((a, i) => { if (sec >= a) cur = i; });
+    document.querySelectorAll('#ldSteps li').forEach((li, i) => { li.className = i < cur ? 'done' : i === cur ? 'now' : ''; });
+    if (sec > 20) document.getElementById('ldNote').textContent = t('ldSlow');
+  };
+  tick();
+  loadTimer = setInterval(tick, 250);
+  try { s.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
 }
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 

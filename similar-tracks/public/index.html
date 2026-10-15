@@ -174,6 +174,12 @@
   .links{display:flex;gap:12px;align-items:center;justify-content:flex-end}
   .links a{color:var(--dim);font-size:10px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
   .links a:hover{color:var(--text)}
+  /* Επικεφαλίδες στηλών: κάθε γραμμή μοιράζεται τις ίδιες στήλες (subgrid) ώστε να ευθυγραμμίζονται */
+  .list{display:grid;grid-template-columns:28px 46px minmax(0,1fr) auto auto auto auto;column-gap:14px}
+  .list>*{grid-column:1 / -1}
+  .list>.row,.list>.rowhead{display:grid;grid-template-columns:subgrid}
+  .rowhead{align-items:end;padding:14px 0 10px;border-bottom:1px solid var(--line);font:600 10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+  .rowhead .r{text-align:right}
   .play{width:30px;height:30px;border:1px solid var(--dim);background:transparent;color:var(--text);cursor:pointer;font-size:11px;padding:0;border-radius:0;display:inline-flex;align-items:center;justify-content:center}
   .play:hover{border-color:var(--text)}
   .seedact{display:flex;gap:8px;align-items:center}
@@ -317,6 +323,9 @@
     .wheel{margin:0 auto}
     .mixrow{grid-template-columns:100px 1fr}
     .row{grid-template-columns:26px 46px 1fr auto auto;row-gap:8px}
+    .list{display:block}
+    .list>.row{grid-template-columns:26px 46px 1fr auto auto}
+    .rowhead{display:none !important}
     .gcell{display:none}
     .links{grid-column:2 / -1;justify-content:flex-start;flex-wrap:wrap}
     .seed{grid-template-columns:76px 1fr}
@@ -545,6 +554,7 @@ const I18N = {
     noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
     shortSet: 'Only this many tracks matched. Try a more popular track for a full set.',
     backSearch: 'Back to results',
+    hTrack: 'Title · Artist · BPM', hStyle: 'Genre', hKey: 'Key', hTime: 'Length', hYear: 'Year', hLinks: 'Play · Find',
     err_notfound: 'Track not found. Try "Artist - Title".',
     err_nourl: 'Could not read a title from that link. Try "Artist - Title".',
     err_generic: 'Something went wrong. Try again.',
@@ -623,6 +633,7 @@ const I18N = {
     noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
     shortSet: 'Ταίριαξαν μόνο τόσα κομμάτια. Δοκίμασε πιο δημοφιλές κομμάτι για πλήρες set.',
     backSearch: 'Πίσω στα αποτελέσματα',
+    hTrack: 'Τίτλος · Καλλιτέχνης · BPM', hStyle: 'Είδος', hKey: 'Κλειδί', hTime: 'Διάρκεια', hYear: 'Χρονιά', hLinks: 'Play · Αναζήτηση',
     err_notfound: 'Δεν βρέθηκε το κομμάτι. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_nourl: 'Δεν μπόρεσα να διαβάσω τίτλο από αυτό το link. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_generic: 'Κάτι πήγε στραβά. Δοκίμασε ξανά.',
@@ -779,6 +790,9 @@ async function runSet() {
   }
 }
 
+function rowHead(dc) {
+  return `<div class="rowhead"><span class="r">#</span><span></span><span>${esc(t('hTrack'))}</span><span>${esc(t('hStyle'))}</span><span class="r">${dc ? '' : esc(t('hKey'))}</span><span>${esc(t(dc ? 'hYear' : 'hTime'))}</span><span class="r">${esc(t('hLinks'))}</span></div>`;
+}
 function fmtClock(s) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
   return h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`;
@@ -834,12 +848,14 @@ function renderSet() {
     <div class="sub2">${items.length} ${esc(t('setMeta'))} · ${esc(t('setApprox'))} ${mins} ${esc(t('setMin'))}</div></div>
     <button type="button" class="copybtn" id="copySet">${esc(t('copySet'))}</button></div>`;
   html += curveSVG(items);
+  html += '<div class="list">' + (items.length ? rowHead(false) : '');
   let prevSec = '';
   items.forEach((x, i) => {
     if (x.section !== prevSec) { html += `<div class="sec">${esc(t(SEC_KEY[x.section]))}</div>`; prevSec = x.section; }
     if (x.transition) html += `<div class="trans${x.transition.key === 'clash' ? ' clash' : ''}">${esc(transText(x))}</div>`;
     html += setRow(x, i, starts[i]);
   });
+  html += '</div>';
   if (!d.bpmUsed) html += `<div class="note">${esc(t('noBpmSet'))}</div>`;
   if (items.length < (d.wanted || 10)) html += `<div class="note">${esc(t('shortSet'))}</div>`;
   $('#out').innerHTML = html;
@@ -1742,7 +1758,7 @@ function render() {
   let list = data[tab] || [];
   if (onlyMix) list = list.filter(isMixable);
   if (tab === 'discogs') html += `<div class="note" style="margin-top:0">${esc(t('dcNote'))}</div>`;
-  html += '<div class="list">' + (list.length ? list.map(tab === 'discogs' ? dcRow : row).join('') : `<div class="empty">${esc(t('empty'))}</div>`) + '</div>';
+  html += '<div class="list">' + (list.length ? rowHead(tab === 'discogs') + list.map(tab === 'discogs' ? dcRow : row).join('') : `<div class="empty">${esc(t('empty'))}</div>`) + '</div>';
   if (tab === 'similar' && !data.houseFilter && genre !== 'any') html += `<div class="note">${esc(t('noHouse'))}</div>`;
   $('#out').innerHTML = html;
   mountMixer();

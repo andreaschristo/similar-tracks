@@ -205,7 +205,36 @@ async function artistKind(name) {
   return 'neutral';
 }
 
-// ---------- Υποκατηγορία house ανά κομμάτι (Last.fm tags) ----------
+// ---------- Tags (Last.fm) με βάρη ----------
+// Κάθε tag έχει βάρος 0..100 (πόσοι ακροατές το έβαλαν). Τα κρατάμε για είδος ΚΑΙ για ομοιότητα ήχου.
+const JUNK_TAG = /seen live|favou?rite|albums? i own|^my |spotify|^\d{2,4}s?$|awesome|^good|^best|^love$|^beautiful$/;
+function cleanTags(arr) {
+  return (Array.isArray(arr) ? arr : arr ? [arr] : [])
+    .map((x) => ({ n: String(x.name || '').toLowerCase().trim(), c: Number(x.count) || 0 }))
+    .filter((x) => x.n && !JUNK_TAG.test(x.n))
+    .slice(0, 15);
+}
+async function artistTags(name) {
+  return cached('atv:' + norm(name), async () => {
+    const d = await lf('artist.gettoptags', { artist: name });
+    return cleanTags(d.toptags && d.toptags.tag);
+  }, 7 * 24 * 3600e3);
+}
+// Tags του κομματιού· αν το κομμάτι έχει λίγα, παίρνουμε του καλλιτέχνη
+async function tagsOf(artist, title) {
+  if (!LASTFM || !artist) return { list: [], src: '' };
+  try {
+    const tt = await cached('ttv:' + norm(artist) + '|' + norm(baseTitle(title)), async () => {
+      const d = await lf('track.gettoptags', { artist, track: baseTitle(title) });
+      return cleanTags(d.toptags && d.toptags.tag);
+    }, 7 * 24 * 3600e3);
+    if (tt.filter((x) => x.c > 0).length >= 3) return { list: tt, src: 'track' };
+    const at = await artistTags(artist);
+    return at.length ? { list: at, src: 'artist' } : { list: tt, src: 'track' };
+  } catch (_) { return { list: [], src: '' }; }
+}
+
+// ---------- Είδος (genre) ανά κομμάτι ----------
 const GENRES = [
   ['deep house', /deep.?house/],
   ['tech house', /tech.?house/],
@@ -215,30 +244,65 @@ const GENRES = [
   ['afro house', /afro.?house/],
   ['melodic house', /melodic house/],
 ];
+const PLAIN_HOUSE = (tg) => /\bhouse\b/.test(tg) && !/electro house|big room|future house/.test(tg);
+// Το ΚΥΡΙΟ είδος: το πρώτο (πιο δημοφιλές) house tag που βρίσκουμε.
+// Αν το πρώτο είναι σκέτο «house» → house· αν είναι «deep house» → deep house κ.λπ.
 function pickGenre(tags) {
-  for (const tg of tags) {
+  for (const tg of tags.slice(0, 10)) {
     for (const [name, re] of GENRES) if (re.test(tg)) return name;
+    if (PLAIN_HOUSE(tg)) return 'house';
   }
-  if (tags.some((tg) => /\bhouse\b/.test(tg) && !/electro house|big room|future house/.test(tg))) return 'house';
   return '';
 }
 async function genreOf(artist, title) {
   if (!LASTFM || !artist) return '';
-  try {
-    const tt = await cached('ttags:' + norm(artist) + '|' + norm(baseTitle(title)), async () => {
-      const d = await lf('track.gettoptags', { artist, track: baseTitle(title) });
-      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
-    }, 7 * 24 * 3600e3);
-    const g = pickGenre(tt);
-    if (g) return g;
-  } catch (_) {}
-  try {
-    const at = await cached('tags:' + norm(artist), async () => {
-      const d = await lf('artist.gettoptags', { artist });
-      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
-    });
-    return pickGenre(at);
-  } catch (_) { return ''; }
+  const tg = await tagsOf(artist, title);
+  const g = pickGenre(tg.list.map((x) => x.n));
+  if (g || tg.src !== 'track') return g;
+  try { return pickGenre((await artistTags(artist)).map((x) => x.n)); } catch (_) { return ''; }
+}
+
+// ---------- Ομοιότητα ----------
+// Ήχος: cosine ανάμεσα στα tags (με βάρη) του δικού σου κομματιού και του υποψήφιου
+const GENERIC_TAG = /^(electronic|electronica|dance|house|club|music|edm)$/;
+function tagVec(list) {
+  const v = new Map();
+  for (const x of list) v.set(x.n, (v.get(x.n) || 0) + ((x.c || 1) / 100) * (GENERIC_TAG.test(x.n) ? 0.4 : 1));
+  return v;
+}
+function cosine(a, b) {
+  let d = 0, na = 0, nb = 0;
+  for (const [k, x] of a) { na += x * x; if (b.has(k)) d += x * b.get(k); }
+  for (const x of b.values()) nb += x * x;
+  return na && nb ? d / Math.sqrt(na * nb) : 0;
+}
+// Tempo: ίδιο (±2%) = 1, πάνω από ±8% = 0
+function bpmSim(a, b) {
+  if (!a || !b) return null;
+  const d = Math.abs(b - a) / a;
+  return d <= 0.02 ? 1 : d >= 0.08 ? 0 : 1 - (d - 0.02) / 0.06;
+}
+// Κλειδί: πόσο αρμονικά δένει (Camelot)
+const KEY_SIM = { same: 1, smooth: 0.9, relative: 0.85, boost: 0.6, clash: 0.1 };
+function keySim(a, b) { const r = camRel(a, b); return r === 'unknown' ? null : KEY_SIM[r]; }
+// Τελικό match: ακροατές 40% · ήχος (tags) 30% · BPM 15% · κλειδί 15%.
+// Αν λείπει κάποιο στοιχείο, το match μειώνεται: 90%+ μόνο όταν ταιριάζουν ΟΛΑ.
+const W = { cf: 0.4, tag: 0.3, bpm: 0.15, key: 0.15 };
+function scoreOf(x) {
+  const parts = { cf: x.cf, tag: x.tagSim, bpm: x.bpmSim, key: x.keySim };
+  let s = 0, w = 0;
+  for (const k in W) if (parts[k] != null) { s += W[k] * parts[k]; w += W[k]; }
+  return w ? (s / w) * (0.7 + 0.3 * w) : 0;
+}
+const pct100 = (v) => (v == null ? null : Math.round(v * 100));
+// Επιλογή είδους → ακριβές είδος που κρατάμε («house» = μόνο σκέτο house)
+const GENRE_NAME = { house: 'house', soulful: 'soulful house', classic: 'classic house', deep: 'deep house', tech: 'tech house' };
+const wantedGenre = (g) => (LASTFM && GENRE_NAME[g]) || '';
+async function genreFilter(list, g) {
+  const want = wantedGenre(g);
+  if (!want) return list;
+  await pmap(list, async (x) => { x.genre = await genreOf(x.artist, x.title); }, 5, 250);
+  return list.filter((x) => x.genre === want);
 }
 
 // ---------- Πηγές αποτελεσμάτων ----------
@@ -280,7 +344,7 @@ async function sameArtist(seed, opts) {
 
 async function lastfmSimilar(artist, title) {
   if (!LASTFM || !artist) return [];
-  const d = await lf('track.getsimilar', { artist, track: baseTitle(title), limit: '25' });
+  const d = await lf('track.getsimilar', { artist, track: baseTitle(title), limit: '40' });
   const list = (d.similartracks && d.similartracks.track) || [];
   const out = await pmap(list, async (t) => {
     const r = ((await dz(`/search?q=${enc(`artist:"${t.artist.name}" track:"${baseTitle(t.name)}"`)}&limit=5`)).data || []).map(mapTrack);
@@ -303,7 +367,7 @@ async function artistPool(seed) {
   if (LASTFM && seed.artist) {
     try {
       const d = await lf('artist.getsimilar', { artist: seed.artist, limit: '30' });
-      lfList = ((d.similarartists && d.similarartists.artist) || []).map((a) => ({ id: null, name: a.name }));
+      lfList = ((d.similarartists && d.similarartists.artist) || []).map((a) => ({ id: null, name: a.name, sim: Math.max(0, Math.min(1, Number(a.match) || 0)) }));
     } catch (_) {}
   }
   // εναλλάξ Last.fm / Deezer, χωρίς διπλότυπα
@@ -316,12 +380,10 @@ async function artistPool(seed) {
   return out.slice(0, 40);
 }
 
-const pctOf = (base, bonus) => Math.max(5, Math.min(99, Math.round((base + (bonus || 0) * 0.15) * 100)));
 const GENRE_KEYS = ['any', 'house', 'soulful', 'classic', 'deep', 'tech'];
-const GENRE_NAME = { soulful: 'soulful house', classic: 'classic house', deep: 'deep house', tech: 'tech house' };
 async function similar(seed, opts) {
   const { minDur, house } = opts;
-  const wantGenre = GENRE_NAME[opts.genre] || '';
+  const want = wantedGenre(opts.genre);
   const cap = opts.cap || 40;
   const useHouse = house && !!LASTFM;
 
@@ -330,61 +392,85 @@ async function similar(seed, opts) {
     artistPool(seed).catch(() => []),
   ]);
 
-  // Τι είδος είναι κάθε καλλιτέχνης (house / ουδέτερο / όχι house)
+  // Γρήγορο πρώτο φίλτρο: πετάμε καλλιτέχνες που δεν είναι house (techno, pop κ.λπ.)
   const kinds = {};
   if (useHouse) {
-    const names = [...new Set([...lfTracks.map((t) => t.artist), ...pool.map((a) => a.name)])].slice(0, cap > 40 ? 70 : 45);
+    const names = [...new Set([...lfTracks.map((t) => t.artist), ...pool.map((a) => a.name)])].slice(0, 70);
     await pmap(names, async (n) => { kinds[norm(n)] = await artistKind(n); }, 6, 250);
   }
   const kind = (n) => kinds[norm(n)] || 'neutral';
   const ok = (t) => passLen(t, minDur) && !(useHouse && kind(t.artist) === 'reject');
-  const houseBonus = (n) => (useHouse && kind(n) === 'house' ? 0.3 : 0);
 
-  const cands = [];
-  for (const t of lfTracks) {
-    if (ok(t)) cands.push({ ...t, pct: pctOf(0.1 + 0.9 * (t.match || 0), houseBonus(t.artist)), score: 0.6 + 0.8 * (t.match || 0) + houseBonus(t.artist) + lenScore(t) });
-  }
-
-  const usable = pool.filter((a) => !(useHouse && kind(a.name) === 'reject')).slice(0, cap > 40 ? 26 : 16);
+  // 1) Υποψήφιοι + «ακροατές» (cf): πόσο συχνά τα ακούει ο ίδιος κόσμος
+  const seedKey = norm(seed.artist) + '|' + norm(baseTitle(seed.title));
+  const cands = new Map();
+  const add = (t, cf) => {
+    const k = norm(t.artist) + '|' + norm(baseTitle(t.title));
+    if (k === seedKey) return;
+    const c = cands.get(k);
+    if (!c || cf > c.cf) cands.set(k, { ...t, cf });
+  };
+  for (const t of lfTracks) if (ok(t)) add(t, Math.sqrt(Math.max(0, Math.min(1, t.match || 0))));
+  const usable = pool.filter((a) => !(useHouse && kind(a.name) === 'reject')).slice(0, want || cap > 40 ? 26 : 18);
   const tops = await pmap(usable, async (a, i) => {
     if (!a.id) {
       const r = await resolveDzArtist(a.name);
       if (!r) return [];
       a.id = r.id;
     }
+    // ίδιος κόσμος ακούει τον καλλιτέχνη, όχι απαραίτητα αυτό το κομμάτι → 75% του artist match
+    const aSim = a.sim != null ? a.sim : 0.2 + 0.5 * (1 - i / usable.length);
     const top = await dzTop(a.id);
-    return top.filter(ok).map((t) => ({
-      ...t,
-      pct: pctOf(0.2 + 0.4 * (1 - i / usable.length), houseBonus(a.name)),
-      score: (1 - i / usable.length) * 0.6 + houseBonus(a.name) + lenScore(t),
-    }));
+    return top.filter(ok).slice(0, 8).map((t, j) => ({ t, cf: 0.75 * aSim * (1 - 0.04 * j) }));
   }, 4, 500);
-  for (const arr of tops) if (arr) cands.push(...arr);
+  for (const arr of tops) if (arr) for (const { t, cf } of arr) add(t, cf);
 
-  cands.sort((a, b) => b.score - a.score);
-  const seen = new Set([norm(seed.artist) + '|' + norm(baseTitle(seed.title))]);
+  let list = [...cands.values()].sort((a, b) => b.cf + lenScore(b) * 0.2 - (a.cf + lenScore(a) * 0.2));
+  const per = {};
+  list = list.filter((x) => { const a = norm(x.artist); per[a] = (per[a] || 0) + 1; return per[a] <= 4; })
+    .slice(0, want ? (cap > 40 ? 110 : 90) : (cap > 40 ? 90 : 60));
+
+  // 2) Ήχος (tags) + είδος
+  if (LASTFM) {
+    const sv = tagVec((await tagsOf(seed.artist, seed.title)).list);
+    await pmap(list, async (x) => {
+      const tg = await tagsOf(x.artist, x.title);
+      x.tagSim = sv.size && tg.list.length ? cosine(sv, tagVec(tg.list)) : null;
+      x.genre = await genreOf(x.artist, x.title);
+    }, 5, 250);
+    // Αυστηρό είδος: House = μόνο house, Deep = μόνο deep κ.λπ. (All = όλα)
+    if (want) list = list.filter((x) => x.genre === want);
+  }
+
+  // 3) BPM + κλειδί για τους καλύτερους υποψήφιους
+  list.forEach((x) => { x.score = scoreOf(x); });
+  list.sort((a, b) => b.score - a.score);
+  if (GSB) {
+    const si = await trackInfo(seed.artist, seed.title);
+    const top = list.slice(0, 30);
+    const infos = await pmap(top, (x) => trackInfo(x.artist, x.title), 6, 200);
+    top.forEach((x, i) => {
+      const inf = infos[i];
+      x.bpmSim = si && inf ? bpmSim(si.bpm, inf.bpm) : null;
+      x.keySim = si && inf ? keySim(si.camelot, inf.camelot) : null;
+      x.score = scoreOf(x);
+    });
+    list.sort((a, b) => b.score - a.score);
+  }
+
+  // 4) Τελική λίστα: έως 3 ανά καλλιτέχνη
   const perArtist = {};
   const out = [];
-  for (const t of cands) {
-    const k = norm(t.artist) + '|' + norm(baseTitle(t.title));
-    const a = norm(t.artist);
-    if (seen.has(k) || (perArtist[a] || 0) >= 3) continue;
-    seen.add(k);
+  for (const x of list) {
+    const a = norm(x.artist);
+    if ((perArtist[a] || 0) >= 3) continue;
     perArtist[a] = (perArtist[a] || 0) + 1;
-    out.push(t);
-    if (out.length >= (wantGenre && LASTFM ? Math.max(cap, 70) : cap)) break;
+    x.pct = Math.max(5, Math.min(99, Math.round(x.score * 100)));
+    x.why = { cf: pct100(x.cf), tag: pct100(x.tagSim), bpm: pct100(x.bpmSim), key: pct100(x.keySim) };
+    out.push(x);
+    if (out.length >= cap) break;
   }
-  out.sort((a, b) => (b.pct || 0) - (a.pct || 0));
-  if (wantGenre && LASTFM) {
-    // Συγκεκριμένο στυλ: κρατάμε μόνο ό,τι έχει αυτό το tag· αν βγουν λίγα, συμπληρώνουμε με «απλό house»
-    await pmap(out, async (x) => { x.genre = await genreOf(x.artist, x.title); }, 5, 200);
-    const exact = out.filter((x) => x.genre === wantGenre);
-    const generic = out.filter((x) => x.genre === 'house' || x.genre === '');
-    const list = exact.length >= 10 ? exact : exact.concat(generic).slice(0, Math.max(exact.length, 12));
-    list.sort((a, b) => (b.pct || 0) - (a.pct || 0));
-    return { list: list.slice(0, cap), houseFilter: useHouse };
-  }
-  return { list: out.slice(0, cap), houseFilter: useHouse };
+  return { list: out, houseFilter: useHouse };
 }
 
 // ---------- BPM + tonality (GetSongBPM) ----------
@@ -472,18 +558,7 @@ const LOW_TAG = /chill|mellow|relax|smooth|lounge|ambient|downtempo|sunset|late.
 const HIGH_TAG = /energetic|energy|dance|party|club|upbeat|banger|driving|peak|hard|bounce|groovy|funky|jackin|festival|rave|pumping|heavy|dancefloor/;
 const EMO_TAG = /uplifting|euphoric|emotional|soulful|vocal|melodic|anthem|feel.?good|happy|summer|hands.?up|gospel|joy|beautiful|love/;
 async function ttagsOf(artist, title) {
-  if (!LASTFM || !artist) return [];
-  try {
-    const tt = await cached('ttags:' + norm(artist) + '|' + norm(baseTitle(title)), async () => {
-      const d = await lf('track.gettoptags', { artist, track: baseTitle(title) });
-      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
-    }, 7 * 24 * 3600e3);
-    if (tt.length) return tt;
-    return await cached('tags:' + norm(artist), async () => {
-      const d = await lf('artist.gettoptags', { artist });
-      return ((d.toptags && d.toptags.tag) || []).slice(0, 8).map((x) => String(x.name).toLowerCase());
-    });
-  } catch (_) { return []; }
+  return (await tagsOf(artist, title)).list.map((x) => x.n);
 }
 function energyRaw(t) {
   let e = 0.5;
@@ -614,7 +689,7 @@ async function handleSet(q, role, minutes, genre) {
   const opts = { minDur: 300, house: genre !== 'any', genre, cap: big ? 70 : 40 };
   const [sim, same] = await Promise.all([
     similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
-    sameArtist(seed, opts).catch(() => []),
+    sameArtist(seed, opts).then((l) => genreFilter(l, genre)).catch(() => []),
   ]);
   const built = await buildSet(seed, [...sim.list, ...same.slice(0, big ? 10 : 6)], role, N);
   if (LASTFM && Array.isArray(built.set)) {
@@ -637,7 +712,7 @@ function dcSplit(title) {
   const m = String(title || '').match(/^(.+?)\s+[-–]\s+(.+)$/);
   return m ? { artist: m[1].replace(/\s*\(\d+\)$/, '').trim(), title: m[2].trim() } : { artist: '', title: String(title || '') };
 }
-const DC_STYLE = { soulful: 'Garage House', classic: 'Chicago House', deep: 'Deep House', tech: 'Tech House' };
+const DC_STYLE = { house: 'House', soulful: 'Garage House', classic: 'Chicago House', deep: 'Deep House', tech: 'Tech House' };
 async function discogsSimilar(seed, genre) {
   if (!DISCOGS || !seed || !seed.artist) return [];
   const any = genre === 'any';
@@ -699,8 +774,8 @@ async function handleSearch(q, opts) {
   }
   const [sim, versions, same, dc] = await Promise.all([
     similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
-    findVersions(seed, input, opts).catch(() => []),
-    sameArtist(seed, opts).catch(() => []),
+    findVersions(seed, input, opts).then((l) => genreFilter(l, opts.genre)).catch(() => []),
+    sameArtist(seed, opts).then((l) => genreFilter(l, opts.genre)).catch(() => []),
     discogsSimilar(seed, opts.genre).catch((e) => { console.log('discogs error', e.message); return []; }),
   ]);
   return {

@@ -18,7 +18,7 @@
     content:"";position:fixed;inset:0;pointer-events:none;opacity:.07;z-index:0;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
-  .page{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 22px}
+  .page{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 22px}
   a{color:inherit}
 
   header{display:flex;justify-content:space-between;align-items:center;padding:22px 0;border-bottom:1px solid var(--line)}
@@ -33,6 +33,41 @@
   h1{margin:0;font:800 clamp(64px,17vw,164px)/.88 var(--sans);letter-spacing:.12em;text-transform:uppercase}
   .tagline{font:600 clamp(18px,3vw,26px)/1.25 var(--sans);margin:28px 0 8px}
   .sub{color:var(--mute);max-width:640px;margin:0 0 34px;font-size:14px}
+  /* Header: «Find your next record.» αριστερά· μεγάλο HOUZE στο κέντρο */
+  .brand{font:700 12px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--text)}
+  .hero{padding-top:84px}
+  .hero .eyebrow{text-align:center;margin:30px 0 64px;padding-left:.28em}
+  .hero h1{text-align:center;font-size:clamp(72px,19vw,232px);letter-spacing:.14em;padding-left:.14em;line-height:.86}
+  /* Περιγραφή μέσα στη μπάρα αναζήτησης, μικρή και διακριτική */
+  #f{position:relative}
+  /* Μπάρα αναζήτησης στο ίδιο σύστημα με BUILD A DJ SET / GENRE: ετικέτα αριστερά, λεπτό πλαίσιο, FIND στο πλάτος του BUILD */
+  #f{display:grid !important;grid-template-columns:182px 1fr calc((100% - 194px) / 6);border:1px solid var(--line) !important;background:transparent !important;height:56px}
+  #f:focus-within{border-color:var(--mute) !important}
+  /* Διακόπτης λειτουργίας: FIND TRACKS | BUILD A SET */
+  .modes{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);margin:0 0 12px}
+  .modes button{height:58px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer;font:700 12px var(--mono);letter-spacing:.2em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 10px}
+  .modes button:last-child{border-right:0}
+  .modes button small{font:400 10.5px var(--mono);letter-spacing:.04em;text-transform:none;opacity:.75}
+  .modes button:hover{color:var(--text);background:rgba(255,255,255,.03)}
+  .modes button.on{background:var(--text);color:var(--bg)}
+  body:not(.m-build) #setbar{display:none !important}
+  #setbar .sbgo{display:none !important}
+  @media (min-width:761px){#setbar .sbgrid{grid-template-columns:3fr 2fr}}
+  /* TRY / RECENT: ίδια μπάρα με το SEARCH — ετικέτα αριστερά, ίσα κουτάκια δεξιά */
+  #chips{display:grid !important;grid-template-columns:182px 1fr;margin-top:12px;border:1px solid var(--line);min-height:0;gap:0}
+  #chips .lbl{display:flex;align-items:center;justify-content:center;margin:0;align-self:stretch;height:auto;border-right:1px solid var(--line);font:700 11px var(--mono);letter-spacing:.2em;padding-left:.2em;color:var(--mute)}
+  #chips .tlist{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+  #chips .chip{height:44px;border:0;border-right:1px solid var(--line);padding:0 14px;font:12px var(--mono);letter-spacing:.02em;color:var(--mute);min-width:0;display:flex;align-items:center;justify-content:center}
+  #chips .chip:last-child{border-right:0}
+  #chips .chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #chips .chip:hover{color:var(--text);background:rgba(255,255,255,.03)}
+  @media (max-width:760px){#chips{grid-template-columns:1fr}#chips .lbl{border-right:0;border-bottom:1px solid var(--line);height:34px}#chips .tlist{grid-auto-flow:row;grid-template-columns:1fr}#chips .chip{border-right:0;border-bottom:1px solid var(--line);justify-content:flex-start}#chips .chip:last-child{border-bottom:0}}
+  #f .fcap{display:flex;align-items:center;justify-content:center;border-right:1px solid var(--line);font:700 13px var(--mono);letter-spacing:.2em;padding-left:.2em;text-transform:uppercase;color:var(--text);cursor:text}
+  #f input[type=text]{padding:0 20px;font:14px var(--mono);letter-spacing:.02em}
+  #f input[type=text]::placeholder{color:#55554f}
+  #f button.go{font:700 11px var(--mono);letter-spacing:.2em;padding:0}
+  @media (max-width:760px){#f{grid-template-columns:1fr;height:auto}#f .fcap{display:none}#f input[type=text]{padding:16px}#f button.go{padding:14px}}
+  footer{justify-content:center !important}
 
   form{display:flex;border:1px solid var(--text);background:rgba(255,255,255,.015)}
   input[type=text]{flex:1;min-width:0;padding:18px;border:0;background:transparent;color:var(--text);font:inherit;font-size:16px;outline:none;border-radius:0}
@@ -46,6 +81,9 @@
   .chip{border:1px solid var(--line);background:transparent;color:var(--mute);font:inherit;font-size:12px;padding:5px 11px;cursor:pointer;border-radius:0}
   .chip:hover{color:var(--text);border-color:var(--mute)}
   .chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+  /* Κουμπιά Build / Length / Style: κεφαλαία, ίδιο ύφος με τα tabs */
+  .setbar .chip{font:600 11px var(--mono) !important;letter-spacing:.16em !important;text-transform:uppercase}
+  .setbar .lenchip span{font:600 9px var(--mono);letter-spacing:.18em;text-transform:uppercase}
   .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
   .tag{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);border:1px solid var(--line);padding:4px 10px}
 
@@ -59,6 +97,49 @@
   .seed .t{font:700 21px/1.2 var(--sans);margin-top:3px}
   .seed .a{color:var(--mute);font-size:13px}
   .seed .bk{margin-top:6px}
+  /* Το κομμάτι σου: στοιχεία σε κουτάκια, στο ίδιο ύφος με τα tabs και τον πίνακα */
+  .seed{grid-template-columns:76px minmax(0,max-content) minmax(0,1fr) max-content !important;gap:24px !important;margin-top:0 !important;padding:36px 0 35px !important}
+  .seed .seedstats{justify-self:end}
+  .seed .seedact{justify-self:center}
+  /* Ενημέρωση για τον mixer, πάνω από το κομμάτι */
+  /* Απλή ενημέρωση για τον mixer, πάνω από το κομμάτι */
+  .trnote{display:flex;align-items:center;gap:12px;margin:-28px 0 0;padding:11px 16px;border:1px solid var(--line);border-left:2px solid var(--text);font:12px/1.6 var(--mono);color:var(--mute)}
+  .trnote .i{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid var(--mute);border-radius:50%;font:700 10px var(--mono);color:var(--text)}
+  .trnote .kc{display:inline-block;padding:0 5px;margin:0 1px;border:1px solid var(--mute);font:700 10.5px/16px var(--mono);color:var(--text)}
+  @media (max-width:980px){.trnote{margin-top:10px;align-items:flex-start}}
+  #out>.trans{margin-top:10px}
+  /* Harmonic mixing κάτω από τα αποτελέσματα */
+  /* Harmonic mixing: ίδιο ύφος με τον πίνακα (πλαίσιο, μπάρα τίτλου, ριγέ γραμμές) */
+  .mixbelow{margin-top:36px}
+  .mixbelow .mixpanel{grid-template-columns:290px 1fr;gap:0;padding:0;border:1px solid var(--line)}
+  .mixbelow .mphead{grid-column:1 / -1;padding:12px 16px;background:#141414;border-bottom:1px solid var(--line);font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  .mixbelow .mpwheel{display:flex;align-items:center;justify-content:center;padding:24px;border-right:1px solid var(--line)}
+  .mixbelow .mpwheel svg{width:100%;max-width:230px;height:auto}
+  .mixbelow .mpbody{display:flex;flex-direction:column;min-width:0}
+  .mixbelow .hboxes{display:grid;grid-template-columns:repeat(3,1fr);flex:1}
+  .mixbelow .hb{display:flex;flex-direction:column;justify-content:center;gap:8px;padding:20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+  .mixbelow .hb:nth-child(3n){border-right:0}
+  .mixbelow .hl{display:flex;align-items:center;gap:8px;font:600 9.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+  .mixbelow .hb b{font:700 24px/1 var(--mono);color:var(--text);white-space:nowrap}
+  .mixbelow .hb small{font:11px/1.4 var(--mono);color:var(--mute)}
+  .mixbelow .sw{display:inline-block;width:10px;height:10px;border:1px solid var(--mute)}
+  .mixbelow .sw.act{background:var(--text);border-color:var(--text)}
+  .mixbelow .sw.cmp{background:#1c1c1a}
+  .mixbelow .mixactions{margin:0;padding:14px 16px;gap:16px;flex-wrap:nowrap}
+  .mixbelow .mixhint{margin:0;font:11.5px/1.5 var(--mono);color:var(--mute)}
+  .mixbelow .mpbody>.mixhint{padding:16px}
+  @media (max-width:760px){.mixbelow .hboxes{grid-template-columns:1fr 1fr}.mixbelow .hb:nth-child(3n){border-right:1px solid var(--line)}.mixbelow .hb:nth-child(2n){border-right:0}.mixbelow .mixpanel{grid-template-columns:1fr}.mixbelow .mpwheel{border-right:0;border-bottom:1px solid var(--line)}.mixbelow .mixrow{grid-template-columns:120px 1fr}.mixbelow .mixactions{flex-wrap:wrap}}
+  .seedstats{display:grid;grid-auto-flow:column;grid-auto-columns:auto;border:1px solid var(--line)}
+  .ss{display:flex;flex-direction:column;justify-content:center;gap:7px;padding:12px 18px;border-right:1px solid var(--line);min-width:72px}
+  .ss:last-child{border-right:0}
+  .ss span{font:600 9.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+  .ss b{font:700 19px/1 var(--mono);color:var(--text);white-space:nowrap}
+  .ss b.g{font:600 11px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;padding-top:4px}
+  .ssdim{color:var(--dim)}
+  .seedside{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+  .seedlinks{gap:10px;justify-content:flex-start}
+  @media (max-width:980px){.seed{grid-template-columns:76px 1fr !important;padding:24px 0 !important;margin-top:20px !important}.seed .seedstats,.seed .seedact{grid-column:1 / -1;justify-self:stretch}}
+  @media (max-width:760px){.seedstats{grid-auto-flow:row;grid-template-columns:repeat(3,1fr)}.ss{border-bottom:1px solid var(--line)}.ss:nth-child(3n){border-right:0}}
 
   .bk{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--mute);letter-spacing:.06em}
   .bk b{color:var(--text);font-weight:600}
@@ -113,6 +194,30 @@
   .genrebar .chip{border:0;border-right:1px solid var(--line);padding:14px 6px;text-align:center;width:100%;min-width:0}
   .genrebar .chip:last-child{border-right:0}
   .genrebar .chip.on{border-color:var(--line)}
+  /* Ενιαίο πλέγμα 6 ίσων στηλών: Opener/Headliner/Closer · 1 Hour/2 Hours · Build = ίδιο πλάτος και ύψος με τα κουμπιά Style */
+  .sbgrid{grid-template-columns:3fr 2fr 1fr;gap:0;align-items:start}
+  .sbgroup{gap:10px}
+  @media (min-width:761px){.sbgroup+.sbgroup .cells,.sbgroup+.sbgroup .setbtn{border-left:0}}
+  .sbgroup .chip,.genrebar .chip{height:48px;padding:0 6px !important;display:flex;align-items:center;justify-content:center}
+  .sbgroup .lenchip{flex-direction:row;gap:0}
+  .sbgroup .lenchip b,.sbgroup .lenchip span{font:inherit !important;letter-spacing:inherit !important;opacity:1}
+  .sbgo .setbtn{height:50px;font:700 11px var(--mono);letter-spacing:.2em}
+  .sbgo{margin-left:0}
+  .setbar .k{display:block;line-height:14px;height:14px}
+  /* Επικεφαλίδες ενοτήτων (BUILD A DJ SET, STYLE): λευκές και πιο έντονες· υπο-τίτλοι (YOU ARE PLAYING AS, LENGTH) πιο ανοιχτοί */
+  /* Τίτλος ενότητας σε δική του στήλη αριστερά, στο κέντρο (ύψος + πλάτος) της σειράς με τα κουτάκια */
+  #setbar>.k,#genrebar>.k{font:700 13px var(--mono);letter-spacing:.2em;color:var(--text);margin:4px 0 10px;height:auto;line-height:1.2}
+  @media (min-width:761px){
+    #setbar,#genrebar{display:grid !important;grid-template-columns:170px 1fr;column-gap:24px;row-gap:12px;align-items:start;
+      background:linear-gradient(var(--line),var(--line)) 182px 24px/1px calc(100% - 48px) no-repeat}
+    #setbar>.k,#genrebar>.k{grid-column:1;grid-row:1;display:flex;align-items:center;justify-content:center;text-align:center;height:50px;margin:0;padding-left:calc(12px + .2em);line-height:1.35}
+    #setbar>.k{margin-top:24px}
+    #setbar>.sbgrid,#genrebar>.roles{grid-column:2;grid-row:1}
+    #setbar>.rolehint{grid-column:2;grid-row:2}
+    #setbar{padding:23px 0 21px !important}
+    #genrebar{padding:24px 0 23px !important}
+  }
+  .sbgroup>.k{font:600 10px var(--mono);letter-spacing:.2em;color:#a3a39e}
   @media (max-width:760px){.sbgrid{grid-template-columns:1fr;gap:14px}.genrebar .roles{grid-template-columns:repeat(3,1fr)}.genrebar .chip{border-bottom:1px solid var(--line)}.genrebar .chip:nth-child(3n){border-right:0}}
   .setmeta{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:center;justify-content:space-between;margin-top:30px}
   .setmeta h3{margin:0;font:800 24px var(--sans);letter-spacing:.04em}
@@ -159,6 +264,14 @@
   .tab:hover{color:var(--text)}
   .tab.on{color:var(--text);border-bottom-color:var(--text)}
   .tab small{margin-left:7px;color:var(--dim);font-size:11px}
+  /* Tabs σαν μπάρα με ίσα κουτιά (όπως τα Style / Build), ίδια γραμματοσειρά με την επικεφαλίδα του πίνακα */
+  .tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;margin:36px 0;border:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .tab{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 8px;margin:0;border:0;border-right:1px solid var(--line);background:transparent;color:var(--mute);font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;text-align:center}
+  .tab:last-child{border-right:0}
+  .tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+  .tab.on{background:var(--text);color:var(--bg);border-bottom:0}
+  .tab small{margin:0;font:600 10px var(--mono);letter-spacing:.04em;color:inherit;opacity:.5}
+  @media (max-width:760px){.tabs{grid-auto-flow:row;grid-template-columns:1fr 1fr}.tab{border-bottom:1px solid var(--line)}.tab:nth-child(2n){border-right:0}}
 
   .row{display:grid;grid-template-columns:28px 46px minmax(0,1fr) auto auto auto auto;gap:14px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
   .row .n{color:var(--dim);font-size:12px;text-align:right}
@@ -175,10 +288,71 @@
   .links a{color:var(--dim);font-size:10px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
   .links a:hover{color:var(--text)}
   /* Επικεφαλίδες στηλών: κάθε γραμμή μοιράζεται τις ίδιες στήλες (subgrid) ώστε να ευθυγραμμίζονται */
-  .list{display:grid;grid-template-columns:28px 46px minmax(0,1fr) auto auto auto auto;column-gap:14px}
+  /* Πίνακας αποτελεσμάτων: σταθερές στήλες, ίδιες για επικεφαλίδα και γραμμές (subgrid) */
+  .list{display:grid;grid-template-columns:28px 46px minmax(0,1.7fr) minmax(0,1fr) 124px max-content max-content max-content max-content 120px auto;column-gap:12px}
   .list>*{grid-column:1 / -1}
-  .list>.row,.list>.rowhead{display:grid;grid-template-columns:subgrid}
-  .rowhead{align-items:end;padding:14px 0 10px;border-bottom:1px solid var(--line);font:600 10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+  .list>.row,.list>.rowhead{display:grid;grid-template-columns:subgrid;column-gap:12px}
+  .list>.row .links{gap:9px;justify-content:flex-start}
+  .c-play{display:flex;align-items:center;gap:9px;border-left:1px solid var(--line);align-self:stretch;padding-left:12px}
+  .c-play a{color:var(--dim);font-size:12px;text-decoration:none}.c-play a:hover{color:var(--text)}
+  .noplay{display:inline-block;width:30px;flex:none}
+  /* κάθετες γραμμές και πριν από Artist και Play · Find */
+  .list>.row>.c-a,.list>.rowhead>.c-a,.list>.row>.links,.list>.rowhead>.links{border-left:1px solid var(--line);align-self:stretch;display:flex;align-items:center;padding-left:12px}
+  .list>.row>.c-a{flex-direction:column;align-items:stretch;justify-content:center}
+  .row .c-a span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+  .rowhead{align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  .rowhead .c-n{text-align:right}
+  .rowhead .links{justify-content:flex-start;font:inherit;letter-spacing:inherit;color:inherit}
+  .row .c-n{color:var(--dim);font-size:12px;text-align:right}
+  .row .c-t,.row .c-a{min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
+  .row .c-t .tt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+  .row .c-t{font:600 14.5px/1.3 var(--sans)}
+  .row .c-t small{display:block;white-space:nowrap;margin-top:4px;font:11px var(--mono);color:var(--mute);letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis}
+  .row .c-a{color:var(--mute);font-size:12.5px}
+  .c-g{min-width:0;padding-left:12px}
+  .c-g .gtag{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+  .c-num{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;font:600 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--text)}
+  .row .c-time{color:var(--mute);font-weight:400}
+  .c-g,.c-num{border-left:1px solid var(--line);align-self:stretch;display:flex}
+  /* κεντράρισμα ανάμεσα στις δύο γραμμές (η απόσταση των 12px είναι δεξιά του κουτιού) */
+  .c-num{padding-left:12px}
+  .c-g{flex-direction:row;align-items:center}
+  .rowhead .c-num,.rowhead .c-g{font:inherit;color:inherit}
+  /* το letter-spacing αφήνει κενό δεξιά· το αντισταθμίζουμε για να είναι το MIX στο κέντρο */
+  /* Στοίχιση: όλες οι στήλες (τίτλοι και τιμές) ξεκινούν αριστερά, 12px μετά την κάθετη γραμμή */
+  .list>.row>*,.list>.rowhead>*{text-align:left}
+  .list .c-num{align-items:flex-start;padding-left:12px}
+  .list .c-n{text-align:left !important}
+  /* Key: στο κέντρο (κλειδί και MIX το ένα κάτω από το άλλο) */
+  .list .c-key,.list .c-pct{align-items:center !important;text-align:center !important}
+  /* Genre: ο τίτλος μένει αριστερά, οι ετικέτες στο κέντρο */
+  .list>.row>.c-g,.list>.rowhead>.c-g{justify-content:center;text-align:center}
+  /* Play: τίτλος και κουμπιά στο κέντρο */
+  .list>.row>.c-play,.list>.rowhead>.c-play{justify-content:center;text-align:center}
+  .row .mixtag{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:32px;height:15px;padding:0;font-size:8.5px;font-weight:700;letter-spacing:0;line-height:1}
+
+  /* ===== Πίνακας σε στυλ DJ software (Traktor): μία γραμμή ανά κομμάτι, ριγέ, γραμμές μόνο στην επικεφαλίδα ===== */
+  @media (min-width:761px){
+    .list{grid-template-columns:30px 48px minmax(0,1.7fr) minmax(0,1fr) 140px max-content max-content max-content max-content max-content auto !important;column-gap:0 !important;border:1px solid var(--line)}
+    .list>.row,.list>.rowhead{column-gap:0 !important}
+    .list>*>*{padding-left:10px !important;padding-right:10px;text-align:left !important;justify-content:flex-start !important;align-items:center !important}
+    .list>*>.c-img{padding:0 !important;justify-content:center !important}
+    .list>.row>.c-t,.list>.row>.c-a{align-items:flex-start !important;justify-content:center !important}
+    .list>.rowhead{background:#141414;padding:9px 0;border-bottom:1px solid var(--line)}
+    .list>.rowhead>*{border-left:1px solid #2a2a2a !important;align-self:stretch;display:flex;align-items:center}
+    .list>.rowhead>*:first-child,.list>.rowhead>.c-img{border-left:0 !important}
+    .list>.row{padding:7px 0;border-bottom:0}
+    .list>.row:nth-child(odd){background:rgba(255,255,255,.025)}
+    .list>.row:hover{background:rgba(255,255,255,.06)}
+    .list>.row>*{border-left:0 !important}
+    .list>.row img{width:38px;height:38px}
+    .list .c-t .tt{-webkit-line-clamp:1 !important}
+    .list .c-t small{display:none}
+    .list .c-a span{-webkit-line-clamp:1 !important}
+    .list .c-num{flex-direction:row !important;gap:6px}
+    .list .mixtag{width:auto !important;height:auto !important;padding:2px 4px !important}
+    .list .c-play{gap:8px}
+  }
   .rowhead .r{text-align:right}
   .play{width:30px;height:30px;border:1px solid var(--dim);background:transparent;color:var(--text);cursor:pointer;font-size:11px;padding:0;border-radius:0;display:inline-flex;align-items:center;justify-content:center}
   .play:hover{border-color:var(--text)}
@@ -324,10 +498,16 @@
     .mixrow{grid-template-columns:100px 1fr}
     .row{grid-template-columns:26px 46px 1fr auto auto;row-gap:8px}
     .list{display:block}
-    .list>.row{grid-template-columns:26px 46px 1fr auto auto}
+    .list>.row{grid-template-columns:26px 46px minmax(0,1fr) auto auto;grid-template-areas:"n img t bpm key" "n img a pct time" "n play play play play" "n links links links links";row-gap:4px;column-gap:10px}
     .rowhead{display:none !important}
-    .gcell{display:none}
+    .gcell,.row .c-g{display:none}
+    .row .c-n{grid-area:n}.row .c-img{grid-area:img}.row .c-t{grid-area:t}.row .c-a{grid-area:a}
+    .row .c-bpm{grid-area:bpm}.row .c-key{grid-area:key}.row .c-pct{grid-area:pct}.row .c-time{grid-area:time}
+    .row .c-num,.list>.row>.c-a,.list>.row>.links{border-left:0;align-self:center;padding-left:0}
     .links{grid-column:2 / -1;justify-content:flex-start;flex-wrap:wrap}
+    .row .links{grid-area:links;margin-top:2px}
+    .row .c-play{grid-area:play;margin-top:6px;border-left:0;padding-left:0}
+    .list>.row>.c-play{justify-content:flex-start}
     .seed{grid-template-columns:76px 1fr}
     .seedact{grid-column:1 / -1}
     .seed .seedact .play{flex:1;width:auto}
@@ -339,7 +519,7 @@
 <body>
 <div class="page">
   <header>
-    <div class="brand">Houze</div>
+    <div class="brand" data-i18n="tagline"></div>
     <div class="lang" role="group" aria-label="Language">
       <button data-lang="el">EL</button>
       <button data-lang="en">EN</button>
@@ -348,12 +528,15 @@
 
   <main>
     <div class="hero">
-      <div class="eyebrow" data-i18n="eyebrow"></div>
       <h1>Houze</h1>
-      <div class="tagline" data-i18n="tagline"></div>
-      <p class="sub" data-i18n="sub"></p>
+      <div class="eyebrow" data-i18n="eyebrow"></div>
 
+      <div class="modes" id="modes" role="tablist">
+        <button type="button" data-umode="find"><span data-i18n="modeFind"></span><small data-i18n="modeFindSub"></small></button>
+        <button type="button" data-umode="build"><span data-i18n="modeBuild"></span><small data-i18n="modeBuildSub"></small></button>
+      </div>
       <form id="f">
+        <label class="fcap" for="q" data-i18n="searchLbl"></label>
         <input id="q" type="text" autocomplete="off" autofocus data-i18n-ph="placeholder">
         <button class="go" id="btn" data-i18n="go"></button>
       </form>
@@ -371,8 +554,8 @@
             </div></div>
           <div class="sbgroup"><span class="k" data-i18n="lenLbl"></span>
             <div class="cells cells2">
-              <button type="button" class="chip lenchip" data-len="60"><b>1</b><span data-i18n="unitHour"></span></button>
-              <button type="button" class="chip lenchip" data-len="120"><b>2</b><span data-i18n="unitHours"></span></button>
+              <button type="button" class="chip lenchip" data-len="60"><b>1</b>&nbsp;<span data-i18n="unitHour"></span></button>
+              <button type="button" class="chip lenchip" data-len="120"><b>2</b>&nbsp;<span data-i18n="unitHours"></span></button>
             </div></div>
           <div class="sbgroup sbgo"><span class="k">&nbsp;</span>
             <button type="button" class="setbtn" id="setBtn" data-i18n="setBtn"></button></div>
@@ -455,9 +638,7 @@
   </main>
 
   <footer>
-    <span data-i18n="footL"></span>
     <span><span data-i18n="footBpm"></span> <a href="https://getsongbpm.com" target="_blank" rel="noopener">GetSongBPM</a></span>
-    <span data-i18n="footR"></span>
   </footer>
   <div class="player" id="player" aria-label="Player">
     <div class="pin">
@@ -485,18 +666,18 @@ const I18N = {
   en: {
     eyebrow: 'Track finder for house DJs',
     tagline: 'Find your next record.',
-    sub: 'Paste a title or a link. Get extended tracks that mix well, with BPM, key and harmonic mixing, 5 minutes and up.',
-    placeholder: 'Artist - Title, or a YouTube / SoundCloud / Spotify / Beatport / Bandcamp / Traxsource / Discogs / Juno link',
+    sub: 'Paste a title or a link · extended tracks 5:00+ · BPM · key · harmonic mixing',
+    placeholder: 'Artist - Title, or paste a link', searchLbl: 'Search', modeFind: 'Find tracks', modeFindSub: '40+ tracks that mix with yours', modeBuild: 'Build a set', modeBuildSub: 'A ready, ordered DJ set',
     go: 'Find',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Try', recentLbl: 'Recent',
     howTitle: 'How it works',
     s1t: 'Drop a track', s1d: 'Type artist and title, or paste a link from YouTube, SoundCloud, Spotify, Beatport, Bandcamp, Traxsource, Discogs or Juno.',
-    s2t: 'We read the style', s2d: 'Related artists and listener data narrow it down to the style you pick: house, soulful, classic, deep or tech. Or choose All for no style filter.',
+    s2t: 'We read the genre', s2d: 'Related artists and listener data narrow it down to the genre you pick: house, soulful, classic, deep or tech. Or choose All for no genre filter.',
     s3t: 'Dig and mix', s3d: 'Get extended cuts of 5:00 and up, with BPM, key and a clear view of what blends with your track.',
     featTitle: 'Built for DJs',
     f1t: 'Extended only', f1d: 'No radio edits. Every result runs 5:00 or longer, so it is ready for the mix.',
-    f2t: 'Pick your style', f2d: 'Soulful, House, Classic, Deep or Tech House, with no techno, trance or pop slipping in. Or choose All and explore any genre.',
+    f2t: 'Pick your genre', f2d: 'Soulful, House, Classic, Deep or Tech House, with no techno, trance or pop slipping in. Or choose All and explore any genre.',
     f3t: 'BPM and key', f3d: 'Tempo and musical key for every track, so you can plan the set before you buy.',
     f4t: 'Harmonic mixing', f4d: 'Camelot keys, compatible keys and a pitch range of plus or minus 6%. One tap to show only tracks that mix.',
     f5t: 'Versions and remixes', f5d: 'See other mixes of the same record in one place.',
@@ -512,7 +693,7 @@ const I18N = {
     g5t: 'Soulful House', g5d: 'Warm gospel and soul vocals over smooth, uplifting grooves.',
     g2t: 'Deep House', g2d: 'Warm chords, smooth basslines and a relaxed, late-night feel.',
     g3t: 'Tech House', g3d: 'Driving percussion and rolling grooves with minimal vocals.',
-    g4t: 'House', g4d: 'The whole family: four-on-the-floor club house with big hooks, and every style below.',
+    g4t: 'House', g4d: 'The whole family: four-on-the-floor club house with big hooks, and every genre below.',
     srcTitle: 'Works with',
     faqTitle: 'Questions',
     q1: 'What does "extended" mean?', a1: 'The full-length club version of a track, usually 5 to 8 minutes, with long intros and outros made for mixing.',
@@ -525,7 +706,7 @@ const I18N = {
     tabs: { similar: 'Similar', versions: 'Remixes / versions', sameArtist: 'Same artist', discogs: 'Discogs · same era' }, dcNote: 'From Discogs: releases of the same era and style. No audio here: press play to look for the track on YouTube, or use the links (TS, DC, JN, BP…) to find it in the shops.', dcOpen: 'Open on Discogs', noYt: 'not found on YouTube',
     empty: 'No results here.',
     noHouse: 'The house genre filter needs a Last.fm API key on the server. Until then only the length filter (5:00+) is applied.',
-    trTitle: 'Transition', trHint: 'Press D1 or D2 on any track to load it into Deck 1 or Deck 2. Deck 1 starts with your track.', trPickB: 'Deck 1 is set. Now press D2 on a track to load Deck 2.', deck1Tip: 'Load into Deck 1', deck2Tip: 'Load into Deck 2', trFrom: 'From', trTo: 'To', trSwap: 'Swap', trClear: 'Clear',
+    trTitle: 'Transition', trNoteK: 'Mixer', trHint2: 'Press D1 or D2 on any track to load it into the mixer and practise the transition. Deck 1 already has your track.', trPickB2: 'Deck 1 is ready. Press D2 on a track to load Deck 2.', trEmpty: 'Press D2 on any track below', trEmptyT: 'Empty deck', trTip2: 'Load both decks to practise the mix', trHint: 'Press D1 or D2 on any track to load it into a deck and practise the transition. Deck 1 already has your track.', trPickB: 'Deck 1 is ready. Press D2 on a track to load Deck 2 and see the transition.', deck1Tip: 'Load into Deck 1', deck2Tip: 'Load into Deck 2', trFrom: 'From', trTo: 'To', trSwap: 'Swap', trClear: 'Clear',
     trNeed: 'This pair needs BPM and key data. They may still be loading, or the tracks were not found.',
     trPerfect: 'Same key. A perfect blend.', trSmoothK: 'Neighbouring key. A smooth blend.', trRelK: 'Relative major/minor. It works well and shifts the mood.',
     trBoostK: 'Energy boost: +2 on the wheel, it lifts the room.', trClashK: 'The keys clash. Keep the blend short or cut on a break.',
@@ -537,13 +718,13 @@ const I18N = {
     mxNote: 'Each preview loops in bars, so you can blend for as long as you like. Move the tempo sliders while it plays, change the EQ (double-click resets), click the waveform to jump.',
     noBpmFound: 'BPM and key were not found for this track.',
     mixTitle: 'Harmonic mixing',
-    rBpm: 'Tempo', rKey: 'Key', rSame: 'Perfect', rSmooth: 'Smooth', rRel: 'Relative', rBoost: 'Energy boost',
+    rBpm: 'Tempo', rKey: 'Key', rSame: 'Perfect', rSmooth: 'Smooth', rRel: 'Relative', rBoost: 'Energy boost', hdSame: 'Same key', hdSmooth: 'One step on the wheel', hdRel: 'Minor ↔ major', hdBoost: 'Two steps up, lifts the energy',
     pitch: 'pitch range ±6%',
     onlyMix: 'Only tracks that mix', setsLbl: 'Hear it in DJ sets',
     mixHint: 'MIX marks tracks with a compatible key and a tempo within ±6% of this one.',
     bpmWord: 'BPM',
-    genLbl: 'Style', gSoulful: 'Soulful House', gHouse: 'House', gDeep: 'Deep House', gTech: 'Tech House', gClassic: 'Classic House', gAny: 'All',
-    setLbl: 'Build a DJ set', lenLbl: 'Length', roleLbl: 'You are playing as', hintOpen: 'Warm-up: the most relaxed tracks of the style, building slowly.', hintPeak: 'Peak time: the most energetic tracks of the style, held high.', hintClose: 'Closing: dynamic and danceable like the headliner, but with a more melodic, uplifting colour.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'hour', unitHours: 'hours', setBtn: 'Build',
+    genLbl: 'Genre', gSoulful: 'Soulful House', gHouse: 'House', gDeep: 'Deep House', gTech: 'Tech House', gClassic: 'Classic House', gAny: 'All',
+    setLbl: 'Your set', lenLbl: 'Length', roleLbl: 'You are playing as', hintOpen: 'Warm-up: the most relaxed tracks of the genre, building slowly.', hintPeak: 'Peak time: the most energetic tracks of the genre, held high.', hintClose: 'Closing: dynamic and danceable like the headliner, but with a more melodic, uplifting colour.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'hour', unitHours: 'hours', setBtn: 'Build',
     setBuilding: 'building your set... a 2-hour set can take up to a minute',
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
@@ -554,7 +735,7 @@ const I18N = {
     noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
     shortSet: 'Only this many tracks matched. Try a more popular track for a full set.',
     backSearch: 'Back to results',
-    hTrack: 'Title · Artist · BPM', hStyle: 'Genre', hKey: 'Key', hTime: 'Length', hYear: 'Year', hLinks: 'Play · Find',
+    hTitle: 'Title', hArtist: 'Artist', hGenre: 'Genre', hKey: 'Key', hTime: 'Time', hYear: 'Year', hMatch: 'Match', hInAt: 'In at', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Find',
     err_notfound: 'Track not found. Try "Artist - Title".',
     err_nourl: 'Could not read a title from that link. Try "Artist - Title".',
     err_generic: 'Something went wrong. Try again.',
@@ -564,18 +745,18 @@ const I18N = {
   el: {
     eyebrow: 'Εργαλείο αναζήτησης για house DJs',
     tagline: 'Βρες το επόμενο κομμάτι.',
-    sub: 'Βάλε τίτλο ή link. Πάρε extended κομμάτια για mix, με BPM, tonality και αρμονική μίξη, 5 λεπτά και πάνω.',
-    placeholder: 'Καλλιτέχνης - Τίτλος, ή link από YouTube / SoundCloud / Spotify / Beatport / Bandcamp / Traxsource / Discogs / Juno',
+    sub: 'Βάλε τίτλο ή link · extended κομμάτια 5:00+ · BPM · κλειδί · αρμονική μίξη',
+    placeholder: 'Καλλιτέχνης - Τίτλος, ή βάλε ένα link', searchLbl: 'Αναζήτηση', modeFind: 'Βρες κομμάτια', modeFindSub: '40+ κομμάτια που ταιριάζουν με το δικό σου', modeBuild: 'Φτιάξε set', modeBuildSub: 'Έτοιμο DJ set, με σειρά',
     go: 'Βρες',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Δοκίμασε', recentLbl: 'Πρόσφατα',
     howTitle: 'Πώς λειτουργεί',
     s1t: 'Βάλε ένα κομμάτι', s1d: 'Γράψε καλλιτέχνη και τίτλο ή κάνε επικόλληση link από YouTube, SoundCloud, Spotify, Beatport, Bandcamp, Traxsource, Discogs ή Juno.',
-    s2t: 'Διαβάζουμε το στυλ', s2d: 'Σχετικοί καλλιτέχνες και δεδομένα ακροατών περιορίζουν τα αποτελέσματα στο στυλ που διαλέγεις: house, soulful, classic, deep ή tech. Ή διάλεξε Όλα για χωρίς φίλτρο στυλ.',
+    s2t: 'Διαβάζουμε το είδος', s2d: 'Σχετικοί καλλιτέχνες και δεδομένα ακροατών περιορίζουν τα αποτελέσματα στο είδος που διαλέγεις: house, soulful, classic, deep ή tech. Ή διάλεξε Όλα για χωρίς φίλτρο είδους.',
     s3t: 'Σκάψε και μίξε', s3d: 'Πάρε extended εκδόσεις 5:00 και πάνω, με BPM, tonality και καθαρή εικόνα για το τι ταιριάζει με το κομμάτι σου.',
     featTitle: 'Φτιαγμένο για DJs',
     f1t: 'Μόνο extended', f1d: 'Χωρίς radio edits. Κάθε αποτέλεσμα διαρκεί 5:00 ή περισσότερο, έτοιμο για mix.',
-    f2t: 'Διάλεξε στυλ', f2d: 'Soulful, House, Classic, Deep ή Tech House, χωρίς techno, trance ή pop να παρεισφρέουν. Ή διάλεξε Όλα και εξερεύνησε οποιοδήποτε είδος.',
+    f2t: 'Διάλεξε είδος', f2d: 'Soulful, House, Classic, Deep ή Tech House, χωρίς techno, trance ή pop να παρεισφρέουν. Ή διάλεξε Όλα και εξερεύνησε οποιοδήποτε είδος.',
     f3t: 'BPM και tonality', f3d: 'Ταχύτητα και μουσικό κλειδί για κάθε κομμάτι, ώστε να οργανώνεις το set πριν αγοράσεις.',
     f4t: 'Αρμονική μίξη', f4d: 'Camelot κλειδιά, συμβατά κλειδιά και περιθώριο pitch ±6%. Με ένα πάτημα βλέπεις μόνο όσα κάνουν mix.',
     f5t: 'Εκδόσεις και remixes', f5d: 'Δες άλλα mixes του ίδιου κομματιού σε ένα σημείο.',
@@ -591,7 +772,7 @@ const I18N = {
     g5t: 'Soulful House', g5d: 'Ζεστά gospel και soul φωνητικά πάνω σε απαλά, ανεβαστικά grooves.',
     g2t: 'Deep House', g2d: 'Ζεστές αρμονίες, απαλά basslines και χαλαρό, βραδινό feeling.',
     g3t: 'Tech House', g3d: 'Δυνατά κρουστά και rolling groove με ελάχιστα φωνητικά.',
-    g4t: 'House', g4d: 'Όλη η οικογένεια: club house με four-on-the-floor, δυνατά hooks, και όλα τα στυλ.',
+    g4t: 'House', g4d: 'Όλη η οικογένεια: club house με four-on-the-floor, δυνατά hooks, και όλα τα είδη.',
     srcTitle: 'Δουλεύει με',
     faqTitle: 'Ερωτήσεις',
     q1: 'Τι σημαίνει «extended»;', a1: 'Η πλήρης club έκδοση ενός κομματιού, συνήθως 5 έως 8 λεπτά, με μεγάλα intro και outro φτιαγμένα για μίξη.',
@@ -604,7 +785,7 @@ const I18N = {
     tabs: { similar: 'Παρόμοια', versions: 'Remixes / εκδόσεις', sameArtist: 'Ίδιος artist', discogs: 'Discogs · ίδια εποχή' }, dcNote: 'Από το Discogs: κυκλοφορίες της ίδιας εποχής και στυλ. Εδώ δεν υπάρχει ήχος: πάτα play για να ψάξει το κομμάτι στο YouTube, ή χρησιμοποίησε τα links (TS, DC, JN, BP…) για να το βρεις στα καταστήματα.', dcOpen: 'Άνοιγμα στο Discogs', noYt: 'δεν βρέθηκε στο YouTube',
     empty: 'Δεν βρέθηκαν αποτελέσματα εδώ.',
     noHouse: 'Το φίλτρο είδους (house) χρειάζεται Last.fm API key στον server. Μέχρι τότε φιλτράρεται μόνο η διάρκεια (5:00+).',
-    trTitle: 'Μετάβαση', trHint: 'Πάτα D1 ή D2 σε οποιοδήποτε κομμάτι για να το φορτώσεις στο Deck 1 ή στο Deck 2. Το Deck 1 ξεκινά με το δικό σου κομμάτι.', trPickB: 'Το Deck 1 είναι έτοιμο. Πάτα D2 σε ένα κομμάτι για το Deck 2.', deck1Tip: 'Φόρτωση στο Deck 1', deck2Tip: 'Φόρτωση στο Deck 2', trFrom: 'Από', trTo: 'Προς', trSwap: 'Αντιστροφή', trClear: 'Καθαρισμός',
+    trTitle: 'Μετάβαση', trNoteK: 'Mixer', trHint2: 'Πάτα D1 ή D2 σε οποιοδήποτε κομμάτι για να το φορτώσεις στον mixer και να δοκιμάσεις τη μετάβαση. Το Deck 1 έχει ήδη το δικό σου κομμάτι.', trPickB2: 'Το Deck 1 είναι έτοιμο. Πάτα D2 σε ένα κομμάτι για να φορτώσεις το Deck 2.', trEmpty: 'Πάτα D2 σε ένα κομμάτι από κάτω', trEmptyT: 'Άδειο deck', trTip2: 'Φόρτωσε και τα 2 decks για να δοκιμάσεις τη μίξη', trHint: 'Πάτα D1 ή D2 σε οποιοδήποτε κομμάτι για να το φορτώσεις σε deck και να δοκιμάσεις τη μετάβαση. Το Deck 1 έχει ήδη το δικό σου κομμάτι.', trPickB: 'Το Deck 1 είναι έτοιμο. Πάτα D2 σε ένα κομμάτι για να φορτώσεις το Deck 2 και να δεις τη μετάβαση.', deck1Tip: 'Φόρτωση στο Deck 1', deck2Tip: 'Φόρτωση στο Deck 2', trFrom: 'Από', trTo: 'Προς', trSwap: 'Αντιστροφή', trClear: 'Καθαρισμός',
     trNeed: 'Αυτό το ζεύγος θέλει δεδομένα BPM και key. Μπορεί να φορτώνουν ακόμα ή να μην βρέθηκαν τα κομμάτια.',
     trPerfect: 'Ίδιο key. Τέλεια μίξη.', trSmoothK: 'Γειτονικό key. Ομαλή μίξη.', trRelK: 'Σχετική μείζονα/ελάσσονα. Δουλεύει καλά και αλλάζει το mood.',
     trBoostK: 'Ώθηση ενέργειας: +2 στον τροχό, ανεβάζει την πίστα.', trClashK: 'Τα key συγκρούονται. Κράτα το blend σύντομο ή κάνε cut σε break.',
@@ -616,13 +797,13 @@ const I18N = {
     mxNote: 'Κάθε preview κάνει loop ανά bars, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα τα tempo sliders την ώρα που παίζει, άλλαξε το EQ (διπλό κλικ το μηδενίζει), κάνε κλικ στο κύμα για να πας αλλού.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
     mixTitle: 'Αρμονική μίξη',
-    rBpm: 'Ταχύτητα', rKey: 'Κλειδί', rSame: 'Τέλειο', rSmooth: 'Ομαλό', rRel: 'Σχετικό', rBoost: 'Ενέργεια',
+    rBpm: 'Ταχύτητα', rKey: 'Κλειδί', rSame: 'Τέλειο', rSmooth: 'Ομαλό', rRel: 'Σχετικό', rBoost: 'Ενέργεια', hdSame: 'Ίδιο κλειδί', hdSmooth: 'Ένα βήμα στον τροχό', hdRel: 'Minor ↔ major', hdBoost: 'Δύο βήματα πάνω, ανεβάζει την ενέργεια',
     pitch: 'περιθώριο pitch ±6%',
     onlyMix: 'Μόνο όσα κάνουν mix', setsLbl: 'Άκουσέ το σε DJ sets',
     mixHint: 'Το MIX δείχνει κομμάτια με συμβατό κλειδί και ταχύτητα εντός ±6% από αυτό.',
     bpmWord: 'BPM',
-    genLbl: 'Στυλ', gSoulful: 'Soulful House', gHouse: 'House', gDeep: 'Deep House', gTech: 'Tech House', gClassic: 'Classic House', gAny: 'Όλα',
-    setLbl: 'Φτιάξε DJ set', lenLbl: 'Διάρκεια', roleLbl: 'Παίζεις ως', hintOpen: 'Warm-up: τα πιο χαλαρά κομμάτια του στυλ, που ανεβαίνουν σιγά-σιγά.', hintPeak: 'Peak time: τα πιο δυναμικά κομμάτια του στυλ, σταθερά ψηλά.', hintClose: 'Κλείσιμο: δυναμικά και χορευτικά όπως ο headliner, αλλά με πιο μελωδικό, uplifting χρώμα.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'ώρα', unitHours: 'ώρες', setBtn: 'Φτιάξε',
+    genLbl: 'Είδος', gSoulful: 'Soulful House', gHouse: 'House', gDeep: 'Deep House', gTech: 'Tech House', gClassic: 'Classic House', gAny: 'Όλα',
+    setLbl: 'Το set σου', lenLbl: 'Διάρκεια', roleLbl: 'Παίζεις ως', hintOpen: 'Warm-up: τα πιο χαλαρά κομμάτια του είδους, που ανεβαίνουν σιγά-σιγά.', hintPeak: 'Peak time: τα πιο δυναμικά κομμάτια του είδους, σταθερά ψηλά.', hintClose: 'Κλείσιμο: δυναμικά και χορευτικά όπως ο headliner, αλλά με πιο μελωδικό, uplifting χρώμα.', roleOpen: 'Opener', rolePeak: 'Headliner', roleClose: 'Closer', unitHour: 'ώρα', unitHours: 'ώρες', setBtn: 'Φτιάξε',
     setBuilding: 'φτιάχνω το set... ένα set 2 ωρών μπορεί να πάρει έως ένα λεπτό',
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
@@ -633,7 +814,7 @@ const I18N = {
     noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
     shortSet: 'Ταίριαξαν μόνο τόσα κομμάτια. Δοκίμασε πιο δημοφιλές κομμάτι για πλήρες set.',
     backSearch: 'Πίσω στα αποτελέσματα',
-    hTrack: 'Τίτλος · Καλλιτέχνης · BPM', hStyle: 'Είδος', hKey: 'Κλειδί', hTime: 'Διάρκεια', hYear: 'Χρονιά', hLinks: 'Play · Αναζήτηση',
+    hTitle: 'Τίτλος', hArtist: 'Καλλιτέχνης', hGenre: 'Είδος', hKey: 'Κλειδί', hTime: 'Χρόνος', hYear: 'Χρονιά', hMatch: 'Match', hInAt: 'Μπαίνει', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Αναζήτηση',
     err_notfound: 'Δεν βρέθηκε το κομμάτι. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_nourl: 'Δεν μπόρεσα να διαβάσω τίτλο από αυτό το link. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_generic: 'Κάτι πήγε στραβά. Δοκίμασε ξανά.',
@@ -695,6 +876,22 @@ function initLang() {
   lang = saved || ((navigator.language || '').toLowerCase().startsWith('el') ? 'el' : 'en');
   applyLang();
 }
+let uiMode = 'find';
+try { if (localStorage.getItem('houze_umode') === 'build') uiMode = 'build'; } catch (_) {}
+function updateModeUI() {
+  document.body.classList.toggle('m-build', uiMode === 'build');
+  document.querySelectorAll('#modes [data-umode]').forEach((b) => { const on = b.dataset.umode === uiMode; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  $('#btn').textContent = t(uiMode === 'build' ? 'setBtn' : 'go');
+}
+function submitQuery() { if (uiMode === 'build') runSet(); else doSearch(); }
+document.getElementById('modes').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-umode]');
+  if (!b || b.dataset.umode === uiMode) return;
+  uiMode = b.dataset.umode;
+  try { localStorage.setItem('houze_umode', uiMode); } catch (_) {}
+  updateModeUI();
+  $('#q').focus();
+});
 function applyLang() {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
@@ -704,6 +901,7 @@ function applyLang() {
   renderChips();
   updateRoleChips();
   updateGenreChips();
+  updateModeUI();
   rerender();
 }
 document.querySelector('.lang').addEventListener('click', (e) => {
@@ -725,16 +923,16 @@ function addRecent(q) {
 }
 function renderChips() {
   const recent = getRecent();
-  const list = recent.length ? recent : EXAMPLES;
+  const list = (recent.length ? recent : EXAMPLES).slice(0, 4);
   const lbl = recent.length ? t('recentLbl') : t('tryLbl');
-  $('#chips').innerHTML = `<span class="lbl">${lbl}</span>` +
-    list.map((x) => `<button type="button" class="chip" data-q="${esc(x)}">${esc(x)}</button>`).join('');
+  $('#chips').innerHTML = `<span class="lbl">${lbl}</span><span class="tlist">` +
+    list.map((x) => `<button type="button" class="chip" data-q="${esc(x)}" title="${esc(x)}"><span>${esc(x)}</span></button>`).join('') + '</span>';
 }
 $('#chips').addEventListener('click', (e) => {
   const c = e.target.closest('.chip');
   if (!c) return;
   $('#q').value = c.dataset.q;
-  doSearch();
+  submitQuery();
 });
 
 /* ---------- Set builder ---------- */
@@ -790,8 +988,26 @@ async function runSet() {
   }
 }
 
-function rowHead(dc) {
-  return `<div class="rowhead"><span class="r">#</span><span></span><span>${esc(t('hTrack'))}</span><span>${esc(t('hStyle'))}</span><span class="r">${dc ? '' : esc(t('hKey'))}</span><span>${esc(t(dc ? 'hYear' : 'hTime'))}</span><span class="r">${esc(t('hLinks'))}</span></div>`;
+function rowHead(kind) { // 'search' | 'dc' | 'set'
+  const time = t(kind === 'dc' ? 'hYear' : 'hTime');
+  const last = t(kind === 'set' ? 'hInAt' : 'hMatch');
+  return `<div class="rowhead"><span class="c-n">#</span><span class="c-img"></span><span class="c-t">${esc(t('hTitle'))}</span><span class="c-a">${esc(t('hArtist'))}</span><span class="c-g">${esc(t('hGenre'))}</span><span class="c-num c-bpm">BPM</span><span class="c-num c-key">${esc(t('hKey'))}</span><span class="c-num c-time">${esc(time)}</span><span class="c-num c-pct">${esc(last)}</span><span class="c-play">${esc(t('hPlay'))}</span><span class="links">${esc(t('hFind'))}</span></div>`;
+}
+// Μία γραμμή του πίνακα: κάθε τιμή στη δική της στήλη
+function cellsRow(o) {
+  return `<div class="row${o.cls || ''}">
+    <div class="c-n">${String(o.i + 1).padStart(2, '0')}</div>
+    <img class="c-img" src="${esc(o.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+    <div class="c-t" title="${esc(o.title)}"><span class="tt">${esc(o.title)}</span>${o.sub ? `<small>${o.sub}</small>` : ''}</div>
+    <div class="c-a" title="${esc(o.artist)}"><span>${esc(o.artist)}</span></div>
+    <div class="c-g">${o.genre ? `<span class="gtag" title="${esc(o.genre)}">${esc(o.genre)}</span>` : ''}</div>
+    <div class="c-num c-bpm">${o.bpm ? Math.round(o.bpm) : ''}</div>
+    <div class="c-num c-key" title="${esc(o.keyName || '')}">${o.key ? `<span>${esc(o.key)}</span>` : ''}${o.mix ? '<span class="mixtag">MIX</span>' : ''}</div>
+    <div class="c-num c-time">${esc(o.time || '')}</div>
+    <div class="c-num c-pct">${o.last || ''}</div>
+    <div class="c-play">${o.play || ''}</div>
+    <div class="links">${o.find || ''}</div>
+  </div>`;
 }
 function fmtClock(s) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
@@ -827,18 +1043,12 @@ function transText(x) {
   return '↳ ' + parts.join(' · ');
 }
 function setRow(x, i, start) {
-  const bits = [];
-  if (x.bpm) bits.push(`<b>${Math.round(x.bpm)}</b> ${esc(t('bpmWord'))}`);
-  bits.push(`${esc(t('inAt'))} ${fmtClock(start)}`);
-  return `<div class="row${x.isSeed ? ' isseed' : ''}">
-    <div class="n">${String(i + 1).padStart(2, '0')}</div>
-    <img src="${esc(x.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-    <div class="meta"><div class="t">${esc(x.title)}${x.isSeed ? ` <span class="mixtag">${esc(t('yourTrack'))}</span>` : ''}</div><div class="a">${esc(x.artist)}</div><div class="bk">${bits.join(' · ')}</div></div>
-    <div class="gcell">${x.genre ? `<span class="gtag">${esc(x.genre)}</span>` : ''}</div>
-    <div class="ktag" title="${esc(x.key || '')}">${esc(x.camelot || '')}</div>
-    <div class="dur">${fmtDur(x.duration)}</div>
-    <div class="links">${playBtn(x)}${links(x)}</div>
-  </div>`;
+  return cellsRow({
+    i, cls: x.isSeed ? ' isseed' : '', cover: x.cover, title: x.title, artist: x.artist,
+    sub: x.isSeed ? `<span class="mixtag">${esc(t('yourTrack'))}</span>` : '',
+    genre: x.genre, bpm: x.bpm, key: x.camelot, keyName: x.key, time: fmtDur(x.duration),
+    last: fmtClock(start), play: playBtn(x), find: links(x),
+  });
 }
 function renderSet() {
   const d = setData, items = d.set || [];
@@ -848,7 +1058,7 @@ function renderSet() {
     <div class="sub2">${items.length} ${esc(t('setMeta'))} · ${esc(t('setApprox'))} ${mins} ${esc(t('setMin'))}</div></div>
     <button type="button" class="copybtn" id="copySet">${esc(t('copySet'))}</button></div>`;
   html += curveSVG(items);
-  html += '<div class="list">' + (items.length ? rowHead(false) : '');
+  html += '<div class="list">' + (items.length ? rowHead('set') : '');
   let prevSec = '';
   items.forEach((x, i) => {
     if (x.section !== prevSec) { html += `<div class="sec">${esc(t(SEC_KEY[x.section]))}</div>`; prevSec = x.section; }
@@ -876,7 +1086,7 @@ function copySet() {
 }
 
 /* ---------- Αναζήτηση ---------- */
-$('#f').addEventListener('submit', (e) => { e.preventDefault(); doSearch(); });
+$('#f').addEventListener('submit', (e) => { e.preventDefault(); submitQuery(); });
 
 async function doSearch() {
   const q = $('#q').value.trim();
@@ -959,7 +1169,7 @@ function links(tr) {
   return L.map(([n, full, u]) => `<a href="${u}" target="_blank" rel="noopener" title="${esc(t('findOn') + full)}">${n}</a>`).join('');
 }
 function playBtn(tr) {
-  if (!tr.preview) return '<span></span>';
+  if (!tr.preview) return '<span class="noplay"></span>';
   const on = playingId == tr.id;
   return `<button class="play${on ? ' on' : ''}" data-id="${esc(tr.id)}" data-src="${esc(tr.preview)}">${on ? '❚❚' : '▶'}</button>`;
 }
@@ -973,28 +1183,22 @@ function bkLine(tr, withTag) {
   return parts.join(' · ');
 }
 function row(tr, i) {
-  return `<div class="row">
-    <div class="n">${String(i + 1).padStart(2, '0')}</div>
-    <img src="${esc(tr.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-    <div class="meta"><div class="t">${esc(tr.title)}</div><div class="a">${esc(tr.artist)}</div><div class="bk">${bkLine(tr, true)}</div></div>
-    <div class="gcell">${gTag(tr)}</div>
-    <div class="ktag" title="${esc((infoMap[tr.id] && infoMap[tr.id].key) || '')}">${esc((infoMap[tr.id] && infoMap[tr.id].camelot) || '')}</div>
-    <div class="dur">${fmtDur(tr.duration)}</div>
-    <div class="links">${playBtn(tr)}${pairBtn(tr)}${links(tr)}</div>
-  </div>`;
+  const inf = infoMap[tr.id] || {};
+  return cellsRow({
+    i, cover: tr.cover, title: tr.title, artist: tr.artist,
+    genre: inf.genre, bpm: inf.bpm, key: inf.camelot, keyName: inf.key, mix: isMixable(tr),
+    time: fmtDur(tr.duration), last: tr.pct ? `<span class="pct">${tr.pct}%</span>` : '',
+    play: playBtn(tr) + pairBtn(tr), find: links(tr),
+  });
 }
 function dcRow(tr, i) {
-  const q = encodeURIComponent(tr.artist + ' ' + tr.title);
   const on = playingId == tr.id;
-  return `<div class="row">
-    <div class="n">${String(i + 1).padStart(2, '0')}</div>
-    <img src="${esc(tr.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-    <div class="meta"><div class="t">${esc(tr.title)}</div><div class="a">${esc(tr.artist)}${tr.label ? ' · ' + esc(tr.label) : ''}</div><div class="bk"><span class="pct">${tr.pct}%</span></div></div>
-    <div class="gcell">${tr.genre ? `<span class="gtag">${esc(tr.genre)}</span>` : ''}</div>
-    <div class="ktag"></div>
-    <div class="dur">${esc(String(tr.year || ''))}</div>
-    <div class="links"><button class="play${on ? ' on' : ''}" data-id="${esc(tr.id)}" data-src="">${on ? '❚❚' : '▶'}</button><a href="${esc(tr.link)}" target="_blank" rel="noopener" title="${esc(t('dcOpen'))}">↗</a>${links(tr)}</div>
-  </div>`;
+  return cellsRow({
+    i, cover: tr.cover, title: tr.title, artist: tr.artist, sub: tr.label ? esc(tr.label) : '',
+    genre: tr.genre, time: String(tr.year || ''), last: `<span class="pct">${tr.pct}%</span>`,
+    play: `<button class="play${on ? ' on' : ''}" data-id="${esc(tr.id)}" data-src="">${on ? '❚❚' : '▶'}</button><a href="${esc(tr.link)}" target="_blank" rel="noopener" title="${esc(t('dcOpen'))}">↗</a>`,
+    find: links(tr),
+  });
 }
 function pairBtn(tr) {
   const sid = String(tr.id);
@@ -1673,7 +1877,11 @@ function trMeta(x) {
 }
 function transitionPanel() {
   let h = `<div class="trans"><h3>${esc(t('trTitle'))}</h3>`;
-  if (!pairB) return h + `<div class="mixhint" style="margin-top:0">${esc(t(pairA ? 'trPickB' : 'trHint'))}</div></div>`;
+  if (!pairB) {
+    const chip = (x) => `<span class="kc">${x}</span>`;
+    const msg = esc(t(pairA ? 'trPickB2' : 'trHint2')).replace(/\bD1\b/g, chip('D1')).replace(/\bD2\b/g, chip('D2'));
+    return `<div class="trnote"><span class="i">i</span><div>${msg}</div></div>`;
+  }
   const A = pairA || data.seed, B = pairB;
   const ia = infoMap[A.id], ib = infoMap[B.id];
   h += `<div class="trhead">
@@ -1725,41 +1933,50 @@ function mixPanel() {
   } else {
     const c = compat(i.camelot);
     const lo = Math.round(i.bpm * 0.94), hi = Math.round(i.bpm * 1.06);
-    body = `<div class="mixrows">
-      <div class="mixrow"><span>${esc(t('rBpm'))}</span><div><b>${Math.round(i.bpm)}</b> ${esc(t('bpmWord'))} <span style="color:var(--mute)">· ${lo}–${hi} (${esc(t('pitch'))})</span></div></div>
-      <div class="mixrow"><span>${esc(t('rKey'))}</span><div><b>${esc(i.camelot)}</b> <span style="color:var(--mute)">· ${esc(i.key)}</span></div></div>
-      <div class="mixrow"><span>${esc(t('rSame'))}</span><div><b>${c.same}</b></div></div>
-      <div class="mixrow"><span>${esc(t('rSmooth'))}</span><div><b>${c.smooth.join(' · ')}</b></div></div>
-      <div class="mixrow"><span>${esc(t('rRel'))}</span><div><b>${c.relative}</b></div></div>
-      <div class="mixrow"><span>${esc(t('rBoost'))}</span><div><b>${c.boost}</b></div></div>
+    const box = (k, v, sub, sw) => `<div class="hb"><span class="hl">${sw ? `<i class="sw ${sw}"></i>` : ''}${esc(k)}</span><b>${v}</b><small>${esc(sub)}</small></div>`;
+    body = `<div class="hboxes">
+      ${box(t('rBpm'), String(Math.round(i.bpm)), lo + '–' + hi + ' · ' + t('pitch'))}
+      ${box(t('rKey'), esc(i.camelot), i.key || '')}
+      ${box(t('rSame'), c.same, t('hdSame'), 'act')}
+      ${box(t('rSmooth'), c.smooth.join(' · '), t('hdSmooth'), 'cmp')}
+      ${box(t('rRel'), c.relative, t('hdRel'), 'cmp')}
+      ${box(t('rBoost'), c.boost, t('hdBoost'), 'cmp')}
     </div>
-    <div class="mixactions"><button class="toggle${onlyMix ? ' on' : ''}" id="mixToggle">${esc(t('onlyMix'))}</button></div>
-    <div class="mixhint">${esc(t('mixHint'))}</div>`;
+    <div class="mixactions"><button class="toggle${onlyMix ? ' on' : ''}" id="mixToggle">${esc(t('onlyMix'))}</button><div class="mixhint">${esc(t('mixHint'))}</div></div>`;
   }
   return `<div class="mixpanel">
-    <div>${wheelSVG(i && i.camelot)}</div>
-    <div>${head}${body}
-    </div>
-  </div>` + transitionPanel();
+    <div class="mphead">${esc(t('mixTitle'))}</div>
+    <div class="mpwheel">${wheelSVG(i && i.camelot)}</div>
+    <div class="mpbody">${body}</div>
+  </div>`;
 }
 
 function render() {
   const s = data.seed;
-  let html = `<div class="seed">
+  const si = infoMap[s.id] || {};
+  const dash = '<span class="ssdim">—</span>';
+  const stats = [
+    ['BPM', si.bpm ? String(Math.round(si.bpm)) : ''],
+    [t('hKey'), si.camelot || ''],
+    [t('hTime'), fmtDur(s.duration)],
+    [t('hGenre'), si.genre || ''],
+    [t('hRange'), si.bpm ? Math.round(si.bpm * 0.94) + '–' + Math.round(si.bpm * 1.06) : ''],
+  ];
+  let html = transitionPanel() + `<div class="seed">
     <img src="${esc(s.cover || '')}" alt="">
     <div style="min-width:0"><div class="k">${esc(t('found'))}</div>
-      <div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)} ${s.duration ? '· ' + fmtDur(s.duration) : ''}</div>
-      <div class="bk">${gTag(s)} ${bkLine(s, false)}</div></div>
+      <div class="t">${esc(s.title)}</div><div class="a">${esc(s.artist)}</div></div>
     <div class="seedact">${playBtn(s)}${pairBtn(s)}</div>
+    <div class="seedstats">${stats.map(([k, v]) => `<div class="ss"><span>${esc(k)}</span><b${k === t('hGenre') ? ' class="g"' : ''}>${v ? esc(v) : dash}</b></div>`).join('')}</div>
   </div>`;
-  html += mixPanel();
   html += '<div class="tabs">' + ['similar', 'versions', 'sameArtist'].concat(data.discogsEnabled ? ['discogs'] : []).map((k) =>
     `<button class="tab${tab === k ? ' on' : ''}" data-tab="${k}">${esc(t('tabs')[k])}<small>${(data[k] || []).length}</small></button>`).join('') + '</div>';
   let list = data[tab] || [];
   if (onlyMix) list = list.filter(isMixable);
   if (tab === 'discogs') html += `<div class="note" style="margin-top:0">${esc(t('dcNote'))}</div>`;
-  html += '<div class="list">' + (list.length ? rowHead(tab === 'discogs') + list.map(tab === 'discogs' ? dcRow : row).join('') : `<div class="empty">${esc(t('empty'))}</div>`) + '</div>';
+  html += '<div class="list">' + (list.length ? rowHead(tab === 'discogs' ? 'dc' : 'search') + list.map(tab === 'discogs' ? dcRow : row).join('') : `<div class="empty">${esc(t('empty'))}</div>`) + '</div>';
   if (tab === 'similar' && !data.houseFilter && genre !== 'any') html += `<div class="note">${esc(t('noHouse'))}</div>`;
+  html += '<div class="mixbelow">' + mixPanel() + '</div>';
   $('#out').innerHTML = html;
   mountMixer();
 }

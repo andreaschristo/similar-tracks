@@ -245,30 +245,35 @@ const GENRES = [
 // Είδη που δεν θέλουμε ποτέ (ούτε στο All)
 const EXCLUDE_RE = /techno|trance|progressive|melodic|minimal|\belectro\b|big room|future house|\bedm\b|dubstep|drum.?(and|n|&).?bass|\bdnb\b|hardstyle|hard.?house|hardcore|psy|trap|ambient|downtempo/;
 const PLAIN_HOUSE = (tg) => /\bhouse\b/.test(tg) && !/electro house|big room|future house/.test(tg);
-// Διαβάζει τα tags με σειρά δημοφιλίας: το πρώτο «είδος» που βρίσκει είναι το κύριο.
-// Επιστρέφει { genre, excluded, mixed }:
-//  excluded = το κύριο είδος είναι techno / progressive κ.λπ.
-//  mixed    = υπάρχει και δεύτερο house είδος σχεδόν εξίσου δυνατό (π.χ. deep 100, tech 90)
+// Διαβάζει τα tags με σειρά δημοφιλίας και βγάζει το κύριο είδος.
+//  - Αν πριν από κάθε house tag υπάρχει techno / progressive κ.λπ. → excluded
+//  - Σκέτο «house» + δυνατό υπο-είδος (≥70%) → το υπο-είδος (π.χ. house 100, deep house 80 → deep house)
+//  - mixed = ΜΟΝΟ όταν συγκρούονται δύο πραγματικά διαφορετικά υφάκια (tech house με deep / soulful / classic)
 function classify(list) {
-  let first = null;
+  const fam = [];
   for (const x of list.slice(0, 10)) {
     const tg = x.n;
     if (EXCLUDE_RE.test(tg) && !/tech.?house|deep.?house|soulful/.test(tg)) {
-      if (!first) return { genre: '', excluded: true, mixed: false };
+      if (!fam.length) return { genre: '', excluded: true, mixed: false };
       continue;
     }
     let g = '';
     for (const [name, re] of GENRES) if (re.test(tg)) { g = name; break; }
     if (!g && PLAIN_HOUSE(tg)) g = 'house';
-    if (!g) continue;
-    if (!first) { first = { g, c: x.c || 1 }; continue; }
-    if (g !== first.g && g !== 'house' && (x.c || 1) >= 0.7 * first.c) return { genre: first.g, excluded: false, mixed: true };
+    if (g && !fam.some((f) => f.g === g)) fam.push({ g, c: x.c || 1 });
   }
-  return { genre: first ? first.g : '', excluded: false, mixed: false };
+  if (!fam.length) return { genre: '', excluded: false, mixed: false };
+  const subs = fam.filter((f) => f.g !== 'house');
+  let main = fam[0];
+  if (main.g === 'house' && subs.length && subs[0].c >= 0.7 * main.c) main = subs[0];
+  const strong = subs.filter((f) => f.c >= 0.7 * Math.max(main.c, subs[0] ? subs[0].c : 0));
+  const hasTech = strong.some((f) => f.g === 'tech house');
+  const hasOther = strong.some((f) => f.g !== 'tech house');
+  return { genre: main.g, excluded: false, mixed: hasTech && hasOther };
 }
 const pickGenre = (names) => classify(names.map((n) => ({ n, c: 0 }))).genre;
-// Είδος + πόσο σίγουρο είναι. sure=false όταν: βγήκε από τα tags του καλλιτέχνη (όχι του κομματιού),
-// τα tags είναι μπερδεμένα, ή το BPM δεν ταιριάζει με house.
+// Είδος + πόσο σίγουρο είναι. sure=false ΜΟΝΟ όταν: τα tags συγκρούονται (π.χ. deep και tech εξίσου)
+// ή το BPM είναι εκτός house (και όχι μισό / διπλό τέμπο).
 async function genreInfo(artist, title, bpm) {
   if (!LASTFM || !artist) return { genre: '', excluded: false, sure: true, note: '' };
   // Πρώτα τα tags του ίδιου του κομματιού (ακόμα κι αν είναι λίγα)· αλλιώς του καλλιτέχνη
@@ -279,15 +284,15 @@ async function genreInfo(artist, title, bpm) {
       return cleanTags(d.toptags && d.toptags.tag);
     }, 7 * 24 * 3600e3);
   } catch (_) {}
-  let c = classify(tt), src = 'track';
+  let c = classify(tt);
   if (!c.genre && !c.excluded) {
-    try { const c2 = classify(await artistTags(artist)); if (c2.genre || c2.excluded) { c = c2; src = 'artist'; } } catch (_) {}
+    try { const c2 = classify(await artistTags(artist)); if (c2.genre || c2.excluded) c = c2; } catch (_) {}
   }
   let note = '';
   if (c.genre) {
-    if (src === 'artist') note = 'artist';
-    else if (c.mixed) note = 'mixed';
-    else if (bpm && (bpm < 110 || bpm > 134) && !(bpm >= 220 && bpm <= 268)) note = 'bpm';
+    const inHouse = (b) => b >= 108 && b <= 135;
+    if (c.mixed) note = 'mixed';
+    else if (bpm && !inHouse(bpm) && !inHouse(bpm * 2) && !inHouse(bpm / 2)) note = 'bpm';
   }
   return { genre: c.genre, excluded: c.excluded, sure: !note, note };
 }
@@ -331,10 +336,11 @@ const GENRE_NAME = { house: 'house', soulful: 'soulful house', classic: 'classic
 const wantedGenre = (g) => (LASTFM && GENRE_NAME[g]) || '';
 const GENRE_KEY_OF = { house: 'house', 'deep house': 'deep', 'soulful house': 'soulful', 'classic house': 'classic', 'tech house': 'tech' };
 // «auto»: διαλέγει το είδος του κομματιού που έψαξες (αλλιώς All)
+// «auto» (νέα αναζήτηση): ΔΕΝ κλειδώνει σε είδος. Ψάχνει με βάση το ύφος σε όλα τα house είδη
+// και απλώς μας λέει τι είδος είναι το δικό σου κομμάτι. Φίλτρο είδους μόνο όταν το πατήσεις εσύ.
 async function resolveGenre(g, seed) {
-  if (g !== 'auto') return { genre: g, seedGenre: null };
   const gi = LASTFM ? await genreInfo(seed.artist, seed.title).catch(() => null) : null;
-  return { genre: (gi && GENRE_KEY_OF[gi.genre]) || 'any', seedGenre: gi };
+  return { genre: g === 'auto' ? 'any' : g, seedGenre: gi, seedKey: (gi && GENRE_KEY_OF[gi.genre]) || '' };
 }
 // Κρατάει μόνο το επιλεγμένο είδος και πετάει πάντα techno / progressive κ.λπ.
 async function genreFilter(list, g) {
@@ -737,7 +743,7 @@ async function handleSet(q, role, minutes, genre) {
   if (LASTFM && Array.isArray(built.set)) {
     await pmap(built.set, async (x) => { const gi = await genreInfo(x.artist, x.title, x.bpm); x.genre = gi.genre; x.genreSure = gi.sure; x.genreNote = gi.note; }, 5, 200);
   }
-  return { seed, role, minutes, wanted: N, genre, autoGenre: !!rg.seedGenre, bpmEnabled: !!(GSB || LASTFM), houseFilter: sim.houseFilter, ...built };
+  return { seed, role, minutes, wanted: N, genre, seedGenreKey: rg.seedKey, bpmEnabled: !!(GSB || LASTFM), houseFilter: sim.houseFilter, ...built };
 }
 
 // ---------- Discogs: παλιά / σπάνια κομμάτια ίδιας εποχής και στυλ ----------
@@ -818,6 +824,7 @@ async function handleSearch(q, opts) {
   const rg = await resolveGenre(opts.genre, seed);
   opts = { ...opts, genre: rg.genre, house: rg.genre !== 'any' };
   if (rg.seedGenre) { seed.genre = rg.seedGenre.genre; seed.genreSure = rg.seedGenre.sure; seed.genreNote = rg.seedGenre.note; }
+  seed.genreKey = rg.seedKey;
   const [sim, versions, same, dc] = await Promise.all([
     similar(seed, opts).catch(() => ({ list: [], houseFilter: false })),
     findVersions(seed, input, opts).then((l) => genreFilter(l, opts.genre)).catch(() => []),
@@ -827,7 +834,7 @@ async function handleSearch(q, opts) {
   return {
     input, seed,
     similar: sim.list, versions, sameArtist: same, discogs: dc, discogsEnabled: !!DISCOGS,
-    lastfm: !!LASTFM, houseFilter: sim.houseFilter, genre: opts.genre, autoGenre: !!rg.seedGenre, minDur: opts.minDur, bpmEnabled: !!(GSB || LASTFM),
+    lastfm: !!LASTFM, houseFilter: sim.houseFilter, genre: opts.genre, seedGenreKey: rg.seedKey, minDur: opts.minDur, bpmEnabled: !!(GSB || LASTFM),
   };
 }
 

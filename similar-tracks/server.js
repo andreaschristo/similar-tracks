@@ -815,6 +815,135 @@ async function discogsSimilar(seed, genre) {
   }, 6 * 3600e3);
 }
 
+
+// ---------- New releases: καθημερινές νέες κυκλοφορίες στα house είδη ----------
+// Πηγές: Deezer (νέες κυκλοφορίες Dance / Electro), Discogs (νέες καταχωρήσεις ανά style), MusicBrainz (ανοιχτή βάση, ανά tag).
+// Κρατάμε μόνο house είδη (όχι techno / progressive κ.λπ.) από τις τελευταίες 14 ημέρες.
+const NEW_DAYS = 14;
+const isoDay = (d) => d.toISOString().slice(0, 10);
+const daysAgo = (n) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - n); return isoDay(d); };
+const STYLE_TO_GENRE = (styles) => {
+  const st = (styles || []).map((x) => String(x).toLowerCase());
+  if (st.some((x) => EXCLUDE_RE.test(x) && !/house/.test(x)) && !st.some((x) => /house|garage/.test(x))) return { genre: '', excluded: true };
+  for (const x of st) {
+    if (/deep house/.test(x)) return { genre: 'deep house' };
+    if (/tech house/.test(x)) return { genre: 'tech house' };
+    if (/garage house|soulful|vocal house|gospel/.test(x)) return { genre: 'soulful house' };
+    if (/chicago|acid house|disco house|classic house/.test(x)) return { genre: 'classic house' };
+    if (/afro house/.test(x)) return { genre: 'afro house' };
+  }
+  if (st.some((x) => PLAIN_HOUSE(x))) return { genre: 'house' };
+  return { genre: '' };
+};
+async function newFromDeezer(since) {
+  const out = [];
+  for (const ed of [113, 106]) {
+    let list = [];
+    try { list = ((await dz(`/editorial/${ed}/releases?limit=100`)).data || []); } catch (e) { console.log('new deezer', e.message); }
+    for (const a of list) {
+      if (!a.release_date || a.release_date < since) continue;
+      out.push({ src: 'deezer', albumId: a.id, title: a.title, artist: a.artist && a.artist.name, date: a.release_date,
+        cover: a.cover_medium || a.cover, link: 'https://www.deezer.com/album/' + a.id });
+    }
+  }
+  // είδος από τα tags του καλλιτέχνη (Last.fm)
+  if (LASTFM) {
+    await pmap(out, async (x) => { const c = classify(await artistTags(x.artist).catch(() => [])); x.genre = c.genre; x.excluded = c.excluded; }, 5, 250);
+  }
+  const keep = out.filter((x) => !x.excluded && x.genre);
+  // αντιπροσωπευτικό κομμάτι: το μεγαλύτερο (extended) της κυκλοφορίας, με preview
+  await pmap(keep, async (x) => {
+    const tr = ((await dz(`/album/${x.albumId}/tracks?limit=20`)).data || []).filter((t) => !isAI({ artist: x.artist, title: t.title }));
+    const best = tr.sort((a, b) => (b.duration || 0) - (a.duration || 0))[0];
+    if (best) { x.id = best.id; x.track = best.title; x.preview = best.preview || ''; x.duration = best.duration || 0; x.tracks = tr.length; }
+  }, 5, 500);
+  return keep.filter((x) => x.id);
+}
+const DC_NEW_STYLES = ['House', 'Deep House', 'Garage House', 'Tech House', 'Chicago House', 'Afro House'];
+async function newFromDiscogs(since) {
+  if (!DISCOGS) return [];
+  const year = new Date().getUTCFullYear();
+  const found = new Map();
+  for (const style of DC_NEW_STYLES) {
+    try {
+      const p = new URLSearchParams({ type: 'release', genre: 'Electronic', style, year: String(year), per_page: '50', sort: 'date_added', sort_order: 'desc' });
+      for (const x of (await dcGet('/database/search?' + p)).results || []) found.set(x.id, x);
+    } catch (e) { console.log('new discogs', e.message); }
+    await sleep(1100);
+  }
+  // οι πιο πρόσφατες καταχωρήσεις (μεγαλύτερο id) → λεπτομέρειες για ακριβή ημερομηνία
+  const recent = [...found.values()].sort((a, b) => b.id - a.id).slice(0, 30);
+  const det = await pmap(recent, (x) => dcGet('/releases/' + x.id), 2, 2200);
+  const out = [];
+  recent.forEach((x, i) => {
+    const d = det[i];
+    const date = (d && /^\d{4}-\d{2}-\d{2}$/.test(d.released || '') && d.released) || (d && d.date_added ? String(d.date_added).slice(0, 10) : '');
+    if (!date || date < since) return;
+    const g = STYLE_TO_GENRE((d && d.styles) || x.style);
+    if (g.excluded || !g.genre) return;
+    const { artist, title } = dcSplit(x.title);
+    if (!artist || /various/i.test(artist)) return;
+    const tl = ((d && d.tracklist) || []).filter((t) => t.type_ === 'track' || !t.type_);
+    out.push({ src: 'discogs', id: 'dc' + x.id, title, artist, date, genre: g.genre, cover: x.cover_image || x.thumb || '',
+      label: ((x.label || [])[0] || '').replace(/\s*\(\d+\)$/, ''), link: 'https://www.discogs.com' + (x.uri || ''),
+      format: ((x.format || [])[0] || ''), preview: '', duration: 0, tracks: tl.length });
+  });
+  return out;
+}
+async function newFromMusicBrainz(since) {
+  const tags = ['house', 'deep house', 'soulful house', 'chicago house', 'tech house', 'afro house', 'garage house'];
+  const q = '(' + tags.map((t) => `tag:"${t}"`).join(' OR ') + `) AND date:[${since} TO ${daysAgo(-1)}]`;
+  try {
+    const r = await fetch('https://musicbrainz.org/ws/2/release?fmt=json&limit=100&query=' + enc(q), {
+      headers: { 'User-Agent': 'HOUZE/1.0 ( https://similar-tracks.onrender.com )', Accept: 'application/json' }, signal: AbortSignal.timeout(12000),
+    });
+    if (!r.ok) throw new Error('mb ' + r.status);
+    const d = await r.json();
+    const out = [];
+    for (const x of d.releases || []) {
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(x.date || '') ? x.date : '';
+      if (!date || date < since) continue;
+      const g = STYLE_TO_GENRE((x.tags || []).map((t) => t.name));
+      if (g.excluded || !g.genre) continue;
+      const artist = ((x['artist-credit'] || []).map((a) => a.name + (a.joinphrase || '')).join('') || '').trim();
+      if (!artist || /various/i.test(artist)) continue;
+      out.push({ src: 'musicbrainz', id: 'mb' + x.id, title: x.title, artist, date, genre: g.genre,
+        cover: `https://coverartarchive.org/release/${x.id}/front-250`, link: 'https://musicbrainz.org/release/' + x.id,
+        label: (((x['label-info'] || [])[0] || {}).label || {}).name || '', preview: '', duration: 0, tracks: x['track-count'] || 0 });
+    }
+    return out;
+  } catch (e) { console.log('new musicbrainz', e.message); return []; }
+}
+let newPending = null;
+async function newReleasesPool() {
+  const c = cache.get('new:pool');
+  if (c && c.t > Date.now()) return c.v;
+  if (newPending) return newPending;
+  newPending = (async () => {
+    const since = daysAgo(NEW_DAYS);
+    const [a, b, m] = await Promise.all([
+      newFromDeezer(since).catch(() => []), newFromDiscogs(since).catch(() => []), newFromMusicBrainz(since).catch(() => []),
+    ]);
+    const seen = new Set(); const all = [];
+    for (const x of [...a, ...b, ...m]) {
+      if (isAI(x)) continue;
+      const k = norm(x.artist) + '|' + norm(baseTitle(x.title));
+      if (seen.has(k)) continue;
+      seen.add(k); all.push(x);
+    }
+    all.sort((x, y) => (y.date > x.date ? 1 : y.date < x.date ? -1 : 0));
+    const v = { list: all, updated: new Date().toISOString(), sources: { deezer: a.length, discogs: b.length, musicbrainz: m.length } };
+    cache.set('new:pool', { v, t: Date.now() + 3 * 3600e3 });
+    return v;
+  })().finally(() => { newPending = null; });
+  return newPending;
+}
+async function handleNew(g) {
+  const pool = await newReleasesPool();
+  const want = GENRE_NAME[g] || '';
+  return { ...pool, genre: g, days: NEW_DAYS, list: want ? pool.list.filter((x) => x.genre === want) : pool.list.filter((x) => x.genre !== 'afro house' || g === 'any') };
+}
+
 async function handleSearch(q, opts) {
   const input = await resolveInput(q);
   const seed = await findSeed(input);
@@ -918,6 +1047,13 @@ const server = http.createServer(async (req, res) => {
     } catch (_) {
       return res.end(JSON.stringify({ enabled: !!(GSB || LASTFM), info: {} }));
     }
+  }
+  if (u.pathname === '/api/new') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    try {
+      const g = GENRE_KEYS.includes(u.searchParams.get('genre')) ? u.searchParams.get('genre') : 'any';
+      return res.end(JSON.stringify(await handleNew(g)));
+    } catch (e) { return res.end(JSON.stringify({ error: e.message || 'error', code: 'generic', list: [] })); }
   }
   if (u.pathname === '/api/set') {
     const q = (u.searchParams.get('q') || '').trim();

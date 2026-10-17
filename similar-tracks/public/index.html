@@ -988,7 +988,7 @@ async function loadNew() {
   try {
     const r = await fetch('/api/new?' + new URLSearchParams({ genre }));
     const d = await r.json();
-    if (d.error) { setStatus(I18N[lang].err_generic, true); return; }
+    if (d.error) { setStatus(I18N[lang].err_generic + ' (' + d.error + ')', true); return; }
     setStatus('');
     if (mode !== 'new') return;
     newData = d; infoMap = {}; requested = new Set();

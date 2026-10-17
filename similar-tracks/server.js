@@ -819,7 +819,7 @@ async function discogsSimilar(seed, genre) {
 // ---------- New releases: καθημερινές νέες κυκλοφορίες στα house είδη ----------
 // Πηγές: Deezer (νέες κυκλοφορίες Dance / Electro), Discogs (νέες καταχωρήσεις ανά style), MusicBrainz (ανοιχτή βάση, ανά tag).
 // Κρατάμε μόνο house είδη (όχι techno / progressive κ.λπ.) από τις τελευταίες 14 ημέρες.
-const NEW_DAYS = 14;
+const NEW_DAYS = 7; // τελευταία εβδομάδα
 const isoDay = (d) => d.toISOString().slice(0, 10);
 const daysAgo = (n) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - n); return isoDay(d); };
 const STYLE_TO_GENRE = (styles) => {
@@ -914,6 +914,60 @@ async function newFromMusicBrainz(since) {
     return out;
   } catch (e) { console.log('new musicbrainz', e.message); return []; }
 }
+// YouTube: τα labels / distributors ανεβάζουν τις νέες κυκλοφορίες (και κανάλια «Artist - Topic»).
+// Αναζήτηση ανά είδος, μόνο βίντεο της τελευταίας εβδομάδας, 4–12 λεπτά, χωρίς mixes / live sets.
+// Κόστος: ~100 μονάδες quota ανά αναζήτηση → 6 αναζητήσεις ανά 6 ώρες ≈ 2.400 / ημέρα (όριο 10.000).
+const YT_NEW_Q = [
+  ['house', '"house" "extended mix"'], ['deep house', '"deep house" "extended mix" OR "original mix"'],
+  ['soulful house', '"soulful house" OR "vocal house" "extended mix"'], ['tech house', '"tech house" "extended mix"'],
+  ['classic house', '"chicago house" OR "garage house" "extended mix"'], ['house', '"house music" "original mix"'],
+];
+const YT_NOISE = /\b(mix(?:ed)? by|dj ?set|live (?:set|at|from|stream)|\d+\s*(?:hours?|hrs?)\b|compilation|best of|top \d+|playlist|radio show|podcast|episode|ep\.? ?\d{2,}|boiler room|full album|megamix|continuous|reaction|tutorial|how to|nightcore|sped up|slowed|lyrics?)\b/i;
+const isoDur = (d) => { const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(d || ''); return m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : 0; };
+async function newFromYouTube(sinceISO) {
+  if (!YTKEY) return [];
+  const items = new Map();
+  for (const [g, q] of YT_NEW_Q) {
+    try {
+      const p = new URLSearchParams({ part: 'snippet', type: 'video', order: 'date', maxResults: '50', videoEmbeddable: 'true', videoCategoryId: '10', publishedAfter: sinceISO, q, key: YTKEY });
+      const j = await getJSON('https://www.googleapis.com/youtube/v3/search?' + p);
+      for (const it of j.items || []) if (it.id && it.id.videoId && !items.has(it.id.videoId)) items.set(it.id.videoId, { it, g });
+    } catch (e) { console.log('new youtube', e.message.slice(0, 80)); }
+  }
+  // διάρκεια (1 μονάδα quota ανά 50 βίντεο)
+  const ids = [...items.keys()];
+  const dur = {};
+  for (let i = 0; i < ids.length; i += 50) {
+    try {
+      const j = await getJSON('https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=' + ids.slice(i, i + 50).join(',') + '&key=' + YTKEY);
+      for (const v of j.items || []) dur[v.id] = isoDur(v.contentDetails && v.contentDetails.duration);
+    } catch (_) {}
+  }
+  const dec = (t) => String(t || '').replace(/&amp;/g, '&').replace(/&#39;|&#x27;/g, "'").replace(/&quot;/g, '"');
+  const out = [];
+  for (const [vid, { it, g }] of items) {
+    const sn = it.snippet || {};
+    const raw = dec(sn.title), ch = dec(sn.channelTitle);
+    const d = dur[vid] || 0;
+    if (d < 240 || d > 720 || YT_NOISE.test(raw)) continue;
+    let artist, title;
+    if (/ - Topic$/.test(ch)) { artist = ch.replace(/ - Topic$/, ''); title = raw; }
+    else { const pp = parseTitleString(raw); if (!pp.artist) continue; artist = pp.artist; title = pp.title; }
+    title = title.replace(/\s*\[[^\]]*\]\s*$/, '').trim();
+    if (!artist || !title || isAI({ artist, title })) continue;
+    out.push({ src: 'youtube', id: 'yt' + vid, ytId: vid, title, artist, date: String(sn.publishedAt || '').slice(0, 10), hint: g,
+      cover: (sn.thumbnails && (sn.thumbnails.medium || sn.thumbnails.default) || {}).url || '', link: 'https://www.youtube.com/watch?v=' + vid,
+      label: / - Topic$/.test(ch) ? '' : ch, preview: '', duration: d });
+  }
+  // είδος από Last.fm (αν το ξέρει)· αλλιώς το είδος της αναζήτησης, με «?»
+  await pmap(out, async (x) => {
+    let c = { genre: '', excluded: false };
+    if (LASTFM) { try { c = classify((await tagsOf(x.artist, x.title)).list); } catch (_) {} }
+    x.excluded = c.excluded;
+    if (c.genre) x.genre = c.genre; else { x.genre = x.hint; x.genreSure = false; x.genreNote = 'guess'; }
+  }, 5, 250);
+  return out.filter((x) => !x.excluded && !EXCLUDE_RE.test(x.title.toLowerCase()));
+}
 let newPending = null;
 async function newReleasesPool() {
   const c = cache.get('new:pool');
@@ -921,18 +975,19 @@ async function newReleasesPool() {
   if (newPending) return newPending;
   newPending = (async () => {
     const since = daysAgo(NEW_DAYS);
-    const [a, b, m] = await Promise.all([
-      newFromDeezer(since).catch(() => []), newFromDiscogs(since).catch(() => []), newFromMusicBrainz(since).catch(() => []),
+    const sinceISO = since + 'T00:00:00Z';
+    const [y, a, b, m] = await Promise.all([
+      cached('new:yt', () => newFromYouTube(sinceISO), 6 * 3600e3).catch(() => []), // κάθε 6 ώρες, για να μένει quota για τον player newFromDeezer(since).catch(() => []), newFromDiscogs(since).catch(() => []), newFromMusicBrainz(since).catch(() => []),
     ]);
     const seen = new Set(); const all = [];
-    for (const x of [...a, ...b, ...m]) {
+    for (const x of [...a, ...b, ...y, ...m]) {
       if (isAI(x)) continue;
       const k = norm(x.artist) + '|' + norm(baseTitle(x.title));
       if (seen.has(k)) continue;
       seen.add(k); all.push(x);
     }
     all.sort((x, y) => (y.date > x.date ? 1 : y.date < x.date ? -1 : 0));
-    const v = { list: all, updated: new Date().toISOString(), sources: { deezer: a.length, discogs: b.length, musicbrainz: m.length } };
+    const v = { list: all, updated: new Date().toISOString(), sources: { youtube: y.length, deezer: a.length, discogs: b.length, musicbrainz: m.length } };
     cache.set('new:pool', { v, t: Date.now() + 3 * 3600e3 });
     return v;
   })().finally(() => { newPending = null; });

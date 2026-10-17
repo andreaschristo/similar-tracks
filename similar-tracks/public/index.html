@@ -43,6 +43,17 @@
   /* Μπάρα αναζήτησης στο ίδιο σύστημα με BUILD A DJ SET / GENRE: ετικέτα αριστερά, λεπτό πλαίσιο, FIND στο πλάτος του BUILD */
   #f{display:grid !important;grid-template-columns:182px 1fr calc((100% - 194px) / 6);border:1px solid var(--line) !important;background:transparent !important;height:56px}
   #f:focus-within{border-color:var(--mute) !important}
+  /* New releases */
+  body.m-new #f,body.m-new #chips,body.m-new #setbar{display:none !important}
+  .newhead{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid var(--line);background:#141414;padding:14px 16px;margin:0 0 12px;font:11.5px var(--mono);color:var(--mute)}
+  .newhead b{display:block;font:700 13px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--text);margin-bottom:5px}
+  .newhead .nsrc b{display:inline;font-size:11.5px;letter-spacing:0;margin:0}
+  .list>.sec.newday{margin:0;padding:12px 16px;border-bottom:1px solid var(--line);background:#101010;font:700 10.5px var(--mono);letter-spacing:.18em;color:var(--text)}
+  .list>.sec.newday::after{display:none}
+  .list>.sec.newday small{margin-left:10px;color:var(--mute);font-weight:400;letter-spacing:.04em}
+  .list a.srcl{font:600 10.5px var(--mono);letter-spacing:.06em;color:var(--mute);text-decoration:none;white-space:nowrap}
+  .list a.srcl:hover{color:var(--text)}
+  @media (max-width:760px){.modes button small{display:none}}
   /* Discogs: υποχρεωτικές σημειώσεις */
   .dcbanner{border:1px solid var(--line);margin:0 0 12px;padding:12px 16px;font:11.5px/1.6 var(--mono);color:var(--mute)}
   .dclegal{margin-top:6px;color:var(--text)}
@@ -58,7 +69,7 @@
   #genrebar .chip.mine::after{content:attr(data-mark);position:absolute;top:4px;left:0;right:0;text-align:center;font:700 7.5px var(--mono);letter-spacing:.16em;opacity:.6}
   #genrebar .chip.mine::before{content:"";position:absolute;left:50%;bottom:5px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:currentColor}
   /* Διακόπτης λειτουργίας: FIND TRACKS | BUILD A SET */
-  .modes{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);margin:0 0 12px}
+  .modes{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--line);margin:0 0 12px}
   .modes button{height:58px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer;font:700 12px var(--mono);letter-spacing:.2em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 10px}
   .modes button:last-child{border-right:0}
   .modes button small{font:400 10.5px var(--mono);letter-spacing:.04em;text-transform:none;opacity:.75}
@@ -603,6 +614,7 @@
       <div class="modes" id="modes" role="tablist">
         <button type="button" data-umode="find"><span data-i18n="modeFind"></span><small data-i18n="modeFindSub"></small></button>
         <button type="button" data-umode="build"><span data-i18n="modeBuild"></span><small data-i18n="modeBuildSub"></small></button>
+        <button type="button" data-umode="new"><span data-i18n="modeNew"></span><small data-i18n="modeNewSub"></small></button>
       </div>
       <form id="f">
         <label class="fcap" for="q" data-i18n="searchLbl"></label>
@@ -738,7 +750,7 @@ const I18N = {
     eyebrow: 'Track finder for house DJs',
     tagline: 'Find your next record.',
     sub: 'Paste a title or a link · extended tracks 5:00+ · BPM · key · harmonic mixing',
-    placeholder: 'Artist - Title, or paste a link', searchLbl: 'Search', modeFind: 'Find tracks', modeFindSub: '40+ tracks that mix with yours', modeBuild: 'Build a set', modeBuildSub: 'A ready, ordered DJ set', wListen: 'Listeners', wSound: 'Sound', wKey: 'Key', dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'YOUR TRACK', mineTip: 'Your track is this genre. Results stay open to every house genre that fits its style; click to show only this genre.', gNoteArtist: "Genre guessed from the artist's tags, not the track: may be wrong", gNoteMixed: 'Mixed tags (e.g. deep and tech): genre may be wrong', gNoteBpm: 'BPM is unusual for house: the genre tag may be wrong',
+    placeholder: 'Artist - Title, or paste a link', searchLbl: 'Search', modeFind: 'Find tracks', modeFindSub: '40+ tracks that mix with yours', modeBuild: 'Build a set', modeBuildSub: 'A ready, ordered DJ set', wListen: 'Listeners', wSound: 'Sound', wKey: 'Key', modeNew: 'New releases', modeNewSub: 'Fresh house, every day', nTitle: 'New releases', nSub: 'House releases from the last {n} days, newest first', nToday: 'Today', nYesterday: 'Yesterday', nTracks: 'tracks', nEmpty: 'No new releases found for this genre right now. Try All.', hSource: 'Source', ldNew: 'Loading new releases', ldNewSteps: ['Deezer new releases', 'Discogs new entries', 'MusicBrainz', 'Genre check', 'Sorting by date'], dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'YOUR TRACK', mineTip: 'Your track is this genre. Results stay open to every house genre that fits its style; click to show only this genre.', gNoteArtist: "Genre guessed from the artist's tags, not the track: may be wrong", gNoteMixed: 'Mixed tags (e.g. deep and tech): genre may be wrong', gNoteBpm: 'BPM is unusual for house: the genre tag may be wrong',
     go: 'Find',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Try', recentLbl: 'Recent',
@@ -822,7 +834,7 @@ const I18N = {
     eyebrow: 'Εργαλείο αναζήτησης για house DJs',
     tagline: 'Βρες το επόμενο κομμάτι.',
     sub: 'Βάλε τίτλο ή link · extended κομμάτια 5:00+ · BPM · κλειδί · αρμονική μίξη',
-    placeholder: 'Καλλιτέχνης - Τίτλος, ή βάλε ένα link', searchLbl: 'Αναζήτηση', modeFind: 'Βρες κομμάτια', modeFindSub: '40+ κομμάτια που ταιριάζουν με το δικό σου', modeBuild: 'Φτιάξε set', modeBuildSub: 'Έτοιμο DJ set, με σειρά', wListen: 'Ακροατές', wSound: 'Ήχος', wKey: 'Κλειδί', dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'ΤΟ ΚΟΜΜΑΤΙ ΣΟΥ', mineTip: 'Το κομμάτι σου είναι αυτό το είδος. Τα αποτελέσματα μένουν ανοιχτά σε όλα τα house είδη που ταιριάζουν στο ύφος του· πάτα για να δεις μόνο αυτό το είδος.', gNoteArtist: 'Το είδος βγήκε από τα tags του καλλιτέχνη, όχι του κομματιού: μπορεί να είναι λάθος', gNoteMixed: 'Μπερδεμένα tags (π.χ. deep και tech): το είδος μπορεί να είναι λάθος', gNoteBpm: 'Ασυνήθιστο BPM για house: το tag μπορεί να είναι λάθος',
+    placeholder: 'Καλλιτέχνης - Τίτλος, ή βάλε ένα link', searchLbl: 'Αναζήτηση', modeFind: 'Βρες κομμάτια', modeFindSub: '40+ κομμάτια που ταιριάζουν με το δικό σου', modeBuild: 'Φτιάξε set', modeBuildSub: 'Έτοιμο DJ set, με σειρά', wListen: 'Ακροατές', wSound: 'Ήχος', wKey: 'Κλειδί', modeNew: 'Νέες κυκλοφορίες', modeNewSub: 'Φρέσκο house, κάθε μέρα', nTitle: 'Νέες κυκλοφορίες', nSub: 'House κυκλοφορίες των τελευταίων {n} ημερών, οι πιο πρόσφατες πρώτα', nToday: 'Σήμερα', nYesterday: 'Χθες', nTracks: 'κομμάτια', nEmpty: 'Δεν βρέθηκαν νέες κυκλοφορίες σε αυτό το είδος αυτή τη στιγμή. Δοκίμασε Όλα.', hSource: 'Πηγή', ldNew: 'Φορτώνω νέες κυκλοφορίες', ldNewSteps: ['Νέα στο Deezer', 'Νέα στο Discogs', 'MusicBrainz', 'Έλεγχος είδους', 'Ταξινόμηση κατά ημερομηνία'], dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'ΤΟ ΚΟΜΜΑΤΙ ΣΟΥ', mineTip: 'Το κομμάτι σου είναι αυτό το είδος. Τα αποτελέσματα μένουν ανοιχτά σε όλα τα house είδη που ταιριάζουν στο ύφος του· πάτα για να δεις μόνο αυτό το είδος.', gNoteArtist: 'Το είδος βγήκε από τα tags του καλλιτέχνη, όχι του κομματιού: μπορεί να είναι λάθος', gNoteMixed: 'Μπερδεμένα tags (π.χ. deep και tech): το είδος μπορεί να είναι λάθος', gNoteBpm: 'Ασυνήθιστο BPM για house: το tag μπορεί να είναι λάθος',
     go: 'Βρες',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Δοκίμασε', recentLbl: 'Πρόσφατα',
@@ -961,16 +973,94 @@ let uiMode = 'find';
 try { if (localStorage.getItem('houze_umode') === 'build') uiMode = 'build'; } catch (_) {}
 function updateModeUI() {
   document.body.classList.toggle('m-build', uiMode === 'build');
+  document.body.classList.toggle('m-new', uiMode === 'new');
   document.querySelectorAll('#modes [data-umode]').forEach((b) => { const on = b.dataset.umode === uiMode; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
   $('#btn').textContent = t(uiMode === 'build' ? 'setBtn' : 'go');
 }
-function submitQuery() { if (uiMode === 'build') runSet(); else doSearch(); }
+/* ---------- New releases ---------- */
+let newData = null;
+async function loadNew() {
+  hidePlayer();
+  mode = 'new'; data = null; setData = null;
+  $('#out').innerHTML = '';
+  $('#landing').classList.add('hidden');
+  startLoading('new', t('modeNew'));
+  try {
+    const r = await fetch('/api/new?' + new URLSearchParams({ genre }));
+    const d = await r.json();
+    if (d.error) { setStatus(I18N[lang].err_generic, true); return; }
+    setStatus('');
+    if (mode !== 'new') return;
+    newData = d; infoMap = {}; requested = new Set();
+    renderNew();
+    loadNewInfo();
+  } catch (err) { setStatus(t('err_conn') + err.message, true); }
+}
+function newDayLabel(d) {
+  const today = new Date(); const iso = (x) => x.toISOString().slice(0, 10);
+  const y = new Date(today); y.setDate(y.getDate() - 1);
+  if (d === iso(today)) return t('nToday');
+  if (d === iso(y)) return t('nYesterday');
+  try { return new Date(d + 'T12:00:00').toLocaleDateString(lang === 'el' ? 'el-GR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (_) { return d; }
+}
+const SRC_NAME = { deezer: 'Deezer', discogs: 'Discogs', musicbrainz: 'MusicBrainz' };
+function newRow(x, i) {
+  const inf = infoMap[x.id] || {};
+  const on = playingId == x.id;
+  const sub = [x.track && x.track !== x.title ? x.track : '', x.label, x.tracks > 1 ? x.tracks + ' ' + t('nTracks') : ''].filter(Boolean).map(esc).join(' · ');
+  return cellsRow({
+    i, cover: x.cover, title: x.title, artist: x.artist, sub,
+    genre: x.genre, bpm: inf.bpm, key: inf.camelot, keyName: inf.key,
+    time: x.duration ? fmtDur(x.duration) : '', last: `<a class="srcl" href="${esc(x.link)}" target="_blank" rel="noopener" title="${esc(x.src === 'discogs' ? t('dcCredit') : '')}">${esc(SRC_NAME[x.src] || x.src)} ↗</a>`,
+    play: `<button class="play${on ? ' on' : ''}" data-id="${esc(x.id)}" data-src="${esc(x.preview || '')}">${on ? '❚❚' : '▶'}</button>`,
+    find: links(x),
+  });
+}
+function renderNew() {
+  const d = newData; if (!d) return;
+  const list = d.list || [];
+  const src = d.sources || {};
+  let html = `<div class="newhead"><div><b>${esc(t('nTitle'))}</b><span>${esc(t('nSub').replace('{n}', d.days || 14))}</span></div>
+    <div class="nsrc">${Object.keys(SRC_NAME).map((k) => `${SRC_NAME[k]} <b>${src[k] || 0}</b>`).join(' · ')}</div></div>`;
+  if (src.discogs) html += `<div class="dcbanner"><div class="dclegal" style="margin:0">${esc(t('dcCredit'))} · <a href="https://www.discogs.com" target="_blank" rel="noopener">discogs.com</a> · ${esc(t('dcLegal'))}</div></div>`;
+  html += '<div class="list">';
+  if (!list.length) html += `<div class="empty">${esc(t('nEmpty'))}</div>`;
+  else {
+    html += rowHead('new');
+    let day = '', n = 0;
+    list.forEach((x) => {
+      if (x.date !== day) { day = x.date; const cnt = list.filter((y) => y.date === day).length; html += `<div class="sec newday">${esc(newDayLabel(day))}<small>${cnt}</small></div>`; }
+      html += newRow(x, n++);
+    });
+  }
+  html += '</div>';
+  $('#out').innerHTML = html;
+}
+async function loadNewInfo() {
+  if (!newData) return;
+  const need = (newData.list || []).filter((x) => /^\d+$/.test(String(x.id)) && !requested.has(x.id)).slice(0, 60);
+  need.forEach((x) => requested.add(x.id));
+  const mine = newData;
+  for (let i = 0; i < need.length; i += 12) {
+    if (mine !== newData || mode !== 'new') return;
+    const chunk = need.slice(i, i + 12);
+    try {
+      const r = await fetch('/api/info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tracks: chunk.map((x) => ({ id: x.id, artist: x.artist, title: x.track || x.title })) }) });
+      const d = await r.json();
+      Object.assign(infoMap, d.info || {});
+    } catch (_) {}
+    if (mode === 'new' && mine === newData) renderNew();
+  }
+}
+function submitQuery() { if (uiMode === 'new') { uiMode = 'find'; updateModeUI(); } if (uiMode === 'build') runSet(); else doSearch(); }
 document.getElementById('modes').addEventListener('click', (e) => {
   const b = e.target.closest('[data-umode]');
   if (!b || b.dataset.umode === uiMode) return;
   uiMode = b.dataset.umode;
   try { localStorage.setItem('houze_umode', uiMode); } catch (_) {}
   updateModeUI();
+  if (uiMode === 'new') { loadNew(); return; }
+  if (mode === 'new') { mode = 'search'; newData = null; $('#out').innerHTML = ''; $('#landing').classList.remove('hidden'); }
   $('#q').focus();
 });
 function applyLang() {
@@ -1020,7 +1110,8 @@ $('#chips').addEventListener('click', (e) => {
 const SEC_KEY = { intro: 'secIntro', build: 'secBuild', peak: 'secPeak', outro: 'secOutro' };
 
 function rerender() {
-  if (mode === 'set' && setData) renderSet();
+  if (mode === 'new' && newData) renderNew();
+  else if (mode === 'set' && setData) renderSet();
   else if (data && data.seed) render();
 }
 function updateGenreChips() {
@@ -1036,6 +1127,7 @@ $('#genrebar').addEventListener('click', (e) => {
   const g = e.target.closest('[data-genre]');
   if (!g) return;
   genre = g.dataset.genre; genreLocked = true; updateGenreChips();
+  if (mode === 'new') { loadNew(); return; }
   if ($('#q').value.trim() && (data || setData)) { if (mode === 'set') runSet(); else doSearch(); }
 });
 // Το είδος που χρησιμοποίησε ο server (αυτόματο από το κομμάτι ή αυτό που διάλεξες)
@@ -1092,7 +1184,7 @@ function whyText(tr) {
 }
 function rowHead(kind) { // 'search' | 'dc' | 'set'
   const time = t(kind === 'dc' ? 'hYear' : 'hTime');
-  const last = t(kind === 'set' ? 'hInAt' : 'hMatch');
+  const last = t(kind === 'set' ? 'hInAt' : kind === 'new' ? 'hSource' : 'hMatch');
   return `<div class="rowhead"><span class="c-n">#</span><span class="c-img"></span><span class="c-t">${esc(t('hTitle'))}</span><span class="c-a">${esc(t('hArtist'))}</span><span class="c-g">${esc(t('hGenre'))}</span><span class="c-num c-bpm">BPM</span><span class="c-num c-key">${esc(t('hKey'))}</span><span class="c-num c-time">${esc(time)}</span><span class="c-num c-pct">${esc(last)}</span><span class="c-play">${esc(t('hPlay'))}</span><span class="links">${esc(t('hFind'))}</span></div>`;
 }
 // Μία γραμμή του πίνακα: κάθε τιμή στη δική της στήλη
@@ -1263,12 +1355,13 @@ function startLoading(kind, q) {
   stopLoading();
   const s = $('#status');
   s.className = 'loading';
-  const steps = t(kind === 'set' ? 'ldSetSteps' : 'ldSearchSteps');
-  const at = kind === 'set' ? [0, 2, 6, 12, 20, 30] : [0, 1.5, 4, 7, 10];
-  const T = kind === 'set' ? 22 : 9;
+  const K = { set: ['ldSetSteps', [0, 2, 6, 12, 20, 30], 22, 'ldSet'], new: ['ldNewSteps', [0, 2, 6, 14, 24], 25, 'ldNew'], search: ['ldSearchSteps', [0, 1.5, 4, 7, 10], 9, 'ldSearch'] }[kind] || [];
+  const steps = t(K[0]);
+  const at = K[1];
+  const T = K[2];
   const t0 = Date.now();
   s.innerHTML = `<div class="loader" role="status" aria-live="polite">
-    <div class="lhead"><span class="spin"></span><b>${esc(t(kind === 'set' ? 'ldSet' : 'ldSearch'))}</b><span class="lq">${esc(q)}</span><span class="lt" id="ldT">0s</span></div>
+    <div class="lhead"><span class="spin"></span><b>${esc(t(K[3]))}</b><span class="lq">${esc(q)}</span><span class="lt" id="ldT">0s</span></div>
     <div class="lbar"><i id="ldBar"></i></div>
     <ol class="lsteps" id="ldSteps">${steps.map((x, i) => `<li><span class="ln">${String(i + 1).padStart(2, '0')}</span><span>${esc(x)}</span></li>`).join('')}</ol>
     <div class="lnote" id="ldNote">${esc(t('ldNote'))}</div>
@@ -2150,6 +2243,7 @@ $('#out').addEventListener('click', (e) => {
 let queue = [];
 function visibleList() {
   if (mode === 'set' && setData) return (setData.set || []).filter((x) => x.preview);
+  if (mode === 'new' && newData) return newData.list || [];
   let list = (data && data[tab]) || [];
   if (tab === 'discogs') return list;
   if (onlyMix) list = list.filter(isMixable);
@@ -2160,6 +2254,7 @@ function findTrack(id) {
   const pools = [data && data.seed];
   if (data) pools.push(...(data.similar || []), ...(data.versions || []), ...(data.sameArtist || []), ...(data.discogs || []));
   if (setData) pools.push(...(setData.set || []));
+  if (newData) pools.push(...(newData.list || []));
   return pools.find((x) => x && String(x.id) === String(id));
 }
 function fmtT(s) { return isFinite(s) ? Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0') : '0:00'; }

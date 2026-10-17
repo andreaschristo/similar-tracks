@@ -977,16 +977,22 @@ async function newReleasesPool() {
     const since = daysAgo(NEW_DAYS);
     const sinceISO = since + 'T00:00:00Z';
     const [y, a, b, m] = await Promise.all([
-      cached('new:yt', () => newFromYouTube(sinceISO), 6 * 3600e3).catch(() => []), // κάθε 6 ώρες, για να μένει quota για τον player newFromDeezer(since).catch(() => []), newFromDiscogs(since).catch(() => []), newFromMusicBrainz(since).catch(() => []),
+      // YouTube: κάθε 6 ώρες, για να μένει quota για τον player
+      cached('new:yt', () => newFromYouTube(sinceISO), 6 * 3600e3).catch(() => []),
+      newFromDeezer(since).catch(() => []), newFromDiscogs(since).catch(() => []), newFromMusicBrainz(since).catch(() => []),
     ]);
     const seen = new Set(); const all = [];
     for (const x of [...a, ...b, ...y, ...m]) {
-      if (isAI(x)) continue;
-      const k = norm(x.artist) + '|' + norm(baseTitle(x.title));
-      if (seen.has(k)) continue;
-      seen.add(k); all.push(x);
+      try {
+        if (!x || !x.artist || !x.title || !x.date) continue;
+        x.title = String(x.title); x.artist = String(x.artist);
+        if (isAI(x)) continue;
+        const k = norm(x.artist) + '|' + norm(baseTitle(x.title));
+        if (seen.has(k)) continue;
+        seen.add(k); all.push(x);
+      } catch (e) { console.log('new item skipped', e.message); }
     }
-    all.sort((x, y) => (y.date > x.date ? 1 : y.date < x.date ? -1 : 0));
+    all.sort((p1, p2) => (p2.date > p1.date ? 1 : p2.date < p1.date ? -1 : 0));
     const v = { list: all, updated: new Date().toISOString(), sources: { youtube: y.length, deezer: a.length, discogs: b.length, musicbrainz: m.length } };
     cache.set('new:pool', { v, t: Date.now() + 3 * 3600e3 });
     return v;
@@ -1108,7 +1114,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const g = GENRE_KEYS.includes(u.searchParams.get('genre')) ? u.searchParams.get('genre') : 'any';
       return res.end(JSON.stringify(await handleNew(g)));
-    } catch (e) { return res.end(JSON.stringify({ error: e.message || 'error', code: 'generic', list: [] })); }
+    } catch (e) { console.log('api/new error', e && e.stack); return res.end(JSON.stringify({ error: (e && e.message) || 'error', code: 'generic', list: [] })); }
   }
   if (u.pathname === '/api/set') {
     const q = (u.searchParams.get('q') || '').trim();

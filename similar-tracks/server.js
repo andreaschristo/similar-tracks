@@ -519,6 +519,19 @@ async function similar(seed, opts) {
   return { list: out, houseFilter: useHouse };
 }
 
+// ---------- BPM από το Deezer (όταν το έχει) ----------
+async function dzBpm(id) {
+  try {
+    return await cached('dzbpm:' + id, async () => {
+      let b = Number((await dz('/track/' + id)).bpm) || 0;
+      if (b < 60 || b > 200) return 0;
+      while (b < 95) b *= 2;   // μισό tempo → κανονικό
+      while (b > 160) b /= 2;  // διπλό tempo → κανονικό
+      return Math.round(b * 10) / 10;
+    }, 7 * 24 * 3600e3);
+  } catch (_) { return 0; }
+}
+
 // ---------- BPM + tonality (GetSongBPM) ----------
 const CAM_MAJ = { C: '8B', G: '9B', D: '10B', A: '11B', E: '12B', B: '1B', 'F#': '2B', Gb: '2B', 'C#': '3B', Db: '3B', 'G#': '4B', Ab: '4B', 'D#': '5B', Eb: '5B', 'A#': '6B', Bb: '6B', F: '7B' };
 const CAM_MIN = { A: '8A', E: '9A', B: '10A', 'F#': '11A', Gb: '11A', 'C#': '12A', Db: '12A', 'G#': '1A', Ab: '1A', 'D#': '2A', Eb: '2A', 'A#': '3A', Bb: '3A', F: '4A', C: '5A', G: '6A', D: '7A' };
@@ -1115,7 +1128,12 @@ const server = http.createServer(async (req, res) => {
       const info = {};
       if (GSB || LASTFM) {
         const r = await pmap(list, async (t) => {
-          const bk = await trackInfo(t.artist, t.title);
+          let bk = await trackInfo(t.artist, t.title);
+          // Δεύτερη πηγή BPM: το Deezer έχει BPM για πολλά κομμάτια
+          if ((!bk || !bk.bpm) && /^\d+$/.test(String(t.id))) {
+            const b = await dzBpm(t.id);
+            if (b) bk = { key: '', camelot: '', ...(bk || {}), bpm: b };
+          }
           const gi = await genreInfo(t.artist, t.title, bk && bk.bpm);
           return { id: t.id, info: bk || gi.genre ? { ...(bk || {}), genre: gi.genre || '', genreSure: gi.sure, genreNote: gi.note } : null };
         }, 4, 300);

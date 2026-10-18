@@ -472,7 +472,17 @@
   .chl{font:700 10px var(--mono);letter-spacing:.16em;color:var(--mute);padding-left:.16em}
   .chn .chf{margin-top:auto;padding-left:0;border-left:0}
   .mxc .xfade{margin:0;padding-top:12px;border-top:1px solid var(--line)}
-  .deck .mid{display:flex;justify-content:center;align-items:center;padding:6px 0}
+  /* Jog στο κέντρο του deck, tempo fader δεξιά του, όπως στα CDJ (πάνω = −, κάτω = +) */
+  .deck .mid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:6px 0}
+  .tmp{justify-self:end;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .tmp .tl{font:9px var(--mono);letter-spacing:.14em;color:var(--mute);padding-left:.14em}
+  .tmp .fw{position:relative;width:28px;height:118px;background:linear-gradient(var(--dim),var(--dim)) center/2px 100% no-repeat,linear-gradient(var(--mute),var(--mute)) center/14px 1px no-repeat}
+  .mx .tmp .fw input[type=range]{position:absolute;left:50%;top:50%;width:118px;height:28px;margin:0;transform:translate(-50%,-50%) rotate(90deg)}
+  .mx .tmp .fw input[type=range]::-webkit-slider-runnable-track{background:transparent}
+  .mx .tmp .fw input[type=range]::-moz-range-track{background:transparent}
+  .mx .tmp .fw input[type=range]::-webkit-slider-thumb{width:10px;height:24px;margin-top:-11px;background:var(--text)}
+  .mx .tmp .fw input[type=range]::-moz-range-thumb{width:10px;height:24px;background:var(--text)}
+  .tmp .tpct{text-align:center;min-width:46px}
   .deck .jog{width:132px;height:132px}
   .deck{border:1px solid var(--line);padding:14px;min-width:0}
   .dhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
@@ -2141,13 +2151,12 @@ function mxDeckHTML(D) {
       <button type="button" class="tb dplay" data-mxa="play-${k}" id="mxp-${k}">▶ PLAY</button>
       <button type="button" class="tb lp${D.loop ? ' on' : ''}" data-mxa="loop-${k}" id="mxlp-${k}">LOOP</button>
       <button type="button" class="tb${D.sync ? ' on' : ''}" data-mxa="dsync-${k}" id="mxsy-${k}">SYNC</button></div>
-    <div class="drow">
-      <div class="tempo"><button type="button" class="nudge" data-mxa="nd-${k}">−</button>
-        <input type="range" min="-100" max="100" value="${Math.round((D.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}">
-        <button type="button" class="nudge" data-mxa="nu-${k}">+</button></div>
-      <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
-    <div class="mid"><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}"><i></i><b>JOG</b></div>
+    <div class="mid"><span></span><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}"><i></i><b>JOG</b></div>
         <div class="jbtn"><button type="button" data-bend="${k}:0.92" aria-label="Slow down">◀◀</button><button type="button" data-bend="${k}:1.08" aria-label="Speed up">▶▶</button></div></div>
+      <div class="tmp"><span class="tl">TEMPO</span><button type="button" class="nudge" data-mxa="nd-${k}" aria-label="Tempo minus">−</button>
+        <div class="fw"><input type="range" min="-100" max="100" value="${Math.round((D.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}"></div>
+        <button type="button" class="nudge" data-mxa="nu-${k}" aria-label="Tempo plus">+</button>
+        <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
     </div>`;
   }
   return `<div class="deck"><div class="dhead"><div><div class="dn">DECK ${n}${tags ? ' · ' + esc(tags) : ''}</div>

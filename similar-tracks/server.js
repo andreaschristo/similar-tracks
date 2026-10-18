@@ -1181,6 +1181,8 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
+  // Προσωπική χρήση: οι μηχανές αναζήτησης να μην εμφανίζουν το site (βγάλ' το όταν ανοίξει στο κοινό)
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   if (u.pathname === '/' || u.pathname === '/index.html') {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.end(fs.readFileSync(path.join(__dirname, 'public', 'index.html')));

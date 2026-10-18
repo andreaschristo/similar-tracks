@@ -463,7 +463,17 @@
   .trbtns button:hover{border-color:var(--text);color:var(--text)}
   .mx{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line)}
   .mx h4{margin:0 0 14px;font:700 10px var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--mute)}
-  .decks{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .decks{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:18px}
+  /* Mixer στη μέση */
+  .mxc{border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:14px}
+  .mxch{display:grid;grid-template-columns:1fr 1fr;flex:1}
+  .chn{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 12px}
+  .chn+.chn{border-left:1px solid var(--line)}
+  .chl{font:700 10px var(--mono);letter-spacing:.16em;color:var(--mute);padding-left:.16em}
+  .chn .chf{margin-top:auto;padding-left:0;border-left:0}
+  .mxc .xfade{margin:0;padding-top:12px;border-top:1px solid var(--line)}
+  .deck .mid{display:flex;justify-content:center;align-items:center;padding:6px 0}
+  .deck .jog{width:132px;height:132px}
   .deck{border:1px solid var(--line);padding:14px;min-width:0}
   .dhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
   .dhead>div:first-child{min-width:0}
@@ -550,7 +560,7 @@
   .mxchip{background:transparent;border:1px solid var(--line);color:var(--mute);font:600 11px var(--mono);padding:8px 10px;cursor:pointer;border-radius:0}
   .mxchip.on,.mxchip:hover{border-color:var(--text);color:var(--text)}
   .mxnote{font:11px var(--mono);color:var(--mute);margin-top:12px;line-height:1.7;min-height:18px}
-  @media(max-width:760px){.decks{grid-template-columns:1fr}.trhead{grid-template-columns:1fr}.trarrow{display:none}}
+  @media(max-width:760px){.decks{grid-template-columns:1fr}.mxc{order:0}.trhead{grid-template-columns:1fr}.trarrow{display:none}}
   .trverdict{font:600 14px/1.5 var(--sans);margin:6px 0 2px}
   .trverdict.bad{color:var(--mute)}
   .play.on{background:var(--text);color:var(--bg);border-color:var(--text)}
@@ -2029,7 +2039,13 @@ async function mxLoadDeck(D, tr) {
     await new Promise((r2) => setTimeout(r2, 30));
     let an = null;
     const pi = infoMap[tr.id]; const prior = pi && pi.bpm ? Number(pi.bpm) : 0;
-    try { an = await mxDetect(buf, prior); } catch (_) {}
+    try {
+      an = await mxDetect(buf, prior);
+      if (!an && !prior) { // 2η μέθοδος (hats / percussion), όπως στον analyzer του πίνακα
+        const ac = anTempoAC(buf);
+        if (ac && ac.ratio >= 1.6) { an = await mxDetect(buf, ac.bpm); if (an) an.prior = false; }
+      }
+    } catch (_) {}
     if (D.id !== tr.id) return;
     if (an) { D.bpm = an.bpm; D.first = an.first; D.bpmSrc = an.prior ? 'database' : 'detected'; }
     else { const i = infoMap[tr.id]; if (i && i.bpm) { D.bpm = i.bpm; D.first = 0; D.bpmSrc = 'database'; } }
@@ -2132,20 +2148,29 @@ function mxDeckHTML(D) {
       <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
     <div class="mid"><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}"><i></i><b>JOG</b></div>
         <div class="jbtn"><button type="button" data-bend="${k}:0.92" aria-label="Slow down">◀◀</button><button type="button" data-bend="${k}:1.08" aria-label="Speed up">▶▶</button></div></div>
-    <div class="eq">${['low', 'mid', 'high'].map((b) => `<div class="kn"><div class="krow"><button type="button" class="kstep" data-eqstep="${b}-${k}:-1" aria-label="${b} minus">−</button><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b])}deg"><i></i></div><button type="button" class="kstep" data-eqstep="${b}-${k}:1" aria-label="${b} plus">+</button></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`).join('')}</div>
-    <div class="chf"><div class="fw"><input type="range" min="0" max="100" step="1" value="${D.vol}" data-mx="vol-${k}" id="mxv-${k}" aria-label="Volume ${n}"></div><span>VOL</span><em id="mxvv-${k}">${D.vol}</em></div></div>`;
+    </div>`;
   }
   return `<div class="deck"><div class="dhead"><div><div class="dn">DECK ${n}${tags ? ' · ' + esc(tags) : ''}</div>
       <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div></div>
       <div class="dbpm"><b id="mxb-${k}">${D.bpm ? (D.bpm * D.rate).toFixed(1) : '—'}</b><span>BPM</span><small id="mxbs-${k}">${esc(D.bpmSrc ? t('mx_' + D.bpmSrc) : '')}</small></div></div>
     ${body}</div>`;
 }
+// Ο mixer στη μέση, όπως σε κανονικό controller: κανάλι A | κανάλι B (HIGH / MID / LOW, fader), από κάτω ο crossfader
+function mxChanHTML(D) {
+  const k = D.k, n = k.toUpperCase();
+  const knob = (b) => `<div class="kn"><div class="krow"><button type="button" class="kstep" data-eqstep="${b}-${k}:-1" aria-label="${b} minus">−</button><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b])}deg"><i></i></div><button type="button" class="kstep" data-eqstep="${b}-${k}:1" aria-label="${b} plus">+</button></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`;
+  return `<div class="chn"><div class="chl">${n}</div>${['high', 'mid', 'low'].map(knob).join('')}
+    <div class="chf"><div class="fw"><input type="range" min="0" max="100" step="1" value="${D.vol}" data-mx="vol-${k}" id="mxv-${k}" aria-label="Volume ${n}"></div><span>VOL</span><em id="mxvv-${k}">${D.vol}</em></div></div>`;
+}
+function mxCenterHTML() {
+  return `<div class="mxc"><div class="mxch">${mxChanHTML(MX.a)}${mxChanHTML(MX.b)}</div>
+    <div class="xfade"><div class="xlab"><span>A</span><span>${esc(t('mxFade'))}</span><span>B</span></div>
+      <input type="range" min="0" max="100" value="${Math.round(MX.xf)}" data-mx="xf" id="mxx" aria-label="Crossfader"></div></div>`;
+}
 function mxHTML() {
   const chips = [8, 16, 32].map((n) => `<button type="button" class="mxchip${MX.bars === n ? ' on' : ''}" data-mxa="bars-${n}">${n}</button>`).join('');
   return `<div class="mx"><h4>${esc(t('mxTitle'))}</h4>
-    <div class="decks">${mxDeckHTML(MX.a)}${mxDeckHTML(MX.b)}</div>
-    <div class="xfade"><div class="xlab"><span>A</span><span>${esc(t('mxFade'))}</span><span>B</span></div>
-      <input type="range" min="0" max="100" value="${Math.round(MX.xf)}" data-mx="xf" id="mxx" aria-label="Crossfader"></div>
+    <div class="decks">${mxDeckHTML(MX.a)}${mxCenterHTML()}${mxDeckHTML(MX.b)}</div>
     <div class="mxbtns"><button type="button" data-mxa="both">${esc(t('mxBoth'))}</button>
       <button type="button" data-mxa="sync">${esc(t('mxSync'))}</button>
       <button type="button" data-mxa="auto" class="strong">${esc(t('mxAuto'))}</button>

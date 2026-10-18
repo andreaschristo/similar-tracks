@@ -493,6 +493,10 @@
   .dbpm{text-align:right;white-space:nowrap}
   .dbpm b{font:600 26px var(--mono);letter-spacing:-.02em;display:block;line-height:1}
   .dbpm span{font:700 9px var(--mono);letter-spacing:.2em;color:var(--mute)}
+  .dorig{margin-top:6px;font:600 10px var(--mono);letter-spacing:.08em;color:var(--mute);white-space:nowrap}
+  .dorig b{font:600 10px var(--mono);color:var(--text);display:inline;line-height:1;letter-spacing:.04em}
+  .dorig i{font-style:normal;margin-left:8px;padding:1px 5px;border:1px solid var(--line);color:var(--mute)}
+  .dorig i.on{border-color:#ff9d2e;color:#ff9d2e}
   .dbpm small{display:block;font:9px var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
   .wave{width:100%;height:64px;display:block;background:rgba(255,255,255,.03);cursor:pointer}
   .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;margin:4px 0 10px}
@@ -884,7 +888,7 @@ const I18N = {
     trGap: 'Tempo gap', trPitchB: 'Pitch B by', trFar: 'Tempos too far apart. Use a cut, an echo out or a break.', trHalfD: 'B runs at double or half the tempo of A. Mix on the beat grid at x2 or /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Long blend: bring B in on a phrase start, swap the bass around bar 16, then ease the highs.', trTipShort: 'Short blend: bring B in on a phrase start, cut the bass of A first and drop it on the downbeat.',
     mxTitle: 'Mixer · 30-second previews, looped on the beat', mxBoth: 'Play both (synced)', mxAuto: 'Auto blend', mxSync: 'Sync B to A', mxStopAll: 'Stop', mxFade: 'Crossfader',
-    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'detected', mx_manual: 'manual', mxSelTip: 'Drag the bar to choose which part of the preview loops (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'detected', mx_manual: 'manual', mxSelTip: 'Drag the bar to choose which part of the preview loops (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Sync needs the tempo of both tracks.', mxSynced: 'B now runs at', mxBlending: 'Blending A → B with a bass swap in the middle…', mxDone: 'Blend finished. B keeps playing.', mxWaitLoad: 'Wait until both decks have loaded.',
     mxNote: 'Each preview loops on the beat, so you can blend for as long as you like. Move the tempo and volume faders while it plays, change the EQ (double-click resets), click the waveform to jump.',
     noBpmFound: 'BPM and key were not found for this track.',
@@ -969,7 +973,7 @@ const I18N = {
     trGap: 'Διαφορά tempo', trPitchB: 'Pitch στο B', trFar: 'Τα tempo απέχουν πολύ. Κάνε cut, echo out ή break.', trHalfD: 'Το B τρέχει στο διπλάσιο ή μισό tempo από το A. Μίξη στο beat grid ×2 ή /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Μεγάλο blend: μπες με το B στην αρχή φράσης, κάνε swap στα μπάσα γύρω στο bar 16 και μετά κατέβασε σιγά τα πρίμα.', trTipShort: 'Μικρό blend: μπες με το B στην αρχή φράσης, κόψε πρώτα τα μπάσα του A και άφησέ τα στο downbeat.',
     mxTitle: 'Mixer · previews 30″ σε loop πάνω στο beat', mxBoth: 'Play και τα δύο (sync)', mxAuto: 'Αυτόματο blend', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ', mxFade: 'Crossfader',
-    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'εντοπίστηκε', mx_manual: 'χειροκίνητο', mxSelTip: 'Σύρε τη γραμμή για να διαλέξεις ποιο κομμάτι του preview θα κάνει loop (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'εντοπίστηκε', mx_manual: 'χειροκίνητο', mxSelTip: 'Σύρε τη γραμμή για να διαλέξεις ποιο κομμάτι του preview θα κάνει loop (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Το Sync θέλει το tempo και των δύο κομματιών.', mxSynced: 'Το B τρέχει τώρα στα', mxBlending: 'Blend A → B με bass swap στη μέση…', mxDone: 'Το blend τελείωσε. Το B συνεχίζει.', mxWaitLoad: 'Περίμενε να φορτώσουν και τα δύο decks.',
     mxNote: 'Κάθε preview κάνει loop πάνω στο beat, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα το tempo και τα faders έντασης την ώρα που παίζει, άλλαξε το EQ (διπλό κλικ το μηδενίζει), κάνε κλικ στο κύμα για να πας αλλού.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
@@ -1862,6 +1866,8 @@ function mxNewDeck(k) {
     eq: { low: 0, mid: 0, high: 0 }, vol: 100, nodes: { low, mid, high, vol, gain } };
 }
 const mxEff = (D) => D.rate * (D.bend || 1);
+// Πόσα BPM έχει αλλάξει συνολικά σε σχέση με το αρχικό: π.χ. «+3.7 BPM» (το % φαίνεται κάτω από το tempo fader)
+const mxPctTxt = (D) => { if (!D.bpm) return '—'; const d = D.bpm * D.rate - D.bpm; return (d >= -0.05 ? '+' : '−') + Math.abs(d).toFixed(1) + ' BPM'; };
 function mxPos(D) {
   if (!D.buf) return 0;
   if (!D.playing) return D.pausedAt;
@@ -2161,7 +2167,7 @@ function mxDeckHTML(D) {
   }
   return `<div class="deck"><div class="dhead"><div><div class="dn">DECK ${n}${tags ? ' · ' + esc(tags) : ''}</div>
       <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div></div>
-      <div class="dbpm"><b id="mxb-${k}">${D.bpm ? (D.bpm * D.rate).toFixed(1) : '—'}</b><span>BPM</span><small id="mxbs-${k}">${esc(D.bpmSrc ? t('mx_' + D.bpmSrc) : '')}</small></div></div>
+      <div class="dbpm"><b id="mxb-${k}">${D.bpm ? (D.bpm * D.rate).toFixed(1) : '—'}</b><span>BPM</span><div class="dorig"><b id="mxo-${k}">${D.bpm ? D.bpm.toFixed(1) : '—'}</b><i id="mxop-${k}" class="${Math.abs(D.rate - 1) > 0.0004 ? 'on' : ''}">${mxPctTxt(D)}</i></div><small id="mxbs-${k}">${esc(D.bpmSrc ? t('mx_' + D.bpmSrc) : '')}</small></div></div>
     ${body}</div>`;
 }
 // Ο mixer στη μέση, όπως σε κανονικό controller: κανάλι A | κανάλι B (HIGH / MID / LOW, fader), από κάτω ο crossfader
@@ -2257,6 +2263,8 @@ function mxPaint() {
     if (c && D.buf) c.textContent = mxFmt(mxPos(D));
     const bb = document.getElementById('mxb-' + k);
     if (bb && D.bpm) bb.textContent = (D.bpm * D.rate).toFixed(1);
+    const ob = document.getElementById('mxo-' + k); if (ob) { const tx = D.bpm ? D.bpm.toFixed(1) : '—'; if (ob.textContent !== tx) ob.textContent = tx; }
+    const op = document.getElementById('mxop-' + k); if (op) { const tx = mxPctTxt(D); if (op.textContent !== tx) op.textContent = tx; op.classList.toggle('on', Math.abs(D.rate - 1) > 0.0004); }
     const tl = document.getElementById('mxt-' + k);
     if (tl) { const p = (D.rate - 1) * 100; tl.textContent = (p >= 0 ? '+' : '') + p.toFixed(1) + '%'; }
     const r = document.getElementById('mxr-' + k);

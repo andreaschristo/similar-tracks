@@ -134,6 +134,10 @@
   .lsteps li.now{color:var(--text);background:rgba(255,255,255,.03)}
   .lsteps li.now .ln{animation:pulse 1s ease-in-out infinite}
   @keyframes pulse{50%{opacity:.35}}
+  /* Ανάλυση BPM/κλειδιού από το preview: τρεις τελείες όσο δουλεύει */
+  .anw{display:inline-flex;gap:3px;align-items:center;height:13px}
+  .anw i{display:block;width:3px;height:3px;background:var(--mute);animation:pulse 1s ease-in-out infinite}
+  .anw i:nth-child(2){animation-delay:.2s}.anw i:nth-child(3){animation-delay:.4s}
   .lnote{padding:12px 18px;border-top:1px solid var(--line);font:11px/1.5 var(--mono);color:var(--mute)}
   @media (max-width:760px){.lsteps{grid-auto-flow:row}.lsteps li{border-right:0;border-bottom:1px solid var(--line);padding:11px 14px}.lsteps li:last-child{border-bottom:0}.lhead .lq{display:none}}
   #status.err{color:#c9534f}
@@ -364,9 +368,13 @@
   /* LISTEN | BUY: δύο ομάδες με σταθερό πλάτος, ώστε ο τίτλος να στέκεται πάνω από τα links του */
   .list .links{gap:0 !important;padding-right:0 !important}
   .list .links .lg{display:flex;align-items:center;gap:9px;align-self:stretch}
-  .list .links .lg-listen{width:118px;flex:none}
+  /* ίδια απόσταση (20px) ανάμεσα σε όλες τις στήλες: 10px πριν + 10px μετά από κάθε διαχωριστικό */
+  /* MATCH: τίτλος και ποσοστό στο κέντρο της στήλης */
+  @media (min-width:761px){.list>.row>.c-pct,.list>.rowhead>.c-pct{justify-content:center !important;align-items:center !important;text-align:center !important}}
+  .list .links .lg-listen{width:110px;box-sizing:border-box;flex:none;padding-right:10px}
+  @media (max-width:760px){.list .links .lg-listen{width:auto}}
   @media (max-width:760px){.list .links .lg-listen{width:auto;padding-right:12px}}
-  .list .links .lg-buy{padding-left:12px;padding-right:12px;border-left:1px solid transparent;flex:none}
+  .list .links .lg-buy{padding-left:9px;padding-right:12px;border-left:1px solid transparent;flex:none}
   .list .rowhead .links .lg-buy{border-left-color:#2a2a2a}
   @media (min-width:761px){.list>.rowhead>.links{padding-left:9px !important}}
   /* Links σαν κουμπάκια: LISTEN με περίγραμμα, BUY πιο έντονα */
@@ -415,7 +423,7 @@
 
   /* ===== Πίνακας σε στυλ DJ software (Traktor): μία γραμμή ανά κομμάτι, ριγέ, γραμμές μόνο στην επικεφαλίδα ===== */
   @media (min-width:761px){
-    .list{grid-template-columns:30px 48px minmax(0,1.7fr) minmax(0,1fr) 140px max-content max-content max-content max-content max-content auto !important;column-gap:0 !important;border:1px solid var(--line)}
+    .list{grid-template-columns:30px 48px minmax(0,1.7fr) minmax(0,1fr) max-content max-content max-content max-content max-content max-content auto !important;column-gap:0 !important;border:1px solid var(--line)}
     .list>.row,.list>.rowhead{column-gap:0 !important}
     .list>*>*{padding-left:10px !important;padding-right:10px;text-align:left !important;justify-content:flex-start !important;align-items:center !important}
     .list>*>.c-img{padding:0 !important;justify-content:center !important}
@@ -863,6 +871,7 @@ const I18N = {
     err_generic: 'Something went wrong. Try again.',
     err_conn: 'Connection error: ',
     findOn: 'Search on ',
+    anTip: 'Analysed from the 30-second preview',
   },
   el: {
     eyebrow: 'Εργαλείο αναζήτησης για house DJs',
@@ -947,6 +956,7 @@ const I18N = {
     err_generic: 'Κάτι πήγε στραβά. Δοκίμασε ξανά.',
     err_conn: 'Σφάλμα σύνδεσης: ',
     findOn: 'Αναζήτηση στο ',
+    anTip: 'Αναλύθηκε από το preview 30″',
   },
 };
 const t = (k) => I18N[lang][k];
@@ -1025,7 +1035,7 @@ async function loadNew() {
     if (d.error) { setStatus(I18N[lang].err_generic + ' (' + d.error + ')', true); return; }
     setStatus('');
     if (mode !== 'new') return;
-    newData = d; infoMap = {}; requested = new Set();
+    newData = d; infoMap = {}; requested = new Set(); anReset();
     renderNew();
     loadNewInfo();
   } catch (err) { setStatus(t('err_conn') + err.message, true); }
@@ -1083,8 +1093,11 @@ async function loadNewInfo() {
       const d = await r.json();
       Object.assign(infoMap, d.info || {});
     } catch (_) {}
-    if (mode === 'new' && mine === newData) renderNew();
+    chunk.forEach((x) => anMerge(x.id));
+    if (mode === 'new' && mine === newData) { renderNew(); anEnqueue(chunk); }
   }
+  // ό,τι δεν βρέθηκε στη βάση (και κυκλοφορίες από Discogs / MusicBrainz) → ανάλυση
+  if (mode === 'new' && mine === newData) anEnqueue((newData.list || []).slice(0, 80));
 }
 function submitQuery() { if (uiMode === 'new') { uiMode = 'find'; updateModeUI(); } if (uiMode === 'build') runSet(); else doSearch(); }
 document.getElementById('modes').addEventListener('click', (e) => {
@@ -1199,8 +1212,9 @@ async function runSet() {
     setStatus('');
     applyGenreFrom(d);
     addRecent(q); renderChips();
-    setData = d; mode = 'set';
+    setData = d; mode = 'set'; anReset();
     renderSet();
+    anEnqueue(setData.set || []);
   } catch (err) {
     setStatus(t('err_conn') + err.message, true);
   } finally {
@@ -1230,8 +1244,8 @@ function cellsRow(o) {
     <div class="c-t" title="${esc(o.title)}"><span class="tt">${esc(o.title)}</span>${o.sub ? `<small>${o.sub}</small>` : ''}</div>
     <div class="c-a" title="${esc(o.artist)}"><span>${esc(o.artist)}</span></div>
     <div class="c-g">${o.genre ? `<span class="gtag${o.gUnsure ? ' unsure' : ''}" title="${esc(o.gUnsure ? gNoteText(o.gNote) : o.genre)}">${esc(o.genre)}${o.gUnsure ? ' ?' : ''}</span>` : ''}</div>
-    <div class="c-num c-bpm">${o.bpm ? Math.round(o.bpm) : ''}</div>
-    <div class="c-num c-key" title="${esc(o.keyName || '')}">${o.key ? `<span>${esc(o.key)}</span>` : ''}${o.mix ? '<span class="mixtag">MIX</span>' : ''}</div>
+    <div class="c-num c-bpm"${anTitle(o.id, 'bpm', '')}>${bpmCell(o.id, o.bpm)}</div>
+    <div class="c-num c-key"${anTitle(o.id, 'key', o.keyName)}>${keyCell(o.id, o.key, o.mix)}</div>
     <div class="c-num c-time">${esc(o.time || '')}</div>
     <div class="c-num c-pct">${o.last || ''}</div>
     <div class="c-play">${o.play || ''}</div>
@@ -1314,6 +1328,221 @@ function copySet() {
   else done();
 }
 
+/* ---------- Analyzer: BPM + κλειδί από το preview 30″, μέσα στον browser ----------
+   Τρέχει μόνο όταν η βάση (GetSongBPM) δεν έχει BPM ή κλειδί. Ο ήχος δεν αποθηκεύεται πουθενά·
+   κρατάμε μόνο τους αριθμούς (BPM, κλειδί) στον browser, για να βγαίνουν αμέσως την επόμενη φορά. */
+const AN = { q: [], queued: new Set(), busy: 0, gen: 0, state: {}, res: {}, src: {}, mem: {}, saveT: 0, soonT: 0 };
+try { AN.mem = JSON.parse(localStorage.getItem('houze_an') || '{}') || {}; } catch (_) { AN.mem = {}; }
+const ANW = '<span class="anw" aria-hidden="true"><i></i><i></i><i></i></span>';
+const anKeyOf = (tr) => (String(tr.artist || '') + '|' + baseOf(tr.track || tr.title)).toLowerCase().replace(/\s+/g, ' ').trim();
+function bpmCell(id, bpm) { return bpm ? String(Math.round(bpm)) : (id != null && AN.state[id] === 'run' ? ANW : ''); }
+function keyCell(id, cam, mix) {
+  return (cam ? `<span>${esc(cam)}</span>` : (id != null && AN.state[id] === 'run' ? ANW : '')) + (mix ? '<span class="mixtag">MIX</span>' : '');
+}
+function anTitle(id, f, base) {
+  const parts = [base || '', id != null && AN.src[id] && AN.src[id][f] ? t('anTip') : ''].filter(Boolean);
+  return parts.length ? ` title="${esc(parts.join(' · '))}"` : '';
+}
+function anReset() { AN.gen++; AN.q = []; AN.queued = new Set(); AN.state = {}; AN.res = {}; AN.src = {}; }
+function anItem(id) { // η εγγραφή του set, αν είμαστε σε set
+  return mode === 'set' && setData ? (setData.set || []).find((x) => String(x.id) === String(id)) : null;
+}
+function anHas(tr) {
+  const i = infoMap[tr.id] || {}, s = anItem(tr.id) || {};
+  return !!((i.bpm || s.bpm) && (i.camelot || s.camelot));
+}
+// Συμπληρώνει ΜΟΝΟ ό,τι λείπει: αν η βάση έχει τιμή, κρατάμε τη βάση
+function anMerge(id) {
+  const r = AN.res[id];
+  if (!r) return;
+  let i = infoMap[id];
+  if (!i || i.none) { i = {}; infoMap[id] = i; }
+  const src = AN.src[id] || (AN.src[id] = {});
+  if (!i.bpm && r.bpm) { i.bpm = r.bpm; src.bpm = 1; }
+  if (!i.camelot && r.camelot) { i.camelot = r.camelot; i.key = r.key; src.key = 1; }
+  const s = anItem(id);
+  if (s) {
+    if (!s.bpm && r.bpm) { s.bpm = r.bpm; src.bpm = 1; }
+    if (!s.camelot && r.camelot) { s.camelot = r.camelot; s.key = r.key; src.key = 1; }
+  }
+}
+function anEnqueue(list) {
+  const gen = AN.gen;
+  for (const tr of list || []) {
+    if (!tr || tr.discogs || tr.id == null || AN.queued.has(String(tr.id)) || anHas(tr)) continue;
+    const m = AN.mem[anKeyOf(tr)];
+    if (m) { AN.res[tr.id] = { bpm: m.b || 0, camelot: m.c || '', key: m.k || '' }; anMerge(tr.id); anDone(tr.id, gen); continue; }
+    AN.queued.add(String(tr.id));
+    AN.q.push(tr);
+  }
+  anPump();
+}
+function anPump() {
+  while (AN.busy < 2 && AN.q.length) {
+    const tr = AN.q.shift();
+    if (anHas(tr)) continue;
+    const gen = AN.gen;
+    AN.busy++;
+    AN.state[tr.id] = 'run'; anPatch(tr.id);
+    anRun(tr).then((r) => {
+      if (r) {
+        AN.mem[anKeyOf(tr)] = { b: r.bpm || 0, c: r.camelot || '', k: r.key || '' };
+        anSave();
+      }
+      if (gen !== AN.gen) return;
+      AN.state[tr.id] = r ? 'ok' : 'fail';
+      if (r) { AN.res[tr.id] = r; anMerge(tr.id); }
+      anDone(tr.id, gen);
+    }).catch(() => { if (gen === AN.gen) { AN.state[tr.id] = 'fail'; anPatch(tr.id); } })
+      .finally(() => { AN.busy--; anPump(); });
+  }
+}
+function anSave() {
+  clearTimeout(AN.saveT);
+  AN.saveT = setTimeout(() => {
+    const keys = Object.keys(AN.mem);
+    if (keys.length > 1500) keys.slice(0, keys.length - 1500).forEach((k) => delete AN.mem[k]);
+    try { localStorage.setItem('houze_an', JSON.stringify(AN.mem)); } catch (_) {}
+  }, 800);
+}
+// Ενημέρωση της οθόνης: μόνο τα κελιά BPM / KEY της γραμμής (για να μη «πηδάει» ο mixer)
+function anDone(id, gen) {
+  if (gen !== AN.gen) return;
+  const isSeed = mode === 'search' && data && data.seed && String(data.seed.id) === String(id);
+  if (isSeed) { anSoon(); return; } // το κομμάτι σου: αλλάζουν τα κουτάκια, ο τροχός και τα MIX
+  anPatch(id);
+  if (mode === 'set') anSoon(); // το set: ξαναϋπολογίζουμε τις μεταβάσεις
+}
+function anPatch(id) {
+  const el = document.querySelector(`.row[data-row="${CSS.escape(String(id))}"]`);
+  if (!el) return;
+  const i = infoMap[id] || {}, s = anItem(id) || {};
+  const tr = findTrack(id);
+  const bpm = i.bpm || s.bpm, cam = i.camelot || s.camelot, kn = i.key || s.key;
+  const mix = mode === 'search' && tr && isMixable(tr);
+  const b = el.querySelector('.c-bpm'), k = el.querySelector('.c-key');
+  if (b) { b.innerHTML = bpmCell(id, bpm); const tt = anTitle(id, 'bpm', ''); if (tt) b.title = t('anTip'); }
+  if (k) { k.innerHTML = keyCell(id, cam, mix); k.title = [kn || '', AN.src[id] && AN.src[id].key ? t('anTip') : ''].filter(Boolean).join(' · '); }
+}
+function anSoon() {
+  clearTimeout(AN.soonT);
+  AN.soonT = setTimeout(() => {
+    if (mode === 'set' && setData) { anFixTransitions(); renderSet(); }
+    else if (mode === 'search' && data && data.seed) render();
+  }, 400);
+}
+// Μεταβάσεις του set που ήταν «άγνωστο κλειδί» → τώρα που ξέρουμε τα κλειδιά
+function anFixTransitions() {
+  const items = setData.set || [];
+  items.forEach((x, idx) => {
+    const tr = x.transition, p = items[idx - 1];
+    if (!tr || !p) return;
+    if (tr.key === 'unknown' && p.camelot && x.camelot) { tr.key = relOf(p.camelot, x.camelot); tr.from = p.camelot; tr.to = x.camelot; }
+    if (tr.bpmPct == null && p.bpm && x.bpm) tr.bpmPct = Math.round(((x.bpm - p.bpm) / p.bpm) * 1000) / 10;
+  });
+}
+async function anRun(tr) {
+  let url = tr.preview;
+  if (!url) { // π.χ. νέα κυκλοφορία από YouTube / Discogs: βρίσκουμε preview στο Deezer
+    try {
+      const r = await fetch('/api/preview?' + new URLSearchParams({ artist: tr.artist || '', title: tr.track || tr.title || '' }));
+      url = (await r.json()).preview || '';
+    } catch (_) {}
+  }
+  if (!url) return null;
+  const r = await fetch('/api/audio?u=' + encodeURIComponent(url));
+  if (!r.ok) return null;
+  const buf = await anDecode(await r.arrayBuffer());
+  await sleepMs(0);
+  let bpm = 0;
+  try { const d = await mxDetect(buf, 0); if (d && d.bpm) bpm = Math.round(d.bpm * 10) / 10; } catch (_) {}
+  await sleepMs(0);
+  let k = null;
+  try { k = anDetectKey(buf); } catch (_) {}
+  if (!bpm && !k) return null;
+  return { bpm, camelot: k ? k.camelot : '', key: k ? k.key : '' };
+}
+const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
+// Αποκωδικοποίηση στα 22.050 Hz: αρκετό για BPM και κλειδί, και 2× πιο γρήγορο
+function anDecode(ab) {
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const oc = new OAC(1, 22050, 22050);
+  return new Promise((res, rej) => { const p = oc.decodeAudioData(ab, res, rej); if (p && p.catch) p.catch(rej); });
+}
+function anFFT(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { let x = re[i]; re[i] = re[j]; re[j] = x; x = im[i]; im[i] = im[j]; im[j] = x; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang), h = len >> 1;
+    for (let i = 0; i < n; i += len) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < h; k++) {
+        const a = i + k, b = a + h;
+        const xr = re[b] * cr - im[b] * ci, xi = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi;
+        const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr;
+      }
+    }
+  }
+}
+// Κλειδί: χρωματογράφημα (πόση ενέργεια έχει κάθε νότα) + σύγκριση με τα προφίλ μείζονας / ελάσσονας (Krumhansl)
+const KK_MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+const KK_MIN = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+const PC_NAME = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+const CAM_MAJ_PC = ['8B', '3B', '10B', '5B', '12B', '7B', '2B', '9B', '4B', '11B', '6B', '1B'];
+const CAM_MIN_PC = ['5A', '12A', '7A', '2A', '9A', '4A', '11A', '6A', '1A', '8A', '3A', '10A'];
+function anDetectKey(buf) {
+  const x = buf.getChannelData(0), sr = buf.sampleRate, N = 8192, hop = 4096;
+  const win = new Float64Array(N);
+  for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1));
+  const kLo = Math.max(2, Math.ceil((65 * N) / sr)), kHi = Math.min(N / 2 - 2, Math.floor((2100 * N) / sr));
+  const pcOf = new Int8Array(N / 2);
+  for (let k = kLo; k <= kHi; k++) pcOf[k] = (((Math.round(69 + 12 * Math.log2((k * sr) / N / 440))) % 12) + 12) % 12;
+  const re = new Float64Array(N), im = new Float64Array(N), mag = new Float64Array(N / 2);
+  const chroma = new Float64Array(12);
+  let frames = 0;
+  for (let s = 0; s + N <= x.length; s += hop) {
+    for (let i = 0; i < N; i++) { re[i] = x[s + i] * win[i]; im[i] = 0; }
+    anFFT(re, im);
+    let mx = 0;
+    for (let k = kLo - 1; k <= kHi + 1; k++) { mag[k] = Math.hypot(re[k], im[k]); if (mag[k] > mx) mx = mag[k]; }
+    if (mx < 1e-6) continue;
+    const fr = new Float64Array(12);
+    let sum = 0;
+    for (let k = kLo; k <= kHi; k++) {
+      if (mag[k] > mag[k - 1] && mag[k] >= mag[k + 1] && mag[k] > 0.05 * mx) { const v = mag[k] / mx; fr[pcOf[k]] += v; sum += v; }
+    }
+    if (!sum) continue;
+    for (let c = 0; c < 12; c++) chroma[c] += fr[c] / sum;
+    frames++;
+  }
+  if (frames < 8) return null;
+  const corr = (prof, r) => {
+    let ma = 0, mb = 0;
+    for (let c = 0; c < 12; c++) { ma += chroma[c]; mb += prof[c]; }
+    ma /= 12; mb /= 12;
+    let num = 0, da = 0, db = 0;
+    for (let c = 0; c < 12; c++) {
+      const a = chroma[c] - ma, b = prof[(c - r + 12) % 12] - mb;
+      num += a * b; da += a * a; db += b * b;
+    }
+    return da && db ? num / Math.sqrt(da * db) : 0;
+  };
+  let best = { v: -2, r: 0, minor: false };
+  for (let r = 0; r < 12; r++) {
+    const a = corr(KK_MAJ, r), b = corr(KK_MIN, r);
+    if (a > best.v) best = { v: a, r, minor: false };
+    if (b > best.v) best = { v: b, r, minor: true };
+  }
+  if (best.v < 0.3) return null; // δεν είναι αρκετά καθαρό: καλύτερα κενό παρά λάθος
+  return { key: PC_NAME[best.r] + (best.minor ? 'm' : ''), camelot: (best.minor ? CAM_MIN_PC : CAM_MAJ_PC)[best.r], conf: best.v };
+}
+
 /* ---------- Αναζήτηση ---------- */
 $('#f').addEventListener('submit', (e) => { e.preventDefault(); submitQuery(); });
 
@@ -1326,7 +1555,7 @@ async function doSearch() {
   $('#btn').disabled = true;
   $('#out').innerHTML = '';
   $('#landing').classList.add('hidden');
-  infoMap = {}; requested = new Set(); onlyMix = false; pairA = null; pairB = null;
+  infoMap = {}; requested = new Set(); onlyMix = false; pairA = null; pairB = null; anReset();
   startLoading('search', q);
   try {
     const params = new URLSearchParams({ q, min: String(MIN_SECONDS), house: '1', genre: genreLocked ? genre : 'auto' });
@@ -1352,10 +1581,11 @@ async function doSearch() {
 
 // BPM + tonality φορτώνουν μετά, για να μην καθυστερεί η αναζήτηση
 async function loadInfo() {
-  if (!data || !data.seed || !bpmEnabled) return;
+  if (!data || !data.seed) return;
   const visible = [data.seed, ...(tab === 'discogs' ? [] : (data[tab] || []))];
+  if (!bpmEnabled) { anEnqueue(visible); return; }
   const need = visible.filter((x) => !requested.has(x.id));
-  if (!need.length) return;
+  if (!need.length) { anEnqueue(visible); return; }
   need.forEach((x) => requested.add(x.id));
   const mySearch = data;
   for (let i = 0; i < need.length; i += 12) {
@@ -1371,8 +1601,8 @@ async function loadInfo() {
       bpmEnabled = !!d.enabled;
       Object.assign(infoMap, d.info || {});
     } catch (_) {}
-    chunk.forEach((x) => { if (!infoMap[x.id]) infoMap[x.id] = { none: true }; });
-    if (mode === 'search' && mySearch === data) render();
+    chunk.forEach((x) => { if (!infoMap[x.id]) infoMap[x.id] = { none: true }; anMerge(x.id); });
+    if (mode === 'search' && mySearch === data) { render(); anEnqueue(chunk); }
   }
 }
 

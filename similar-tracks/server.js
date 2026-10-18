@@ -1082,6 +1082,23 @@ const server = http.createServer(async (req, res) => {
       return res.end(buf);
     } catch (_) { res.statusCode = 502; return res.end('audio unavailable'); }
   }
+  // Preview 30″ από το Deezer για κομμάτια που δεν έχουν (για τον analyzer BPM / κλειδιού)
+  if (u.pathname === '/api/preview') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    try {
+      const artist = (u.searchParams.get('artist') || '').trim(), title = (u.searchParams.get('title') || '').trim();
+      if (!artist || !title) return res.end(JSON.stringify({ preview: '' }));
+      const preview = await cached('pv:' + norm(artist) + '|' + norm(baseTitle(title)), async () => {
+        const r = ((await dz(`/search?q=${enc(`artist:"${artist}" track:"${baseTitle(title)}"`)}&limit=10`)).data || []).map(mapTrack);
+        const na = norm(artist), nt = norm(baseTitle(title));
+        // ίδιος τίτλος ΚΑΙ ίδιος καλλιτέχνης, αλλιώς τίποτα (καλύτερα κενό παρά λάθος κομμάτι)
+        const ok = r.filter((x) => x.preview && norm(baseTitle(x.title)) === nt && (norm(x.artist) === na || norm(x.artist).includes(na) || na.includes(norm(x.artist))));
+        const best = ok.sort((a2, b2) => b2.duration - a2.duration)[0];
+        return best ? best.preview : '';
+      }, 1800e3);
+      return res.end(JSON.stringify({ preview }));
+    } catch (_) { return res.end(JSON.stringify({ preview: '' })); }
+  }
   if (u.pathname === '/api/yt') {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {

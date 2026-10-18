@@ -516,13 +516,13 @@
   @media (max-width:760px){.deck .mid{--H:170px;--F:82px;--R:56px}}
   .tmp{justify-self:end;display:flex;flex-direction:column;align-items:center;gap:6px;width:62px}
   .tmp .tl{font:9px var(--mono);letter-spacing:.14em;color:var(--mute);padding-left:.14em}
-  .tmp .fw{position:relative;width:28px;height:104px;background:linear-gradient(var(--dim),var(--dim)) center/2px 100% no-repeat,linear-gradient(var(--mute),var(--mute)) center/14px 1px no-repeat}
-  .mx .tmp .fw input[type=range]{position:absolute;left:50%;top:50%;width:104px;height:28px;margin:0;transform:translate(-50%,-50%) rotate(90deg)}
+  .tmp .fw{position:relative;width:38px;height:104px;background:linear-gradient(var(--dim),var(--dim)) center/2px 100% no-repeat,linear-gradient(var(--mute),var(--mute)) center/14px 1px no-repeat}
+  .mx .tmp .fw input[type=range]{position:absolute;left:50%;top:50%;width:104px;height:38px;margin:0;transform:translate(-50%,-50%) rotate(90deg)}
   .mx .tmp .fw input[type=range]{-webkit-appearance:none;appearance:none}
-  .mx .tmp .fw input[type=range]::-webkit-slider-runnable-track{height:28px;background:transparent}
-  .mx .tmp .fw input[type=range]::-moz-range-track{height:28px;background:transparent}
-  .mx .tmp .fw input[type=range]::-webkit-slider-thumb{width:10px;height:24px;margin-top:2px;background:var(--text)}
-  .mx .tmp .fw input[type=range]::-moz-range-thumb{width:10px;height:24px;background:var(--text)}
+  .mx .tmp .fw input[type=range]::-webkit-slider-runnable-track{height:38px;background:transparent}
+  .mx .tmp .fw input[type=range]::-moz-range-track{height:38px;background:transparent}
+  .mx .tmp .fw input[type=range]::-webkit-slider-thumb{width:10px;height:34px;margin-top:2px;background:var(--text)}
+  .mx .tmp .fw input[type=range]::-moz-range-thumb{width:10px;height:34px;background:var(--text)}
   .tmp .tpct{text-align:center;min-width:46px}
   .deck{border:1px solid var(--line);padding:14px;min-width:0}
   /* Κεφαλίδα του deck: ταμπελάκια (deck · κλειδί · είδος), τίτλος έως 2 γραμμές, καλλιτέχνης */
@@ -632,7 +632,7 @@
   .tb.cue{color:#ff9d2e;border-color:#ff9d2e66}
   .tb.cue.on{background:#ff9d2e;color:#000;border-color:#ff9d2e}
   .kn{display:flex;flex-direction:column;align-items:center;gap:4px}
-  .krow{display:flex;align-items:center;gap:3px}
+  .krow{display:flex;align-items:center;gap:7px}
   .kstep{width:20px;height:20px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;border-radius:0;font:600 13px var(--mono);padding:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
   .kstep:hover{border-color:var(--text)}
   .kn span{font:9px var(--mono);letter-spacing:.14em;color:var(--mute)}
@@ -649,13 +649,13 @@
   .mid{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
   /* Channel fader: κάθετος, δεξιά από το EQ, όπως σε κανονικό mixer */
   .chf{display:flex;flex-direction:column;align-items:center;gap:4px;padding-left:10px;border-left:1px solid var(--line)}
-  .chf .fw{position:relative;width:28px;height:112px;background:linear-gradient(var(--dim),var(--dim)) center/2px 100% no-repeat}
-  .mx .chf .fw input[type=range]{position:absolute;left:50%;top:50%;width:112px;height:28px;margin:0;transform:translate(-50%,-50%) rotate(-90deg)}
+  .chf .fw{position:relative;width:38px;height:112px;background:linear-gradient(var(--dim),var(--dim)) center/2px 100% no-repeat}
+  .mx .chf .fw input[type=range]{position:absolute;left:50%;top:50%;width:112px;height:38px;margin:0;transform:translate(-50%,-50%) rotate(-90deg)}
   .mx .chf .fw input[type=range]{-webkit-appearance:none;appearance:none}
-  .mx .chf .fw input[type=range]::-webkit-slider-runnable-track{height:28px;background:transparent}
-  .mx .chf .fw input[type=range]::-moz-range-track{height:28px;background:transparent}
-  .mx .chf .fw input[type=range]::-webkit-slider-thumb{width:10px;height:24px;margin-top:2px;background:var(--text)}
-  .mx .chf .fw input[type=range]::-moz-range-thumb{width:10px;height:24px;background:var(--text)}
+  .mx .chf .fw input[type=range]::-webkit-slider-runnable-track{height:38px;background:transparent}
+  .mx .chf .fw input[type=range]::-moz-range-track{height:38px;background:transparent}
+  .mx .chf .fw input[type=range]::-webkit-slider-thumb{width:10px;height:34px;margin-top:2px;background:var(--text)}
+  .mx .chf .fw input[type=range]::-moz-range-thumb{width:10px;height:34px;background:var(--text)}
   .chf span{font:9px var(--mono);letter-spacing:.14em;color:var(--mute)}
   .chf em,.chf>span{display:none}
   .jogw{display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -2022,7 +2022,7 @@ function mxNewDeck(k) {
 }
 const mxEff = (D) => D.rate * (D.bend || 1);
 // Πόσα BPM έχει αλλάξει συνολικά σε σχέση με το αρχικό: π.χ. «+3.7 BPM» (το % φαίνεται κάτω από το tempo fader)
-const mxPctTxt = (D) => { if (!D.bpm) return '—'; const d = D.bpm * D.rate - D.bpm; return (d >= -0.05 ? '+' : '−') + Math.abs(d).toFixed(1); };
+const mxPctTxt = (D) => { if (!D.bpm) return '—'; const d = D.bpm * D.rate - D.bpm; return (d >= -0.05 ? '+' : '−') + Math.abs(d).toFixed(1) + ' BPM'; };
 // Ομαλό ρολόι για την εικόνα: το currentTime του Safari προχωράει «σκαλοπάτια»· το ρολόι εξόδου
 // (getOutputTimestamp) + performance.now() δίνει συνεχή χρόνο και ταιριάζει με αυτό που ακούς
 function mxNow() {
@@ -2436,7 +2436,7 @@ const mxKnobAngle = (db, band) => (band === 'trim' ? (db / 12) * 135 : db >= 0 ?
 function mxDeckHTML(D) {
   const k = D.k, n = k.toUpperCase();
   const tr = D.tr;
-  const pct = ((D.rate - 1) * 100).toFixed(1);
+  const pct = ((D.rate - 1) * 100).toFixed(2);
   const stat = { loading: t('mxLoading'), analyzing: t('mxAnalyzing'), nopreview: t('mxNoPrev'), error: t('mxError') }[D.status] || '';
   const i = infoMap[tr.id] || {};
   const tags = [i.camelot || '', i.genre || ''].filter(Boolean).join(' · ');
@@ -2455,7 +2455,7 @@ function mxDeckHTML(D) {
         <div class="rb"><button type="button" class="rbtn dplay" data-mxa="play-${k}" id="mxp-${k}" aria-label="Play / pause"><span class="core"><svg class="ico" viewBox="0 0 14 14" width="16" height="16" aria-hidden="true"><path class="ip" d="M3.5 1.5v11l9-5.5z" fill="currentColor"/><path class="ia" d="M3 2h3v10H3zM8 2h3v10H8z" fill="currentColor"/></svg></span></button></div></div><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}"><div class="plat"><i></i></div><div class="jc"><b>${n}</b></div></div>
         <button type="button" class="qb${D.q !== false ? ' on' : ''}" data-mxa="q-${k}" id="mxq-${k}" title="${esc(t('mxQTip'))}">QUANT</button><div class="jbtn"><button type="button" data-bend="${k}:0.92" aria-label="Pitch bend slow down" title="Pitch bend −"><svg viewBox="0 0 16 10" width="15" height="10" aria-hidden="true"><path d="M8 1 4 5l4 4M13 1 9 5l4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><span>BEND</span><button type="button" data-bend="${k}:1.08" aria-label="Pitch bend speed up" title="Pitch bend +"><svg viewBox="0 0 16 10" width="15" height="10" aria-hidden="true"><path d="M3 1l4 4-4 4M8 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div></div>
       <div class="tmp"><button type="button" class="syb${D.sync ? ' on' : ''}" data-mxa="dsync-${k}" id="mxsy-${k}">SYNC</button><span class="tl">TEMPO</span><button type="button" class="nudge" data-mxa="nd-${k}" aria-label="Tempo minus">−</button>
-        <div class="fw"><input type="range" min="-100" max="100" value="${Math.round((D.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}"></div>
+        <div class="fw"><input type="range" min="-1000" max="1000" step="1" value="${Math.round((D.rate - 1) * 10000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}"></div>
         <button type="button" class="nudge" data-mxa="nu-${k}" aria-label="Tempo plus">+</button>
         <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
     </div>`;
@@ -2759,9 +2759,9 @@ function mxPaint() {
     const ob = document.getElementById('mxo-' + k); if (ob) { const tx = D.bpm ? D.bpm.toFixed(1) : '—'; if (ob.textContent !== tx) ob.textContent = tx; }
     const op = document.getElementById('mxop-' + k); if (op) { const tx = mxPctTxt(D); if (op.textContent !== tx) op.textContent = tx; op.classList.toggle('on', Math.abs(D.rate - 1) > 0.0004); }
     const tl = document.getElementById('mxt-' + k);
-    if (tl) { const p = (D.rate - 1) * 100; tl.textContent = (p >= 0 ? '+' : '') + p.toFixed(1) + '%'; }
+    if (tl) { const p = (D.rate - 1) * 100; tl.textContent = (p >= -0.005 ? '+' : '−') + Math.abs(p).toFixed(2) + '%'; }
     const r = document.getElementById('mxr-' + k);
-    if (r && document.activeElement !== r) r.value = String(Math.round((D.rate - 1) * 1000));
+    if (r && document.activeElement !== r) r.value = String(Math.round((D.rate - 1) * 10000));
     // (η επισκόπηση σχεδιάζεται στο mxAnim, 60 καρέ/δευτ.)
   }
   const x = document.getElementById('mxx');
@@ -2820,7 +2820,7 @@ $('#out').addEventListener('input', (e) => {
   if (key === 'xf') { mxStopAuto(); MX.xf = Number(el.value); mxApplyXf(); return; }
   const [what, k] = key.split('-');
   const D = MX[k];
-  if (what === 'tempo') { mxSetRate(D, 1 + Number(el.value) / 1000); return; }
+  if (what === 'tempo') { mxSetRate(D, 1 + Number(el.value) / 10000); return; }
   if (what === 'vol') { mxSetVol(D, Number(el.value)); return; }
 });
 // Περιστροφικά knobs: σύρε πάνω/κάτω, διπλό κλικ = μηδέν, βελάκια στο πληκτρολόγιο
@@ -3020,7 +3020,7 @@ $('#out').addEventListener('click', (e) => {
     document.querySelectorAll('.mxchip').forEach((c) => c.classList.toggle('on', c.dataset.mxa === act));
   } else if (act.startsWith('nd-') || act.startsWith('nu-')) {
     const D = MX[act.slice(-1)];
-    mxSetRate(D, D.rate + (act.startsWith('nu-') ? 0.001 : -0.001));
+    mxSetRate(D, Math.round((D.rate + (act.startsWith('nu-') ? 0.0005 : -0.0005)) * 10000) / 10000);
   }
 });
 

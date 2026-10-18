@@ -472,18 +472,42 @@
   .chl{font:700 10px var(--mono);letter-spacing:.16em;color:var(--mute);padding-left:.16em}
   .chn .chf{margin-top:auto;padding-left:0;border-left:0}
   .mxc .xfade{margin:0;padding-top:12px;border-top:1px solid var(--line)}
+  /* γραμμή στη μέση του crossfader */
+  .mxc .xfade input[type=range]{background:linear-gradient(var(--mute),var(--mute)) center/1px 16px no-repeat}
+  .chsep{width:28px;height:1px;background:var(--line);margin:-2px 0}
+  /* VOL faders πιο ψηλοί, να γεμίζει το κανάλι */
+  .mx .chn .chf .fw{height:122px}
+  .mx .chn .chf .fw input[type=range]{width:122px}
+  /* TRIM: μικρότερο από τα EQ, όπως στα πραγματικά mixers */
+  .chn>.kn-trim .knob{width:24px;height:24px}
+  .chn>.kn-trim .knob i{top:2px;height:7px}
+  .chn>.kn-trim .kstep{width:14px;height:14px;font-size:10px}
+  .chn>.kn-trim span{font-size:8px}
   /* Jog στο κέντρο του deck, tempo fader δεξιά του, όπως στα CDJ (πάνω = −, κάτω = +) */
-  .deck .mid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:6px 0}
-  .tmp{justify-self:end;display:flex;flex-direction:column;align-items:center;gap:6px}
+  /* Χειριστήρια του deck σε «πλέγμα»: CUE/PLAY · δίσκος · SYNC/TEMPO, ίδιο ύψος (--H), ίσες αποστάσεις,
+     πάνω και κάτω άκρες στοιχισμένες με τον δίσκο */
+  .deck .mid{--H:200px;--F:90px;--R:72px;--T:68px;display:grid;grid-template-columns:var(--R) var(--H) var(--T);grid-template-rows:var(--H) auto;justify-content:space-between;align-items:stretch;row-gap:14px;padding:22px 4px 4px}
+  .deck .jogw{display:contents}
+  .deck .jog{grid-column:2;grid-row:1;width:var(--H) !important;height:var(--H) !important}
+  .deck .jbtn{grid-column:2;grid-row:2;justify-self:center}
+  .deck .tpb{grid-column:1;grid-row:1;justify-content:flex-end;gap:12px}
+  .deck .tmp{grid-column:3;grid-row:1;justify-content:space-between;gap:0;width:var(--T)}
+  .deck .tmp .tl{display:none}
+  .deck .rbtn{width:var(--R);height:var(--R)}
+  .mx .deck .tmp .fw{height:var(--F)}
+  .mx .deck .tmp .fw input[type=range]{width:var(--F)}
+  .deck .syb{margin:0;width:var(--T)}
+  .deck .tmp .nudge{width:28px;height:24px}
+  @media (max-width:760px){.deck .mid{--H:150px;--F:46px;--R:56px;--T:56px}}
+  .tmp{justify-self:end;display:flex;flex-direction:column;align-items:center;gap:6px;width:62px}
   .tmp .tl{font:9px var(--mono);letter-spacing:.14em;color:var(--mute);padding-left:.14em}
-  .tmp .fw{position:relative;width:28px;height:118px;background:linear-gradient(var(--dim),var(--dim)) center/2px 100% no-repeat,linear-gradient(var(--mute),var(--mute)) center/14px 1px no-repeat}
-  .mx .tmp .fw input[type=range]{position:absolute;left:50%;top:50%;width:118px;height:28px;margin:0;transform:translate(-50%,-50%) rotate(90deg)}
+  .tmp .fw{position:relative;width:28px;height:104px;background:linear-gradient(var(--dim),var(--dim)) center/2px 100% no-repeat,linear-gradient(var(--mute),var(--mute)) center/14px 1px no-repeat}
+  .mx .tmp .fw input[type=range]{position:absolute;left:50%;top:50%;width:104px;height:28px;margin:0;transform:translate(-50%,-50%) rotate(90deg)}
   .mx .tmp .fw input[type=range]::-webkit-slider-runnable-track{background:transparent}
   .mx .tmp .fw input[type=range]::-moz-range-track{background:transparent}
   .mx .tmp .fw input[type=range]::-webkit-slider-thumb{width:10px;height:24px;margin-top:-11px;background:var(--text)}
   .mx .tmp .fw input[type=range]::-moz-range-thumb{width:10px;height:24px;background:var(--text)}
   .tmp .tpct{text-align:center;min-width:46px}
-  .deck .jog{width:132px;height:132px}
   .deck{border:1px solid var(--line);padding:14px;min-width:0}
   .dhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
   .dhead>div:first-child{min-width:0}
@@ -498,11 +522,43 @@
   .dorig i{font-style:normal;margin-left:8px;padding:1px 5px;border:1px solid var(--line);color:var(--mute)}
   .dorig i.on{border-color:#ff9d2e;color:#ff9d2e}
   .dbpm small{display:block;font:9px var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
-  .wave{width:100%;height:64px;display:block;background:rgba(255,255,255,.03);cursor:pointer}
+  /* Κυματομορφή: πάνω ζουμ ~2 bars που κυλάει κάτω από σταθερό playhead, κάτω επισκόπηση όλου του preview */
+  .wz{width:100%;height:84px;display:block;background:#0d0d0d;margin-bottom:8px}
+  .wave{width:100%;height:22px;display:block;background:#0d0d0d;cursor:pointer}
   .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;margin:4px 0 10px}
   .deck .drow{display:grid;grid-template-columns:1fr 52px;gap:10px;align-items:center;margin-bottom:14px}
-  .trow{display:grid;grid-template-columns:1fr 1.6fr 1fr 1fr;gap:6px;margin-bottom:12px}
-  .rsel{position:relative;height:20px;margin:0 0 4px;background:rgba(255,255,255,.04);cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none}
+  .trow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+  /* CUE και PLAY αριστερά από το jog, το ένα πάνω από το άλλο (όπως στα CDJ) */
+  /* CUE / PLAY: κύκλοι με δαχτυλίδι σε 4 κομμάτια (beat ring), δεμένο με το δαχτυλίδι του δίσκου */
+  .tpb{justify-self:start;display:flex;flex-direction:column;gap:18px;align-items:center}
+  .rb{display:flex}
+  .rbtn{position:relative;width:68px;height:68px;border:0;padding:0;background:transparent;border-radius:50%;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .rbtn .ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .rbtn .ring path{fill:none;stroke-width:3;stroke:#3a3a37;transition:stroke .08s}
+  .rbtn .core{position:absolute;inset:9px;border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none;
+    background:radial-gradient(circle at 40% 32%,#1d1d1c,#0c0c0c 78%);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 10px rgba(0,0,0,.55);transition:background .12s,box-shadow .12s,color .12s}
+  .rbtn.cue .ring path{stroke:rgba(255,157,46,.55)}
+  .rbtn.cue:hover .ring path{stroke:#ff9d2e}
+  .rbtn.cue .core{color:#ff9d2e;font:700 11px var(--mono);letter-spacing:.14em;padding-left:.14em}
+  .rbtn.cue.on .ring path{stroke:#ff9d2e}
+  .rbtn.cue.on .core{background:#ff9d2e;color:#000;box-shadow:0 0 16px rgba(255,157,46,.45)}
+  .rbtn.dplay .core{color:var(--text)}
+  .rbtn.dplay:hover .ring path{stroke:var(--mute)}
+  .rbtn.dplay .ring path.lit{stroke:var(--text)}
+  .rbtn.dplay .ia{display:none}
+  .rbtn.dplay.on .ip{display:none}
+  .rbtn.dplay.on .ia{display:block}
+  .rbtn.dplay .ip{transform:translateX(.5px)}
+  .rbtn.dplay.on .core{background:radial-gradient(circle at 40% 32%,#252524,#121211 78%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 14px rgba(236,236,232,.12)}
+  /* LOOP στην ίδια σειρά με τα μεγέθη */
+  .lrow{grid-template-columns:1.1fr repeat(4,1fr) !important}
+  .lrow .lpt{color:var(--mute)}
+  .lrow .lpt.on{color:#ff9d2e;border-color:#ff9d2e;background:transparent}
+  /* SYNC πάνω από το tempo */
+  .syb{width:56px;height:28px;border:1px solid var(--line);background:transparent;color:var(--mute);font:700 9.5px var(--mono);letter-spacing:.12em;padding:0 0 0 .12em;cursor:pointer;border-radius:0;margin-bottom:4px}
+  .syb:hover{border-color:var(--text);color:var(--text)}
+  .syb.on{background:var(--text);border-color:var(--text);color:var(--bg)}
+  .rsel{position:relative;height:10px;margin:0 0 2px;background:rgba(255,255,255,.04);cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none}
   .rsel .rfill{position:absolute;top:0;bottom:0;background:rgba(255,157,46,.22);border-top:2px solid #ff9d2e}
   .rsel .rh{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:#ff9d2e}
   .rsel .rh::before{content:'';position:absolute;top:0;bottom:0;left:-8px;right:-8px}
@@ -548,14 +604,34 @@
   .mx .chf .fw input[type=range]::-moz-range-thumb{width:10px;height:24px;background:var(--text)}
   .chf span{font:9px var(--mono);letter-spacing:.14em;color:var(--mute)}
   .chf em{font:normal 10px var(--mono);color:var(--dim)}
-  .jogw{display:flex;flex-direction:column;align-items:center;gap:6px}
-  .jog{width:96px;height:96px;border-radius:50%;border:1px solid var(--mute);background:radial-gradient(circle at 50% 50%,#0b0b0b 0 38%,#1a1a1a 39% 41%,#101010 42%);position:relative;cursor:grab;touch-action:none;transform:rotate(var(--ja,0deg));user-select:none;-webkit-user-select:none}
-  .jog:active,.jog.drag{cursor:grabbing;border-color:var(--text)}
-  .jog i{position:absolute;left:50%;top:5px;width:3px;height:16px;margin-left:-1.5px;background:#ff9d2e}
-  .jog b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 9px var(--mono);letter-spacing:.2em;color:var(--dim);transform:rotate(calc(var(--ja,0deg) * -1))}
-  .jbtn{display:flex;gap:6px}
-  .jbtn button{border:1px solid var(--line);background:transparent;color:var(--text);font:700 10px var(--mono);padding:6px 10px;cursor:pointer;border-radius:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-  .jbtn button:hover,.jbtn button.on{border-color:var(--text)}
+  .jogw{display:flex;flex-direction:column;align-items:center;gap:10px}
+  /* Jog = δίσκος βινυλίου με δαχτυλίδι beats γύρω του (το δικό μας ύφος) */
+  .jog{width:96px;height:96px;border-radius:50%;position:relative;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+  .jog.drag{cursor:grabbing}
+  .bring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .bring path{fill:none;stroke:#222220;stroke-width:3.4;transition:stroke .08s}
+  .bring path.bar{stroke:#3a3a37}
+  .bring path.past{stroke:rgba(255,157,46,.32)}
+  .bring path.on{stroke:#ff9d2e}
+  .jog .plat{position:absolute;inset:9%;border-radius:50%;transform:rotate(var(--ja,0deg));box-shadow:0 0 0 1px #2a2a28,0 6px 18px rgba(0,0,0,.6);transition:box-shadow .15s;
+    background:
+      radial-gradient(circle closest-side,transparent 0 58%,#060606 58.5% 60%,transparent 60.5% 76%,#060606 76.5% 78.5%,transparent 79% 95%,#2a2a28 96%,#0d0d0d 98%),
+      repeating-radial-gradient(circle closest-side,#0b0b0b 0 1.4px,#171716 1.4px 2.3px)}
+  .jog:hover .plat{box-shadow:0 0 0 1px var(--dim),0 6px 18px rgba(0,0,0,.6)}
+  .jog.drag .plat{box-shadow:0 0 0 1px #ff9d2e,0 6px 18px rgba(0,0,0,.6)}
+  .jog .lbl{position:absolute;inset:23%;width:54%;height:54%;border-radius:50%;box-shadow:0 0 0 2px #050505}
+  .jog .lbl text{font:800 9.5px var(--mono);fill:#2a1704;dominant-baseline:central}
+  .jog::after{content:"";position:absolute;inset:9%;border-radius:50%;pointer-events:none;z-index:1;
+    background:conic-gradient(from 25deg,transparent 0 6%,rgba(255,255,255,.09) 12%,transparent 19% 52%,rgba(255,255,255,.065) 62%,transparent 70%)}
+  /* σταθερό κέντρο: γράμμα deck και χρόνος */
+  .jog .jc{position:absolute;inset:37.5%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#161615,#070707 75%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:none;z-index:2;box-shadow:0 0 0 1px #2a1704}
+  .jog .jc b{font:800 14px/1 var(--mono);color:var(--text)}
+  .jog .jc span{font:600 8px/1 var(--mono);color:#a9a9a4;font-variant-numeric:tabular-nums}
+  .jbtn{display:grid;grid-template-columns:36px auto 36px;align-items:center;gap:10px}
+  .jbtn span{font:9px var(--mono);letter-spacing:.14em;color:var(--mute);padding-left:.14em}
+  .jbtn button{height:28px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:transparent;color:var(--mute);padding:0;cursor:pointer;border-radius:0;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:border-color .15s,color .15s}
+  .jbtn button:hover{border-color:var(--text);color:var(--text)}
+  .jbtn button.on{border-color:#ff9d2e;color:#ff9d2e}
   .eq{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;justify-items:center}
   /* το EQ του mixer έχει το ίδιο όνομα με τον μικρό εξισωτή του player: επαναφέρουμε το κανονικό μέγεθος */
   .mid .eq{width:100%;height:auto;align-items:start;justify-items:center}
@@ -890,7 +966,7 @@ const I18N = {
     mxTitle: 'Mixer · 30-second previews, looped on the beat', mxBoth: 'Play both (synced)', mxAuto: 'Auto blend', mxSync: 'Sync B to A', mxStopAll: 'Stop', mxFade: 'Crossfader',
     mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'detected', mx_manual: 'manual', mxSelTip: 'Drag the bar to choose which part of the preview loops (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Sync needs the tempo of both tracks.', mxSynced: 'B now runs at', mxBlending: 'Blending A → B with a bass swap in the middle…', mxDone: 'Blend finished. B keeps playing.', mxWaitLoad: 'Wait until both decks have loaded.',
-    mxNote: 'Each preview loops on the beat, so you can blend for as long as you like. Move the tempo and volume faders while it plays, change the EQ (double-click resets), click the waveform to jump.',
+    mxNote: 'Each preview loops on the beat, so you can blend for as long as you like. Move the tempo and volume faders while it plays, change TRIM and EQ, click the waveform to jump. Double-click any knob or fader to reset it.',
     noBpmFound: 'BPM and key were not found for this track.',
     mixTitle: 'Harmonic mixing',
     rBpm: 'Tempo', rKey: 'Key', rSame: 'Perfect', rSmooth: 'Smooth', rRel: 'Relative', rBoost: 'Energy boost', hdSame: 'Same key', hdSmooth: 'One step on the wheel', hdRel: 'Minor ↔ major', hdBoost: 'Two steps up, lifts the energy',
@@ -975,7 +1051,7 @@ const I18N = {
     mxTitle: 'Mixer · previews 30″ σε loop πάνω στο beat', mxBoth: 'Play και τα δύο (sync)', mxAuto: 'Αυτόματο blend', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ', mxFade: 'Crossfader',
     mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'εντοπίστηκε', mx_manual: 'χειροκίνητο', mxSelTip: 'Σύρε τη γραμμή για να διαλέξεις ποιο κομμάτι του preview θα κάνει loop (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Το Sync θέλει το tempo και των δύο κομματιών.', mxSynced: 'Το B τρέχει τώρα στα', mxBlending: 'Blend A → B με bass swap στη μέση…', mxDone: 'Το blend τελείωσε. Το B συνεχίζει.', mxWaitLoad: 'Περίμενε να φορτώσουν και τα δύο decks.',
-    mxNote: 'Κάθε preview κάνει loop πάνω στο beat, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα το tempo και τα faders έντασης την ώρα που παίζει, άλλαξε το EQ (διπλό κλικ το μηδενίζει), κάνε κλικ στο κύμα για να πας αλλού.',
+    mxNote: 'Κάθε preview κάνει loop πάνω στο beat, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα το tempo και τα faders έντασης την ώρα που παίζει, άλλαξε TRIM και EQ, κάνε κλικ στο κύμα για να πας αλλού. Διπλό κλικ σε knob ή fader το επαναφέρει.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
     mixTitle: 'Αρμονική μίξη',
     rBpm: 'Ταχύτητα', rKey: 'Κλειδί', rSame: 'Τέλειο', rSmooth: 'Ομαλό', rRel: 'Σχετικό', rBoost: 'Ενέργεια', hdSame: 'Ίδιο κλειδί', hdSmooth: 'Ένα βήμα στον τροχό', hdRel: 'Minor ↔ major', hdBoost: 'Δύο βήματα πάνω, ανεβάζει την ενέργεια',
@@ -1858,12 +1934,13 @@ function mxNewDeck(k) {
   const low = c.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 200;
   const mid = c.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 1000; mid.Q.value = 0.8;
   const high = c.createBiquadFilter(); high.type = 'highshelf'; high.frequency.value = 3500;
+  const trim = c.createGain(); // TRIM / gain του καναλιού (πριν από τα EQ)
   const vol = c.createGain(); // channel fader (ένταση του deck)
   const gain = c.createGain(); // crossfader
-  low.connect(mid); mid.connect(high); high.connect(vol); vol.connect(gain); gain.connect(MX.master);
+  trim.connect(low); low.connect(mid); mid.connect(high); high.connect(vol); vol.connect(gain); gain.connect(MX.master);
   return { k, id: null, tr: null, buf: null, status: '', bpm: 0, bpmSrc: '', first: 0, peaks: null, src: null,
     playing: false, startedAt: 0, startOff: 0, pausedAt: 0, cue: 0, cueHeld: false, rate: 1, loop: true, ls: 0, le: 0, loopBars: 0,
-    eq: { low: 0, mid: 0, high: 0 }, vol: 100, nodes: { low, mid, high, vol, gain } };
+    eq: { trim: 0, low: 0, mid: 0, high: 0 }, vol: 100, nodes: { trim, low, mid, high, vol, gain } };
 }
 const mxEff = (D) => D.rate * (D.bend || 1);
 // Πόσα BPM έχει αλλάξει συνολικά σε σχέση με το αρχικό: π.χ. «+3.7 BPM» (το % φαίνεται κάτω από το tempo fader)
@@ -1887,7 +1964,7 @@ function mxPlay(D, off) {
   const s = c.createBufferSource();
   s.buffer = D.buf; s.loop = D.loop; s.loopStart = D.ls; s.loopEnd = D.le;
   s.playbackRate.value = mxEff(D);
-  s.connect(D.nodes.low);
+  s.connect(D.nodes.trim);
   s.onended = () => { if (D.src === s) { D.src = null; D.playing = false; D.pausedAt = 0; } };
   s.start(0, mxClamp(off, 0, D.buf.duration - 0.02));
   D.src = s; D.startedAt = c.currentTime; D.startOff = off; D.playing = true;
@@ -1917,7 +1994,7 @@ function mxSetVol(D, v) {
   const em = document.getElementById('mxvv-' + D.k); if (em) em.textContent = String(D.vol);
   const r = document.getElementById('mxv-' + D.k); if (r && document.activeElement !== r) r.value = String(D.vol);
 }
-function mxSetEq(D, band, db) { D.eq[band] = db; D.nodes[band].gain.value = db; }
+function mxSetEq(D, band, db) { D.eq[band] = db; D.nodes[band].gain.value = band === 'trim' ? Math.pow(10, db / 20) : db; }
 // Loop σε beats, όπως στο Traktor / Rekordbox: 4 / 8 / 16 / 32 beats (= 1 / 2 / 4 / 8 bars), πάντα από αρχή bar
 const LOOP_SIZES = [4, 8, 16, 32];
 const mxBarLen = (D) => (D.bpm ? 240 / D.bpm : 0);
@@ -1940,6 +2017,27 @@ function mxLoopRegion(D) {
   D.ls = st; D.le = st + len; D.loopBeats = beats; D.loopBars = beats / 4;
 }
 const mxLoopLabel = (D) => (D.loopBeats ? `${D.loopBeats} ${t('mxBeats')} · ${D.loopBars} ${D.loopBars === 1 ? t('mxBar') : t('mxBars')}` : Math.round(D.le - D.ls) + '″');
+// Κυματομορφή σε 3 ζώνες (όπως Rekordbox / Traktor): μπάσα, μεσαίες, πρίμα
+function mxBands(buf, cols) {
+  const d = buf.getChannelData(0), sr = buf.sampleRate, n = d.length, step = n / cols;
+  const a1 = 1 - Math.exp((-2 * Math.PI * 250) / sr), a2 = 1 - Math.exp((-2 * Math.PI * 2500) / sr);
+  const lo = new Float32Array(cols), mi = new Float32Array(cols), hi = new Float32Array(cols);
+  let y1 = 0, y2 = 0;
+  for (let c = 0; c < cols; c++) {
+    let sl = 0, sm = 0, sh = 0, cnt = 0;
+    const e = Math.min(n, Math.floor((c + 1) * step));
+    for (let i = Math.floor(c * step); i < e; i++) {
+      const v = d[i]; y1 += a1 * (v - y1); y2 += a2 * (v - y2);
+      const l = y1, m = y2 - y1, h = v - y2;
+      sl += l * l; sm += m * m; sh += h * h; cnt++;
+    }
+    cnt = cnt || 1;
+    lo[c] = Math.sqrt(sl / cnt); mi[c] = Math.sqrt(sm / cnt); hi[c] = Math.sqrt(sh / cnt);
+  }
+  const norm = (a) => { const s2 = Array.from(a).sort((p, q) => p - q), m = s2[Math.floor(s2.length * 0.98)] || 1e-9; for (let i = 0; i < a.length; i++) a[i] = Math.min(1, a[i] / m); };
+  norm(lo); norm(mi); norm(hi);
+  return { lo, mi, hi };
+}
 function mxPeaks(buf, cols) {
   const d = buf.getChannelData(0), step = Math.floor(d.length / cols), out = [];
   for (let i = 0; i < cols; i++) {
@@ -2050,7 +2148,7 @@ async function mxLoadDeck(D, tr) {
     if (!r.ok) throw new Error('audio ' + r.status);
     const buf = await mxDecode(await r.arrayBuffer());
     if (D.id !== tr.id) return;
-    D.buf = buf; D.peaks = mxPeaks(buf, 240);
+    D.buf = buf; D.wave = mxBands(buf, 1200); D.waveZ = null; D.peaks = D.wave;
     D.status = 'analyzing'; mxRender();
     await new Promise((r2) => setTimeout(r2, 30));
     let an = null;
@@ -2135,7 +2233,37 @@ function mxStopAll() {
 function mxStop() { mxStopAll(); mxPaint(); }
 
 const mxFmt = (s) => fmtT(s);
-const mxKnobAngle = (db) => db >= 0 ? (db / 6) * 135 : (db / 24) * 135;
+// Δαχτυλίδι beats γύρω από τον δίσκο: 16 τμήματα (4 bars × 4 beats), ανάβουν καθώς προχωράει η φράση
+function mxRingSVG(k) {
+  const P = (r, a) => [50 + r * Math.sin((a * Math.PI) / 180), 50 - r * Math.cos((a * Math.PI) / 180)];
+  let out = `<svg class="bring" id="mxring-${k}" viewBox="0 0 100 100" aria-hidden="true">`;
+  for (let i = 0; i < 16; i++) {
+    const a0 = i * 22.5 + 1.6, a1 = (i + 1) * 22.5 - 1.6, r = 47;
+    const [x0, y0] = P(r, a0), [x1, y1] = P(r, a1);
+    out += `<path class="${i % 4 === 0 ? 'bar' : ''}" d="M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}"/>`;
+  }
+  return out + '</svg>';
+}
+// Πορτοκαλί ετικέτα του δίσκου με «HOUZE ·» κυκλικά (γυρίζει μαζί με τον δίσκο)
+function mxLabelSVG(k) {
+  return `<svg class="lbl" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="mxlp-path-${k}" d="M50 50m-38 0a38 38 0 1 1 76 0a38 38 0 1 1 -76 0"/></defs>
+    <circle cx="50" cy="50" r="50" fill="#ff9d2e"/><circle cx="50" cy="50" r="47.5" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1"/>
+    <text textLength="236" lengthAdjust="spacing"><textPath href="#mxlp-path-${k}">HOUZE · HOUZE · HOUZE · HOUZE ·</textPath></text></svg>`;
+}
+function mxRingPaint(D) {
+  const svg = document.getElementById('mxring-' + D.k);
+  if (!svg) return;
+  let idx = -1;
+  if (D.buf && D.bpm) {
+    const beat = 60 / D.bpm, p = mxPos(D);
+    const b = Math.floor((p - D.first) / beat + 1e-6);
+    idx = ((b % 16) + 16) % 16;
+  }
+  if (svg.dataset.i === String(idx)) return;
+  svg.dataset.i = String(idx);
+  svg.querySelectorAll('path').forEach((el, i) => { el.classList.toggle('on', i === idx); el.classList.toggle('past', idx >= 0 && i < idx); });
+}
+const mxKnobAngle = (db, band) => (band === 'trim' ? (db / 12) * 135 : db >= 0 ? (db / 6) * 135 : (db / 24) * 135);
 function mxDeckHTML(D) {
   const k = D.k, n = k.toUpperCase();
   const tr = D.tr;
@@ -2147,19 +2275,17 @@ function mxDeckHTML(D) {
   if (D.status !== 'ready') {
     body = `<div class="mixhint" style="margin:6px 0 0" id="mxst-${k}">${esc(stat)}</div>`;
   } else {
-    body = `<div class="rsel" data-rsel="${k}" id="mxrs-${k}" title="${esc(t('mxSelTip'))}"><div class="rfill"></div><i class="rh l"></i><i class="rh r"></i></div>
-    <canvas class="wave" id="mxw-${k}" data-mxw="${k}" width="640" height="64"></canvas>
+    body = `<canvas class="wz" id="mxz-${k}" width="640" height="84"></canvas>
+    <div class="rsel" data-rsel="${k}" id="mxrs-${k}" title="${esc(t('mxSelTip'))}"><div class="rfill"></div><i class="rh l"></i><i class="rh r"></i></div>
+    <canvas class="wave" id="mxw-${k}" data-mxw="${k}" width="640" height="22"></canvas>
     <div class="dtime"><span id="mxc-${k}">0:00</span><span id="mxlab-${k}">${esc(mxLoopLabel(D))}</span></div>
-    <div class="lrow">${LOOP_SIZES.map((n) => `<button type="button" data-mxa="lb-${k}-${n}" id="mxlb-${k}-${n}" class="${mxFits(D, n) ? '' : 'off'}${D.loopBeats === n ? ' on' : ''}" title="${esc(mxFits(D, n) ? '' : t('mxNoFit'))}">${n} ${esc(t('mxBeats').toUpperCase())}</button>`).join('')}</div>
+    <div class="lrow"><button type="button" class="lpt${D.loop ? ' on' : ''}" data-mxa="loop-${k}" id="mxlp-${k}">LOOP</button>${LOOP_SIZES.map((n) => `<button type="button" data-mxa="lb-${k}-${n}" id="mxlb-${k}-${n}" class="${mxFits(D, n) ? '' : 'off'}${D.loopBeats === n ? ' on' : ''}" title="${esc(mxFits(D, n) ? '' : t('mxNoFit'))}">${n} ${esc(t('mxBeats').toUpperCase())}</button>`).join('')}</div>
     <div class="grow"><button type="button" data-mxa="g-bm-${k}">BPM −</button><button type="button" data-mxa="g-bp-${k}">BPM +</button><button type="button" data-mxa="g-gl-${k}">◀ GRID</button><button type="button" data-mxa="g-gr-${k}">GRID ▶</button><button type="button" data-mxa="g-one-${k}">SET 1</button><button type="button" data-mxa="g-tap-${k}">TAP</button><button type="button" data-mxa="g-hf-${k}">½ / ×2</button></div>
-    <div class="trow">
-      <button type="button" class="tb cue" data-mxcue="${k}" id="mxcue-${k}">CUE</button>
-      <button type="button" class="tb dplay" data-mxa="play-${k}" id="mxp-${k}">▶ PLAY</button>
-      <button type="button" class="tb lp${D.loop ? ' on' : ''}" data-mxa="loop-${k}" id="mxlp-${k}">LOOP</button>
-      <button type="button" class="tb${D.sync ? ' on' : ''}" data-mxa="dsync-${k}" id="mxsy-${k}">SYNC</button></div>
-    <div class="mid"><span></span><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}"><i></i><b>JOG</b></div>
-        <div class="jbtn"><button type="button" data-bend="${k}:0.92" aria-label="Slow down">◀◀</button><button type="button" data-bend="${k}:1.08" aria-label="Speed up">▶▶</button></div></div>
-      <div class="tmp"><span class="tl">TEMPO</span><button type="button" class="nudge" data-mxa="nd-${k}" aria-label="Tempo minus">−</button>
+    <div class="mid"><div class="tpb">
+        <div class="rb"><button type="button" class="rbtn cue" data-mxcue="${k}" id="mxcue-${k}" aria-label="Cue"><svg class="ring" viewBox="0 0 70 70" aria-hidden="true"><path d="M37.79 3.12A32 32 0 0 1 66.88 32.21"/><path d="M66.88 37.79A32 32 0 0 1 37.79 66.88"/><path d="M32.21 66.88A32 32 0 0 1 3.12 37.79"/><path d="M3.12 32.21A32 32 0 0 1 32.21 3.12"/></svg><span class="core">CUE</span></button></div>
+        <div class="rb"><button type="button" class="rbtn dplay" data-mxa="play-${k}" id="mxp-${k}" aria-label="Play / pause"><svg class="ring" viewBox="0 0 70 70" aria-hidden="true"><path d="M37.79 3.12A32 32 0 0 1 66.88 32.21"/><path d="M66.88 37.79A32 32 0 0 1 37.79 66.88"/><path d="M32.21 66.88A32 32 0 0 1 3.12 37.79"/><path d="M3.12 32.21A32 32 0 0 1 32.21 3.12"/></svg><span class="core"><svg class="ico" viewBox="0 0 14 14" width="16" height="16" aria-hidden="true"><path class="ip" d="M3.5 1.5v11l9-5.5z" fill="currentColor"/><path class="ia" d="M3 2h3v10H3zM8 2h3v10H8z" fill="currentColor"/></svg></span></button></div></div><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}">${mxRingSVG(k)}<div class="plat">${mxLabelSVG(k)}</div><div class="jc"><b>${n}</b><span id="mxjt-${k}">0:00.0</span></div></div>
+        <div class="jbtn"><button type="button" data-bend="${k}:0.92" aria-label="Pitch bend slow down" title="Pitch bend −"><svg viewBox="0 0 16 10" width="15" height="10" aria-hidden="true"><path d="M8 1 4 5l4 4M13 1 9 5l4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button><span>BEND</span><button type="button" data-bend="${k}:1.08" aria-label="Pitch bend speed up" title="Pitch bend +"><svg viewBox="0 0 16 10" width="15" height="10" aria-hidden="true"><path d="M3 1l4 4-4 4M8 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button></div></div>
+      <div class="tmp"><button type="button" class="syb${D.sync ? ' on' : ''}" data-mxa="dsync-${k}" id="mxsy-${k}">SYNC</button><span class="tl">TEMPO</span><button type="button" class="nudge" data-mxa="nd-${k}" aria-label="Tempo minus">−</button>
         <div class="fw"><input type="range" min="-100" max="100" value="${Math.round((D.rate - 1) * 1000)}" data-mx="tempo-${k}" id="mxr-${k}" aria-label="Tempo ${n}"></div>
         <button type="button" class="nudge" data-mxa="nu-${k}" aria-label="Tempo plus">+</button>
         <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
@@ -2173,8 +2299,8 @@ function mxDeckHTML(D) {
 // Ο mixer στη μέση, όπως σε κανονικό controller: κανάλι A | κανάλι B (HIGH / MID / LOW, fader), από κάτω ο crossfader
 function mxChanHTML(D) {
   const k = D.k, n = k.toUpperCase();
-  const knob = (b) => `<div class="kn"><div class="krow"><button type="button" class="kstep" data-eqstep="${b}-${k}:-1" aria-label="${b} minus">−</button><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b])}deg"><i></i></div><button type="button" class="kstep" data-eqstep="${b}-${k}:1" aria-label="${b} plus">+</button></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`;
-  return `<div class="chn"><div class="chl">${n}</div>${['high', 'mid', 'low'].map(knob).join('')}
+  const knob = (b) => `<div class="kn kn-${b}"><div class="krow"><button type="button" class="kstep" data-eqstep="${b}-${k}:-1" aria-label="${b} minus">−</button><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b], b)}deg"><i></i></div><button type="button" class="kstep" data-eqstep="${b}-${k}:1" aria-label="${b} plus">+</button></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`;
+  return `<div class="chn"><div class="chl">${n}</div>${knob('trim')}<div class="chsep"></div>${['high', 'mid', 'low'].map(knob).join('')}
     <div class="chf"><div class="fw"><input type="range" min="0" max="100" step="1" value="${D.vol}" data-mx="vol-${k}" id="mxv-${k}" aria-label="Volume ${n}"></div><span>VOL</span><em id="mxvv-${k}">${D.vol}</em></div></div>`;
 }
 function mxCenterHTML() {
@@ -2208,39 +2334,94 @@ function mountMixer() {
   host.innerHTML = mxHTML();
   mxApplyXf();
   if (!MX.tick) MX.tick = setInterval(mxPaint, 100);
+  if (!MX.raf) MX.raf = requestAnimationFrame(mxAnim);
   mxPaint();
 }
 function mxMsg(s) { MX.msg = s || ''; const m = document.getElementById('mxmsg'); if (m) m.textContent = s || t('mxNote'); }
+function mxCanvas(id) {
+  const cv = document.getElementById(id);
+  if (!cv) return null;
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.max(1, Math.round(cv.clientWidth * dpr)), H = Math.max(1, Math.round(cv.clientHeight * dpr));
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  return { g: cv.getContext('2d'), W, H, dpr };
+}
+// Επισκόπηση όλου του preview: λεπτά μπαράκια, πορτοκαλί πλαίσιο για ό,τι δείχνει το ζουμ, playhead
 function mxDraw(D) {
-  const cv = document.getElementById('mxw-' + D.k);
-  if (!cv || !D.peaks) return;
-  const g = cv.getContext('2d'), W = cv.width, H = cv.height, dur = D.buf.duration;
+  if (!D.wave || !D.buf) return;
+  const c = mxCanvas('mxw-' + D.k); if (!c) return;
+  const { g, W, H, dpr } = c, dur = D.buf.duration, X = (tm) => (tm / dur) * W, pos = mxPos(D), px = X(pos), mid = H / 2;
   g.clearRect(0, 0, W, H);
-  if (D.loopBars) { g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect((D.ls / dur) * W, 0, ((D.le - D.ls) / dur) * W, H); }
-  const cw = W / D.peaks.length;
-  g.fillStyle = 'rgba(255,255,255,.55)';
-  D.peaks.forEach((v, i) => { const h = Math.max(1, v * (H - 6)); g.fillRect(i * cw, (H - h) / 2, Math.max(1, cw - 1), h); });
+  const { lo, mi, hi } = D.wave, N = lo.length, step = 3 * dpr, bw = 2 * dpr;
+  for (let x = 0; x < W; x += step) {
+    const i = Math.min(N - 1, Math.floor((x / W) * N));
+    const v = Math.max(lo[i], mi[i] * 0.9, hi[i] * 0.7) * (mid - dpr);
+    g.fillStyle = x + bw <= px ? '#3d3d3a' : '#6a6a64';
+    if (v > 0.5) g.fillRect(x, mid - v, bw, 2 * v);
+  }
+  const span = mxZoomSpan(D);
+  g.fillStyle = 'rgba(255,157,46,.18)'; g.fillRect(X(pos - span / 2), 0, X(span), H);
+  g.fillStyle = '#ff9d2e'; g.fillRect(X(D.cue) - dpr / 2, H - 4 * dpr, dpr * 1.5, 4 * dpr);
+  g.fillStyle = '#fff'; g.fillRect(px - dpr / 2, 0, dpr * 1.5, H);
+}
+const mxZoomSpan = (D) => (D.bpm ? (8 * 60) / D.bpm : 4); // 8 beats = 2 bars
+// Ζουμ: το playhead μένει στη μέση και η μουσική κυλάει από κάτω (βλέπεις τα kicks)
+function mxDrawZoom(D) {
+  if (!D.buf) return;
+  if (!D.waveZ) D.waveZ = mxBands(D.buf, Math.round(D.buf.duration * 220));
+  const c = mxCanvas('mxz-' + D.k); if (!c) return;
+  const { g, W, H, dpr } = c, dur = D.buf.duration, pos = mxPos(D), span = mxZoomSpan(D);
+  const from = pos - span / 2, X = (tm) => ((tm - from) / span) * W;
+  const RUL = 7 * dpr, mid = H / 2, amp = mid - RUL - 2 * dpr;
+  g.clearRect(0, 0, W, H);
+  const { lo, mi, hi } = D.waveZ, N = lo.length, half = W / 2;
+  for (let x = 0; x < W; x += dpr) {
+    const tm = from + (x / W) * span;
+    if (tm < 0 || tm >= dur) continue;
+    const i = Math.min(N - 1, Math.floor((tm / dur) * N));
+    const body = Math.max(lo[i], mi[i] * 0.9) * amp, core = hi[i] * amp * 0.55, played = x < half;
+    g.fillStyle = played ? '#3a3a37' : '#7a7a73';
+    if (body > 0.5) g.fillRect(x, mid - body, dpr, 2 * body);
+    g.fillStyle = played ? '#5a5a55' : '#f0f0ec';
+    if (core > 0.5) g.fillRect(x, mid - core, dpr, 2 * core);
+  }
   if (D.bpm) {
     const beat = 60 / D.bpm;
-    let n = 0;
-    for (let tm = D.first; tm < dur; tm += beat, n++) {
-      const bar = n % 4 === 0;
-      g.fillStyle = bar ? 'rgba(255,157,46,.55)' : 'rgba(255,255,255,.16)';
-      g.fillRect(Math.round((tm / dur) * W), bar ? 0 : H * 0.7, 1, bar ? H : H * 0.3);
+    let n = Math.ceil((from - D.first) / beat);
+    for (let tm = D.first + n * beat; tm < from + span; tm += beat, n++) {
+      const x = Math.round(X(tm)), bar = ((n % 4) + 4) % 4 === 0, h = bar ? RUL : RUL * 0.5;
+      g.fillStyle = bar ? '#ff9d2e' : 'rgba(255,255,255,.3)';
+      g.fillRect(x, 0, dpr, h); g.fillRect(x, H - h, dpr, h);
     }
   }
-  g.fillStyle = '#ff9d2e';
-  g.fillRect((D.cue / dur) * W - 1, 0, 2, H);
-  g.fillStyle = '#fff';
-  g.fillRect((mxPos(D) / dur) * W - 1, 0, 2, H);
+  // αρχή / τέλος λούπας: λεπτή πορτοκαλί γραμμή (βλέπεις πότε έρχεται το «γύρισμα»)
+  if (D.loopBars && D.loop) { g.fillStyle = 'rgba(255,157,46,.85)'; for (const tm of [D.ls, D.le]) { const x = X(tm); if (x >= 0 && x <= W) g.fillRect(x - dpr / 2, 0, dpr * 1.5, H); } }
+  const cx = X(D.cue);
+  if (cx > -10 && cx < W + 10) { g.fillStyle = '#ff9d2e'; g.beginPath(); g.moveTo(cx - 6 * dpr, H); g.lineTo(cx + 6 * dpr, H); g.lineTo(cx, H - 8 * dpr); g.closePath(); g.fill(); }
+  g.fillStyle = '#fff'; g.fillRect(half - dpr, 0, 2 * dpr, H);
+  g.beginPath(); g.moveTo(half - 6 * dpr, 0); g.lineTo(half + 6 * dpr, 0); g.lineTo(half, 8 * dpr); g.closePath(); g.fill();
+}
+// ομαλή κίνηση του ζουμ (60 καρέ/δευτ.) όσο ο mixer είναι στην οθόνη
+function mxAnim() {
+  if (MX.a && document.getElementById('mxz-a')) { mxDrawZoom(MX.a); mxDrawZoom(MX.b); }
+  MX.raf = requestAnimationFrame(mxAnim);
 }
 function mxPaint() {
   if (!MX.a) return;
   for (const D of [MX.a, MX.b]) {
     const k = D.k;
     const btn = document.getElementById('mxp-' + k);
-    if (btn) { btn.classList.toggle('on', D.playing); const lbl = D.playing ? '❚❚ PAUSE' : '▶ PLAY'; if (btn.textContent !== lbl) btn.textContent = lbl; }
+    if (btn) {
+      btn.classList.toggle('on', D.playing);
+      // τα 4 κομμάτια του δαχτυλιδιού ανάβουν στο ρυθμό: beat 1 → 1 κομμάτι … beat 4 → όλο
+      let b = -1;
+      if (D.playing && D.bpm && D.buf) { const bt = Math.floor((mxPos(D) - D.first) / (60 / D.bpm) + 1e-6); b = ((bt % 4) + 4) % 4; }
+      if (btn.dataset.b !== String(b)) { btn.dataset.b = String(b); btn.querySelectorAll('.ring path').forEach((el, i) => el.classList.toggle('lit', i <= b)); }
+    }
     const jw = document.getElementById('mxj-' + k); if (jw && D.buf) jw.style.setProperty('--ja', ((mxPos(D) / 1.8) * 360) % 360 + 'deg');
+    mxRingPaint(D);
+    const jt = document.getElementById('mxjt-' + k);
+    if (jt && D.buf) { const p = mxPos(D), tx = Math.floor(p / 60) + ':' + String(Math.floor(p % 60)).padStart(2, '0') + '.' + Math.floor((p % 1) * 10); if (jt.textContent !== tx) jt.textContent = tx; }
     if (D.buf) {
       const rsb = document.getElementById('mxrs-' + k);
       if (rsb) {
@@ -2277,7 +2458,7 @@ function mxPaint() {
 function mxSetXf(v) { MX.xf = mxClamp(v, 0, 100); mxApplyXf(); const x = document.getElementById('mxx'); if (x) x.value = String(Math.round(MX.xf)); }
 function mxEqUI(D, b) {
   const e = document.getElementById('mxe-' + b + '-' + D.k), v = document.getElementById('mxev-' + b + '-' + D.k);
-  if (e) e.style.setProperty('--a', mxKnobAngle(D.eq[b]) + 'deg');
+  if (e) e.style.setProperty('--a', mxKnobAngle(D.eq[b], b) + 'deg');
   if (v) v.textContent = String(Math.round(D.eq[b] * 10) / 10);
 }
 function mxPrep() {
@@ -2325,7 +2506,7 @@ $('#out').addEventListener('input', (e) => {
   if (what === 'vol') { mxSetVol(D, Number(el.value)); return; }
 });
 // Περιστροφικά knobs: σύρε πάνω/κάτω, διπλό κλικ = μηδέν, βελάκια στο πληκτρολόγιο
-function mxKnobSet(k, b, db) { const D = MX[k]; mxSetEq(D, b, mxClamp(Math.round(db * 2) / 2, -24, 6)); mxEqUI(D, b); }
+function mxKnobSet(k, b, db) { const D = MX[k]; mxSetEq(D, b, b === 'trim' ? mxClamp(Math.round(db * 2) / 2, -12, 12) : mxClamp(Math.round(db * 2) / 2, -24, 6)); mxEqUI(D, b); }
 let mxDrag = null, mxJog = null, mxRep = null, mxRepT = null;
 function mxJogAngle(el, e) { const r = el.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)); }
 function mxJogEnd() {
@@ -2389,8 +2570,13 @@ const mxPtrUp = () => {
 window.addEventListener('pointerup', mxPtrUp);
 window.addEventListener('pointercancel', mxPtrUp);
 $('#out').addEventListener('dblclick', (e) => {
+  // διπλό κλικ = επαναφορά: ένταση 100, tempo 0%, crossfader στη μέση
   const vf = e.target.closest('[data-mx^="vol-"]');
   if (vf && MX.a) { mxSetVol(MX[vf.dataset.mx.slice(-1)], 100); return; }
+  const tf = e.target.closest('[data-mx^="tempo-"]');
+  if (tf && MX.a) { const D = MX[tf.dataset.mx.slice(-1)]; D.sync = false; mxSetRate(D, 1); mxPaint(); return; }
+  const xf = e.target.closest('[data-mx="xf"]');
+  if (xf && MX.a) { mxStopAuto(); mxSetXf(50); return; }
   const kn = e.target.closest('[data-knob]');
   if (!kn || !MX.a) return;
   const [b, k] = kn.dataset.knob.split('-');

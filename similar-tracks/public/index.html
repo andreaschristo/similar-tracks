@@ -297,6 +297,26 @@
   .pctl .play{width:40px}
   .pct{font-weight:700;color:var(--text);letter-spacing:.04em}
   .ptitle{font:600 13px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Τι παίζει: εξισωτής, τίτλος (πατιέται) και κουμπί που σε πάει στη γραμμή του */
+  .ptwrap{display:flex;align-items:center;gap:12px;min-width:0}
+  .ptwrap .ptitle{cursor:pointer;min-width:0}
+  .ptwrap .ptitle:hover{text-decoration:underline}
+  .plocate{flex:none;border:1px solid var(--dim);background:transparent;color:var(--text);font:700 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;padding:7px 10px;cursor:pointer;white-space:nowrap}
+  .plocate:hover{border-color:var(--text);background:var(--text);color:var(--bg)}
+  .eq{display:inline-flex;align-items:flex-end;gap:2px;width:14px;height:12px;flex:none}
+  .eq i{display:block;width:3px;height:30%;background:var(--text)}
+  .player .eq i,.row.isplaying .eq i{animation:eqb .9s ease-in-out infinite}
+  .eq i:nth-child(2){animation-delay:-.3s !important}.eq i:nth-child(3){animation-delay:-.6s !important}
+  @keyframes eqb{0%,100%{height:25%}50%{height:100%}}
+  /* Η γραμμή που παίζει μέσα στη λίστα */
+  .list>.row.nowplaying{background:rgba(236,236,232,.09) !important;box-shadow:inset 3px 0 0 var(--text)}
+  .list>.row.nowplaying .c-t .tt{color:var(--text)}
+  .list>.row.nowplaying .c-n{color:var(--text);display:flex;align-items:center;justify-content:center !important;padding:0 0 0 3px !important;padding-right:0 !important}
+  .list>.row.nowplaying .c-n .eq{width:13px}
+  .list>.row.flash{animation:rowflash 1.4s ease-out}
+  .seed.flash{animation:rowflash 1.4s ease-out}
+  @keyframes rowflash{0%,30%{background:rgba(236,236,232,.28)}100%{background:rgba(236,236,232,.09)}}
+  @media (max-width:760px){.plocate{padding:6px 8px;font-size:9px}}
   .pclose{border:0;background:transparent;color:var(--mute);font:inherit;font-size:16px;cursor:pointer;padding:0 4px}
   .pclose:hover{color:var(--text)}
   .pbar{grid-column:1 / -1;display:grid;grid-template-columns:40px 1fr 40px;gap:12px;align-items:center;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
@@ -341,6 +361,20 @@
   .list>*{grid-column:1 / -1}
   .list>.row,.list>.rowhead{display:grid;grid-template-columns:subgrid;column-gap:12px}
   .list>.row .links{gap:9px;justify-content:flex-start}
+  /* LISTEN | BUY: δύο ομάδες με σταθερό πλάτος, ώστε ο τίτλος να στέκεται πάνω από τα links του */
+  .list .links{gap:0 !important;padding-right:0 !important}
+  .list .links .lg{display:flex;align-items:center;gap:9px;align-self:stretch}
+  .list .links .lg-listen{width:118px;flex:none}
+  @media (max-width:760px){.list .links .lg-listen{width:auto;padding-right:12px}}
+  .list .links .lg-buy{padding-left:12px;padding-right:12px;border-left:1px solid transparent;flex:none}
+  .list .rowhead .links .lg-buy{border-left-color:#2a2a2a}
+  @media (min-width:761px){.list>.rowhead>.links{padding-left:9px !important}}
+  /* Links σαν κουμπάκια: LISTEN με περίγραμμα, BUY πιο έντονα */
+  .list .row .links .lg{gap:5px}
+  .list .row .links a{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:26px;padding:0 6px;border:1px solid #3a3a37;font:700 10px var(--mono);letter-spacing:.08em;color:#cfcfca;transition:background .15s,color .15s,border-color .15s}
+  .list .row .links .lg-listen a{color:#a9a9a4}
+  .list .row .links .lg-buy a{border-color:#6a6a66;color:var(--text)}
+  .list .row .links a:hover{background:var(--text);border-color:var(--text);color:var(--bg)}
   .c-play{display:flex;align-items:center;gap:9px;border-left:1px solid var(--line);align-self:stretch;padding-left:12px}
   .c-play a{color:var(--dim);font-size:12px;text-decoration:none}.c-play a:hover{color:var(--text)}
   .noplay{display:inline-block;width:30px;flex:none}
@@ -726,7 +760,7 @@
     <div class="pin">
       <div class="pvid" id="pvid"><div id="ytp"></div></div>
       <div class="pctl"><button type="button" id="pPrev" aria-label="Previous" title="Previous (←)">⏮</button><button type="button" class="play" id="pToggle" title="Play / Pause (Space)">▶</button><button type="button" id="pNext" aria-label="Next" title="Next (→)">⏭</button></div>
-      <div class="ptitle" id="pTitle"></div>
+      <div class="ptwrap"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><div class="ptitle" id="pTitle"></div><button type="button" class="plocate" id="pLocate" data-i18n="locate"></button></div>
       <button type="button" class="pclose" id="pClose" aria-label="Close">✕</button>
       <div class="pbar"><span id="pCur">0:00</span><input type="range" id="pSeek" min="0" max="1000" value="0" step="1" aria-label="Seek"><span id="pDur">0:00</span></div>
     </div>
@@ -750,7 +784,7 @@ const I18N = {
     eyebrow: 'Track finder for house DJs',
     tagline: 'Find your next record.',
     sub: 'Paste a title or a link · extended tracks 5:00+ · BPM · key · harmonic mixing',
-    placeholder: 'Artist - Title, or paste a link', searchLbl: 'Search', modeFind: 'Find tracks', modeFindSub: '40+ tracks that mix with yours', modeBuild: 'Build a set', modeBuildSub: 'A ready, ordered DJ set', wListen: 'Listeners', wSound: 'Sound', wKey: 'Key', modeNew: 'New releases', modeNewSub: 'Fresh house, every day', nTitle: 'New releases', nSub: 'House releases from the last {n} days, newest first', nToday: 'Today', nYesterday: 'Yesterday', nTracks: 'tracks', nEmpty: 'No new releases found for this genre right now. Try All.', hSource: 'Source', ldNew: 'Loading new releases', ldNewSteps: ['YouTube uploads', 'Deezer new releases', 'Discogs new entries', 'Genre check', 'Sorting by date'], dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'YOUR TRACK', mineTip: 'Your track is this genre. Results stay open to every house genre that fits its style; click to show only this genre.', gNoteArtist: "Genre guessed from the artist's tags, not the track: may be wrong", gNoteMixed: 'Mixed tags (e.g. deep and tech): genre may be wrong', gNoteBpm: 'BPM is unusual for house: the genre tag may be wrong', gNoteGuess: 'New track with no genre tags yet: genre guessed from the YouTube search, may be wrong',
+    placeholder: 'Artist - Title, or paste a link', searchLbl: 'Search', modeFind: 'Find tracks', modeFindSub: '40+ tracks that mix with yours', modeBuild: 'Build a set', modeBuildSub: 'A ready, ordered DJ set', wListen: 'Listeners', wSound: 'Sound', wKey: 'Key', locate: 'Show in list', modeNew: 'New releases', modeNewSub: 'Fresh house, every day', nTitle: 'New releases', nSub: 'House releases from the last {n} days, newest first', nToday: 'Today', nYesterday: 'Yesterday', nTracks: 'tracks', nEmpty: 'No new releases found for this genre right now. Try All.', hSource: 'Source', ldNew: 'Loading new releases', ldNewSteps: ['YouTube uploads', 'Deezer new releases', 'Discogs new entries', 'Genre check', 'Sorting by date'], dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'YOUR TRACK', mineTip: 'Your track is this genre. Results stay open to every house genre that fits its style; click to show only this genre.', gNoteArtist: "Genre guessed from the artist's tags, not the track: may be wrong", gNoteMixed: 'Mixed tags (e.g. deep and tech): genre may be wrong', gNoteBpm: 'BPM is unusual for house: the genre tag may be wrong', gNoteGuess: 'New track with no genre tags yet: genre guessed from the YouTube search, may be wrong',
     go: 'Find',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Try', recentLbl: 'Recent',
@@ -823,7 +857,7 @@ const I18N = {
     noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
     shortSet: 'Only this many tracks matched. Try a more popular track for a full set.',
     backSearch: 'Back to results',
-    hTitle: 'Title', hArtist: 'Artist', hGenre: 'Genre', hKey: 'Key', hTime: 'Time', hYear: 'Year', hMatch: 'Match', hInAt: 'In at', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Find',
+    hTitle: 'Title', hArtist: 'Artist', hGenre: 'Genre', hKey: 'Key', hTime: 'Time', hYear: 'Year', hMatch: 'Match', hInAt: 'In at', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Find', hListen: 'Listen', hBuy: 'Buy',
     err_notfound: 'Track not found. Try "Artist - Title".',
     err_nourl: 'Could not read a title from that link. Try "Artist - Title".',
     err_generic: 'Something went wrong. Try again.',
@@ -834,7 +868,7 @@ const I18N = {
     eyebrow: 'Εργαλείο αναζήτησης για house DJs',
     tagline: 'Βρες το επόμενο κομμάτι.',
     sub: 'Βάλε τίτλο ή link · extended κομμάτια 5:00+ · BPM · κλειδί · αρμονική μίξη',
-    placeholder: 'Καλλιτέχνης - Τίτλος, ή βάλε ένα link', searchLbl: 'Αναζήτηση', modeFind: 'Βρες κομμάτια', modeFindSub: '40+ κομμάτια που ταιριάζουν με το δικό σου', modeBuild: 'Φτιάξε set', modeBuildSub: 'Έτοιμο DJ set, με σειρά', wListen: 'Ακροατές', wSound: 'Ήχος', wKey: 'Κλειδί', modeNew: 'Νέες κυκλοφορίες', modeNewSub: 'Φρέσκο house, κάθε μέρα', nTitle: 'Νέες κυκλοφορίες', nSub: 'House κυκλοφορίες των τελευταίων {n} ημερών, οι πιο πρόσφατες πρώτα', nToday: 'Σήμερα', nYesterday: 'Χθες', nTracks: 'κομμάτια', nEmpty: 'Δεν βρέθηκαν νέες κυκλοφορίες σε αυτό το είδος αυτή τη στιγμή. Δοκίμασε Όλα.', hSource: 'Πηγή', ldNew: 'Φορτώνω νέες κυκλοφορίες', ldNewSteps: ['Νέα στο YouTube', 'Νέα στο Deezer', 'Νέα στο Discogs', 'Έλεγχος είδους', 'Ταξινόμηση κατά ημερομηνία'], dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'ΤΟ ΚΟΜΜΑΤΙ ΣΟΥ', mineTip: 'Το κομμάτι σου είναι αυτό το είδος. Τα αποτελέσματα μένουν ανοιχτά σε όλα τα house είδη που ταιριάζουν στο ύφος του· πάτα για να δεις μόνο αυτό το είδος.', gNoteArtist: 'Το είδος βγήκε από τα tags του καλλιτέχνη, όχι του κομματιού: μπορεί να είναι λάθος', gNoteMixed: 'Μπερδεμένα tags (π.χ. deep και tech): το είδος μπορεί να είναι λάθος', gNoteBpm: 'Ασυνήθιστο BPM για house: το tag μπορεί να είναι λάθος', gNoteGuess: 'Νέο κομμάτι χωρίς tags ακόμα: το είδος βγήκε από την αναζήτηση στο YouTube, μπορεί να είναι λάθος',
+    placeholder: 'Καλλιτέχνης - Τίτλος, ή βάλε ένα link', searchLbl: 'Αναζήτηση', modeFind: 'Βρες κομμάτια', modeFindSub: '40+ κομμάτια που ταιριάζουν με το δικό σου', modeBuild: 'Φτιάξε set', modeBuildSub: 'Έτοιμο DJ set, με σειρά', wListen: 'Ακροατές', wSound: 'Ήχος', wKey: 'Κλειδί', locate: 'Δείξε στη λίστα', modeNew: 'Νέες κυκλοφορίες', modeNewSub: 'Φρέσκο house, κάθε μέρα', nTitle: 'Νέες κυκλοφορίες', nSub: 'House κυκλοφορίες των τελευταίων {n} ημερών, οι πιο πρόσφατες πρώτα', nToday: 'Σήμερα', nYesterday: 'Χθες', nTracks: 'κομμάτια', nEmpty: 'Δεν βρέθηκαν νέες κυκλοφορίες σε αυτό το είδος αυτή τη στιγμή. Δοκίμασε Όλα.', hSource: 'Πηγή', ldNew: 'Φορτώνω νέες κυκλοφορίες', ldNewSteps: ['Νέα στο YouTube', 'Νέα στο Deezer', 'Νέα στο Discogs', 'Έλεγχος είδους', 'Ταξινόμηση κατά ημερομηνία'], dcCredit: 'Data provided by Discogs', dcLegal: "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs.", mineMark: 'ΤΟ ΚΟΜΜΑΤΙ ΣΟΥ', mineTip: 'Το κομμάτι σου είναι αυτό το είδος. Τα αποτελέσματα μένουν ανοιχτά σε όλα τα house είδη που ταιριάζουν στο ύφος του· πάτα για να δεις μόνο αυτό το είδος.', gNoteArtist: 'Το είδος βγήκε από τα tags του καλλιτέχνη, όχι του κομματιού: μπορεί να είναι λάθος', gNoteMixed: 'Μπερδεμένα tags (π.χ. deep και tech): το είδος μπορεί να είναι λάθος', gNoteBpm: 'Ασυνήθιστο BPM για house: το tag μπορεί να είναι λάθος', gNoteGuess: 'Νέο κομμάτι χωρίς tags ακόμα: το είδος βγήκε από την αναζήτηση στο YouTube, μπορεί να είναι λάθος',
     go: 'Βρες',
     tagExt: 'Extended 5:00+', tagKey: 'BPM + Key',
     tryLbl: 'Δοκίμασε', recentLbl: 'Πρόσφατα',
@@ -907,7 +941,7 @@ const I18N = {
     noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
     shortSet: 'Ταίριαξαν μόνο τόσα κομμάτια. Δοκίμασε πιο δημοφιλές κομμάτι για πλήρες set.',
     backSearch: 'Πίσω στα αποτελέσματα',
-    hTitle: 'Τίτλος', hArtist: 'Καλλιτέχνης', hGenre: 'Είδος', hKey: 'Κλειδί', hTime: 'Χρόνος', hYear: 'Χρονιά', hMatch: 'Match', hInAt: 'Μπαίνει', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Αναζήτηση',
+    hTitle: 'Τίτλος', hArtist: 'Καλλιτέχνης', hGenre: 'Είδος', hKey: 'Κλειδί', hTime: 'Χρόνος', hYear: 'Χρονιά', hMatch: 'Match', hInAt: 'Μπαίνει', hListen: 'Ακρόαση', hBuy: 'Αγορά', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Αναζήτηση',
     err_notfound: 'Δεν βρέθηκε το κομμάτι. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_nourl: 'Δεν μπόρεσα να διαβάσω τίτλο από αυτό το link. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_generic: 'Κάτι πήγε στραβά. Δοκίμασε ξανά.',
@@ -1009,7 +1043,7 @@ function newRow(x, i) {
   const on = playingId == x.id;
   const sub = [x.track && x.track !== x.title ? x.track : '', x.label, x.tracks > 1 ? x.tracks + ' ' + t('nTracks') : ''].filter(Boolean).map(esc).join(' · ');
   return cellsRow({
-    i, cover: x.cover, title: x.title, artist: x.artist, sub,
+    id: x.id, i, cover: x.cover, title: x.title, artist: x.artist, sub,
     genre: x.genre, gUnsure: x.genreSure === false || inf.genreSure === false, gNote: x.genreNote || inf.genreNote, bpm: inf.bpm, key: inf.camelot, keyName: inf.key,
     time: x.duration ? fmtDur(x.duration) : '', last: `<a class="srcl" href="${esc(x.link)}" target="_blank" rel="noopener" title="${esc(x.src === 'discogs' ? t('dcCredit') : '')}">${esc(SRC_NAME[x.src] || x.src)} ↗</a>`,
     play: `<button class="play${on ? ' on' : ''}" data-id="${esc(x.id)}" data-src="${esc(x.preview || '')}">${on ? '❚❚' : '▶'}</button>`,
@@ -1185,12 +1219,13 @@ function whyText(tr) {
 function rowHead(kind) { // 'search' | 'dc' | 'set'
   const time = t(kind === 'dc' ? 'hYear' : 'hTime');
   const last = t(kind === 'set' ? 'hInAt' : kind === 'new' ? 'hSource' : 'hMatch');
-  return `<div class="rowhead"><span class="c-n">#</span><span class="c-img"></span><span class="c-t">${esc(t('hTitle'))}</span><span class="c-a">${esc(t('hArtist'))}</span><span class="c-g">${esc(t('hGenre'))}</span><span class="c-num c-bpm">BPM</span><span class="c-num c-key">${esc(t('hKey'))}</span><span class="c-num c-time">${esc(time)}</span><span class="c-num c-pct">${esc(last)}</span><span class="c-play">${esc(t('hPlay'))}</span><span class="links">${esc(t('hFind'))}</span></div>`;
+  return `<div class="rowhead"><span class="c-n">#</span><span class="c-img"></span><span class="c-t">${esc(t('hTitle'))}</span><span class="c-a">${esc(t('hArtist'))}</span><span class="c-g">${esc(t('hGenre'))}</span><span class="c-num c-bpm">BPM</span><span class="c-num c-key">${esc(t('hKey'))}</span><span class="c-num c-time">${esc(time)}</span><span class="c-num c-pct">${esc(last)}</span><span class="c-play">${esc(t('hPlay'))}</span><span class="links"><span class="lg lg-listen">${esc(t('hListen'))}</span><span class="lg lg-buy">${esc(t('hBuy'))}</span></span></div>`;
 }
 // Μία γραμμή του πίνακα: κάθε τιμή στη δική της στήλη
 function cellsRow(o) {
-  return `<div class="row${o.cls || ''}">
-    <div class="c-n">${String(o.i + 1).padStart(2, '0')}</div>
+  const now = o.id != null && currentId != null && String(o.id) === String(currentId);
+  return `<div class="row${o.cls || ''}${now ? ' nowplaying' + (playingId != null ? ' isplaying' : '') : ''}"${o.id != null ? ` data-row="${esc(o.id)}"` : ''}>
+    <div class="c-n">${now ? '<span class="eq"><i></i><i></i><i></i></span>' : String(o.i + 1).padStart(2, '0')}</div>
     <img class="c-img" src="${esc(o.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
     <div class="c-t" title="${esc(o.title)}"><span class="tt">${esc(o.title)}</span>${o.sub ? `<small>${o.sub}</small>` : ''}</div>
     <div class="c-a" title="${esc(o.artist)}"><span>${esc(o.artist)}</span></div>
@@ -1238,7 +1273,7 @@ function transText(x) {
 }
 function setRow(x, i, start) {
   return cellsRow({
-    i, cls: x.isSeed ? ' isseed' : '', cover: x.cover, title: x.title, artist: x.artist,
+    id: x.id, i, cls: x.isSeed ? ' isseed' : '', cover: x.cover, title: x.title, artist: x.artist,
     sub: x.isSeed ? `<span class="mixtag">${esc(t('yourTrack'))}</span>` : '',
     genre: x.genre, gUnsure: x.genreSure === false, gNote: x.genreNote, bpm: x.bpm, key: x.camelot, keyName: x.key, time: fmtDur(x.duration),
     last: fmtClock(start), play: playBtn(x), find: links(x),
@@ -1381,19 +1416,24 @@ function startLoading(kind, q) {
 }
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+// Links σε δύο ομάδες: LISTEN (ακρόαση) και BUY (αγορά)
 function links(tr) {
   const q = encodeURIComponent(tr.artist + ' ' + tr.title);
-  const L = [
+  const a = ([n, full, u, title]) => `<a href="${u}" target="_blank" rel="noopener" title="${esc(title || (t('findOn') + full))}">${n}</a>`;
+  const listen = [
     ['YT', 'YouTube', 'https://www.youtube.com/results?search_query=' + q],
     ['SC', 'SoundCloud', 'https://soundcloud.com/search?q=' + q],
-    ['BP', 'Beatport', 'https://www.beatport.com/search?q=' + q],
-    ['BC', 'Bandcamp', 'https://bandcamp.com/search?q=' + q],
     ['SP', 'Spotify', 'https://open.spotify.com/search/' + q],
-    ['TS', 'Traxsource', 'https://www.traxsource.com/search?term=' + q],
-    ['DC', 'Discogs', 'https://www.discogs.com/search/?type=all&q=' + q],
-    ['JN', 'Juno Records', 'https://www.juno.co.uk/search/?q%5Ball%5D%5B%5D=' + q],
   ];
-  return L.map(([n, full, u]) => `<a href="${u}" target="_blank" rel="noopener" title="${esc(t('findOn') + full)}">${n}</a>`).join('');
+  const buy = [
+    ['BP', 'Beatport', 'https://www.beatport.com/search?q=' + q],
+    ['TS', 'Traxsource', 'https://www.traxsource.com/search?term=' + q],
+    ['BC', 'Bandcamp', 'https://bandcamp.com/search?q=' + q],
+    ['JN', 'Juno Records', 'https://www.juno.co.uk/search/?q%5Ball%5D%5B%5D=' + q],
+    // Discogs: από το tab Discogs πάει κατευθείαν στη σελίδα του δίσκου (με το credit που ζητάει το Discogs)
+    tr.discogs && tr.link ? ['DC', 'Discogs', tr.link, t('dcCredit') + ' · ' + t('dcOpen')] : ['DC', 'Discogs', 'https://www.discogs.com/search/?type=all&q=' + q],
+  ];
+  return `<span class="lg lg-listen">${listen.map(a).join('')}</span><span class="lg lg-buy">${buy.map(a).join('')}</span>`;
 }
 function playBtn(tr) {
   if (!tr.preview) return '<span class="noplay"></span>';
@@ -1412,7 +1452,7 @@ function bkLine(tr, withTag) {
 function row(tr, i) {
   const inf = infoMap[tr.id] || {};
   return cellsRow({
-    i, cover: tr.cover, title: tr.title, artist: tr.artist,
+    id: tr.id, i, cover: tr.cover, title: tr.title, artist: tr.artist,
     genre: inf.genre, gUnsure: inf.genreSure === false, gNote: inf.genreNote, bpm: inf.bpm, key: inf.camelot, keyName: inf.key, mix: isMixable(tr),
     time: fmtDur(tr.duration), last: tr.pct ? `<span class="pct" title="${esc(whyText(tr))}">${tr.pct}%</span>` : '',
     play: playBtn(tr) + pairBtn(tr), find: links(tr),
@@ -1421,10 +1461,10 @@ function row(tr, i) {
 function dcRow(tr, i) {
   const on = playingId == tr.id;
   return cellsRow({
-    i, cover: tr.cover, title: tr.title, artist: tr.artist, sub: tr.label ? esc(tr.label) : '',
+    id: tr.id, i, cover: tr.cover, title: tr.title, artist: tr.artist, sub: tr.label ? esc(tr.label) : '',
     genre: tr.genre, time: String(tr.year || ''), last: `<span class="pct">${tr.pct}%</span>`,
     play: `<button class="play${on ? ' on' : ''}" data-id="${esc(tr.id)}" data-src="">${on ? '❚❚' : '▶'}</button>`,
-    find: `<a class="dccredit" href="${esc(tr.link)}" target="_blank" rel="noopener" title="${esc(t('dcCredit'))}">Discogs ↗</a>` + links(tr),
+    find: links(tr),
   });
 }
 function pairBtn(tr) {
@@ -2258,6 +2298,21 @@ function findTrack(id) {
   return pools.find((x) => x && String(x.id) === String(id));
 }
 function fmtT(s) { return isFinite(s) ? Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0') : '0:00'; }
+// Βρες το κομμάτι που παίζει: άλλαξε tab αν χρειάζεται και πήγαινε στη γραμμή του
+function locateNowPlaying() {
+  if (currentId == null) return;
+  const sel = () => document.querySelector(`.row[data-row="${CSS.escape(String(currentId))}"]`) || (data && data.seed && String(data.seed.id) === String(currentId) ? document.querySelector('.seed') : null);
+  let el = sel();
+  if (!el && mode === 'search' && data) {
+    const k = ['similar', 'versions', 'sameArtist', 'discogs'].find((x) => (data[x] || []).some((y) => String(y.id) === String(currentId)));
+    if (k) { tab = k; if (onlyMix && !(data[k] || []).filter(isMixable).some((y) => String(y.id) === String(currentId))) onlyMix = false; render(); el = sel(); }
+  }
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+document.getElementById('pLocate').addEventListener('click', locateNowPlaying);
+document.getElementById('pTitle').addEventListener('click', locateNowPlaying);
 function showPlayer(tr) {
   $('#player').classList.add('on');
   document.body.classList.add('hasplayer');
@@ -2283,6 +2338,7 @@ function loadYT() {
 function initYT() {
   if (yt) return;
   yt = new YT.Player('ytp', {
+    host: 'https://www.youtube-nocookie.com', // ιδιωτική λειτουργία: χωρίς cookies μέχρι το play
     width: '200', height: '113',
     playerVars: { playsinline: 1, controls: 0, rel: 0, modestbranding: 1 },
     events: {

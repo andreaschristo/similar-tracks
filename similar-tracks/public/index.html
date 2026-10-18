@@ -516,19 +516,26 @@
   .mx .tmp .fw input[type=range]::-moz-range-thumb{width:10px;height:24px;background:var(--text)}
   .tmp .tpct{text-align:center;min-width:46px}
   .deck{border:1px solid var(--line);padding:14px;min-width:0}
-  .dhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-  .dhead>div:first-child{min-width:0}
+  /* Κεφαλίδα του deck: ταμπελάκια (deck · κλειδί · είδος), τίτλος έως 2 γραμμές, καλλιτέχνης */
+  .dhead{display:block;height:96px;overflow:hidden;margin-bottom:10px}
+  .dtags{display:flex;align-items:center;gap:6px;margin-bottom:9px}
+  .dtags .dn{margin-right:4px}
+  .dtag{font:600 9.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);border:1px solid var(--line);padding:4px 6px}
+  .dtag.key{color:var(--text);border-color:#3a3a37}
   .deck .dn{font:700 10px var(--mono);letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
-  .deck .dt{font:600 14px/1.3 var(--sans);margin:6px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .deck .da{font-size:11px;color:var(--mute);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .dbpm{text-align:right;white-space:nowrap}
-  .dbpm b{font:600 26px var(--mono);letter-spacing:-.02em;display:block;line-height:1}
-  .dbpm span{font:700 9px var(--mono);letter-spacing:.2em;color:var(--mute)}
+  .deck .dt{font:650 17px/1.25 var(--sans);letter-spacing:-.005em;margin:0 0 4px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+  .deck .da{font:500 12.5px/1.3 var(--sans);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* BPM κάτω από την κυματομορφή */
+  .deck .dtime{align-items:center}
+  .dbpm{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+  .dbpm>b{font:700 18px/1 var(--mono);letter-spacing:-.01em;color:var(--text)}
+  .dbpm>span{font:700 9px var(--mono);letter-spacing:.2em;color:var(--mute)}
+  .dbpm .dorig{margin:0 0 0 4px}
   .dorig{margin-top:6px;font:600 10px var(--mono);letter-spacing:.08em;color:var(--mute);white-space:nowrap}
   .dorig b{font:600 10px var(--mono);color:var(--text);display:inline;line-height:1;letter-spacing:.04em}
   .dorig i{font-style:normal;margin-left:8px;padding:1px 5px;border:1px solid var(--line);color:var(--mute)}
   .dorig i.on{border-color:#ff9d2e;color:#ff9d2e}
-  .dbpm small{display:block;font:9px var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+  .dbpm small{font:9px var(--mono);color:var(--dim);letter-spacing:.1em;text-transform:uppercase;cursor:help}
   /* Κυματομορφή: πάνω ζουμ ~2 bars που κυλάει κάτω από σταθερό playhead, κάτω επισκόπηση όλου του preview */
   .wz{width:100%;height:84px;display:block;background:#0d0d0d;margin-bottom:8px}
   .wave{width:100%;height:22px;display:block;background:#0d0d0d;cursor:pointer}
@@ -548,7 +555,8 @@
   .rbtn.cue:hover .core,.rbtn.dplay:hover .core{background:radial-gradient(circle at 40% 32%,#262625,#111110 78%)}
   .rbtn.cue .core{color:#ff9d2e;font:700 11px var(--mono);letter-spacing:.14em;padding-left:.14em}
   .rbtn.cue.on .ring path{stroke:#ff9d2e}
-  .rbtn.cue.on .core{background:#ff9d2e;color:#000;box-shadow:0 0 16px rgba(255,157,46,.45)}
+  /* ενεργό: μόνο ένα απαλό φως στο κέντρο, χωρίς λάμψη γύρω */
+  .rbtn.cue.on .core{color:#ffb35c;background:radial-gradient(circle at 50% 50%,rgba(255,157,46,.24),rgba(255,157,46,.06) 45%,#0c0c0c 72%)}
   .rbtn.dplay .core{color:var(--text)}
   .rbtn.dplay:hover .ring path{stroke:var(--mute)}
   .rbtn.dplay .ring path.lit{stroke:var(--text)}
@@ -556,9 +564,9 @@
   .rbtn.dplay.on .ip{display:none}
   .rbtn.dplay.on .ia{display:block}
   .rbtn.dplay .ip{transform:translateX(.5px)}
-  .rbtn.dplay.on .core{color:#fff;background:radial-gradient(circle at 40% 32%,#2c2c2b,#151514 78%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 14px rgba(236,236,232,.12)}
+  .rbtn.dplay.on .core{color:#fff;background:radial-gradient(circle at 50% 50%,rgba(236,236,232,.16),rgba(236,236,232,.04) 45%,#0c0c0c 72%)}
   /* LOOP στην ίδια σειρά με τα μεγέθη */
-  .lrow{grid-template-columns:1.1fr repeat(4,1fr) !important}
+  .lrow{grid-template-columns:repeat(5,1fr) !important}
   .lrow .lpt{color:var(--mute)}
   .lrow .lpt.on{color:#ff9d2e;border-color:#ff9d2e;background:transparent}
   /* SYNC πάνω από το tempo */
@@ -577,7 +585,7 @@
   .lrow button.on{background:#ff9d2e;border-color:#ff9d2e;color:#000}
   .lrow button.off{opacity:.3;cursor:not-allowed}
   .lrow button.off:hover{color:var(--mute);border-color:var(--line)}
-  .grow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
+  .grow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
   .grow button{background:transparent;border:1px solid var(--line);color:var(--mute);font:700 9px var(--mono);letter-spacing:.08em;padding:8px 2px;cursor:pointer;border-radius:0;touch-action:manipulation}
   .grow button:hover{color:var(--text);border-color:var(--text)}
   .tb{background:transparent;border:1px solid var(--line);color:var(--text);font:700 10px var(--mono);letter-spacing:.12em;padding:11px 4px;cursor:pointer;border-radius:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
@@ -620,7 +628,7 @@
   .bring path.bar{stroke:#3a3a37}
   .bring path.past{stroke:rgba(255,157,46,.32)}
   .bring path.on{stroke:#ff9d2e}
-  .jog .plat{position:absolute;inset:2%;border-radius:50%;transform:rotate(var(--ja,0deg));box-shadow:0 0 0 1px #2a2a28,0 6px 18px rgba(0,0,0,.6);transition:box-shadow .15s;
+  .jog .plat{will-change:transform;position:absolute;inset:2%;border-radius:50%;transform:rotate(var(--ja,0deg));box-shadow:0 0 0 1px #2a2a28,0 6px 18px rgba(0,0,0,.6);transition:box-shadow .15s;
     background:radial-gradient(circle closest-side,#0e0e0d 0 94%,#1c1c1a 97%,#0b0b0b 100%)}
   .jog:hover .plat{box-shadow:0 0 0 1px var(--dim),0 6px 18px rgba(0,0,0,.6)}
   .jog.drag .plat{box-shadow:0 0 0 1px #ff9d2e,0 6px 18px rgba(0,0,0,.6)}
@@ -970,7 +978,7 @@ const I18N = {
     trGap: 'Tempo gap', trPitchB: 'Pitch B by', trFar: 'Tempos too far apart. Use a cut, an echo out or a break.', trHalfD: 'B runs at double or half the tempo of A. Mix on the beat grid at x2 or /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Long blend: bring B in on a phrase start, swap the bass around bar 16, then ease the highs.', trTipShort: 'Short blend: bring B in on a phrase start, cut the bass of A first and drop it on the downbeat.',
     mxTitle: 'Mixer · 30-second previews, looped on the beat', mxBoth: 'Play both (synced)', mxAuto: 'Auto blend', mxSync: 'Sync B to A', mxStopAll: 'Stop', mxFade: 'Crossfader',
-    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'detected', mx_manual: 'manual', mxSelTip: 'Drag the bar to choose which part of the preview loops (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxNoOut: 'No sound is coming out: click anywhere on the page or press PLAY again. If it persists, reload with Cmd+Option+R', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'analysed', mx_manual: 'edited', mxSrcTip_database: 'BPM from the database, checked against the audio', mxSrcTip_detected: 'BPM measured from the preview audio', mxSrcTip_manual: 'BPM you corrected (TAP or ½ / ×2)', mxSelTip: 'Drag the bar to choose which part of the preview loops (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxNoOut: 'No sound is coming out: click anywhere on the page or press PLAY again. If it persists, reload with Cmd+Option+R', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Sync needs the tempo of both tracks.', mxSynced: 'B now runs at', mxBlending: 'Blending A → B with a bass swap in the middle…', mxDone: 'Blend finished. B keeps playing.', mxWaitLoad: 'Wait until both decks have loaded.',
     mxNote: 'Each preview loops on the beat, so you can blend for as long as you like. Move the tempo and volume faders while it plays, change TRIM and EQ, click the waveform to jump. Double-click any knob or fader to reset it.',
     noBpmFound: 'BPM and key were not found for this track.',
@@ -1055,7 +1063,7 @@ const I18N = {
     trGap: 'Διαφορά tempo', trPitchB: 'Pitch στο B', trFar: 'Τα tempo απέχουν πολύ. Κάνε cut, echo out ή break.', trHalfD: 'Το B τρέχει στο διπλάσιο ή μισό tempo από το A. Μίξη στο beat grid ×2 ή /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Μεγάλο blend: μπες με το B στην αρχή φράσης, κάνε swap στα μπάσα γύρω στο bar 16 και μετά κατέβασε σιγά τα πρίμα.', trTipShort: 'Μικρό blend: μπες με το B στην αρχή φράσης, κόψε πρώτα τα μπάσα του A και άφησέ τα στο downbeat.',
     mxTitle: 'Mixer · previews 30″ σε loop πάνω στο beat', mxBoth: 'Play και τα δύο (sync)', mxAuto: 'Αυτόματο blend', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ', mxFade: 'Crossfader',
-    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'εντοπίστηκε', mx_manual: 'χειροκίνητο', mxSelTip: 'Σύρε τη γραμμή για να διαλέξεις ποιο κομμάτι του preview θα κάνει loop (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxNoOut: 'Δεν βγαίνει ήχος: κάνε ένα κλικ οπουδήποτε στη σελίδα ή πάτα ξανά PLAY. Αν συνεχίζει, ανανέωσε με Cmd+Option+R', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'ανάλυση', mx_manual: 'διόρθωση', mxSrcTip_database: 'BPM από τη βάση δεδομένων, ελεγμένο πάνω στον ήχο', mxSrcTip_detected: 'BPM μετρημένο από τον ήχο του preview', mxSrcTip_manual: 'BPM που διόρθωσες εσύ (TAP ή ½ / ×2)', mxSelTip: 'Σύρε τη γραμμή για να διαλέξεις ποιο κομμάτι του preview θα κάνει loop (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxNoOut: 'Δεν βγαίνει ήχος: κάνε ένα κλικ οπουδήποτε στη σελίδα ή πάτα ξανά PLAY. Αν συνεχίζει, ανανέωσε με Cmd+Option+R', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Το Sync θέλει το tempo και των δύο κομματιών.', mxSynced: 'Το B τρέχει τώρα στα', mxBlending: 'Blend A → B με bass swap στη μέση…', mxDone: 'Το blend τελείωσε. Το B συνεχίζει.', mxWaitLoad: 'Περίμενε να φορτώσουν και τα δύο decks.',
     mxNote: 'Κάθε preview κάνει loop πάνω στο beat, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα το tempo και τα faders έντασης την ώρα που παίζει, άλλαξε TRIM και EQ, κάνε κλικ στο κύμα για να πας αλλού. Διπλό κλικ σε knob ή fader το επαναφέρει.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
@@ -1512,6 +1520,8 @@ function anEnqueue(list) {
   anPump();
 }
 function anPump() {
+  // όσο παίζει ο mixer, ο analyzer περιμένει (για να μην «κολλάει» η κυματομορφή)
+  if (typeof MX !== 'undefined' && MX.a && (MX.a.playing || MX.b.playing)) { clearTimeout(AN.waitT); AN.waitT = setTimeout(anPump, 1500); return; }
   while (AN.busy < 2 && AN.q.length) {
     const tr = AN.q.shift();
     if (anHas(tr)) continue;
@@ -1973,10 +1983,28 @@ function mxNewDeck(k) {
 const mxEff = (D) => D.rate * (D.bend || 1);
 // Πόσα BPM έχει αλλάξει συνολικά σε σχέση με το αρχικό: π.χ. «+3.7 BPM» (το % φαίνεται κάτω από το tempo fader)
 const mxPctTxt = (D) => { if (!D.bpm) return '—'; const d = D.bpm * D.rate - D.bpm; return (d >= -0.05 ? '+' : '−') + Math.abs(d).toFixed(1) + ' BPM'; };
-function mxPos(D) {
+// Ομαλό ρολόι για την εικόνα: το currentTime του Safari προχωράει «σκαλοπάτια»· το ρολόι εξόδου
+// (getOutputTimestamp) + performance.now() δίνει συνεχή χρόνο και ταιριάζει με αυτό που ακούς
+function mxNow() {
+  const c = MXCTX;
+  if (!c) return 0;
+  let v = c.currentTime;
+  try {
+    if (c.getOutputTimestamp) {
+      const ts = c.getOutputTimestamp();
+      if (ts && ts.performanceTime > 0 && ts.contextTime > 0) {
+        const est = ts.contextTime + (performance.now() - ts.performanceTime) / 1000;
+        if (Math.abs(est - c.currentTime) < 0.25) v = est; // ασφάλεια: αν κάτι πάει στραβά, κρατάμε το κανονικό
+      }
+    }
+  } catch (_) {}
+  MX.lastNow = v < (MX.lastNow || 0) && (MX.lastNow - v) < 0.05 ? MX.lastNow : v; // ποτέ προς τα πίσω
+  return MX.lastNow;
+}
+function mxPos(D, vis) {
   if (!D.buf) return 0;
   if (!D.playing) return D.pausedAt;
-  let p = D.startOff + (MXCTX.currentTime - D.startedAt) * mxEff(D);
+  let p = D.startOff + ((vis ? mxNow() : MXCTX.currentTime) - D.startedAt) * mxEff(D);
   if (D.loop && D.le > D.ls) { if (p >= D.le) p = D.ls + ((p - D.ls) % (D.le - D.ls)); }
   else p = Math.min(p, D.buf.duration);
   return p;
@@ -2306,9 +2334,9 @@ function mxDeckHTML(D) {
     body = `<canvas class="wz" id="mxz-${k}" width="640" height="84"></canvas>
     <div class="rsel" data-rsel="${k}" id="mxrs-${k}" title="${esc(t('mxSelTip'))}"><div class="rfill"></div><i class="rh l"></i><i class="rh r"></i></div>
     <canvas class="wave" id="mxw-${k}" data-mxw="${k}" width="640" height="22"></canvas>
-    <div class="dtime"><span id="mxc-${k}">0:00</span><span id="mxlab-${k}">${esc(mxLoopLabel(D))}</span></div>
+    <div class="dtime"><span class="dbpm"><b id="mxb-${k}">${D.bpm ? (D.bpm * D.rate).toFixed(1) : '—'}</b><span>BPM</span><span class="dorig"><b id="mxo-${k}">${D.bpm ? D.bpm.toFixed(1) : '—'}</b><i id="mxop-${k}" class="${Math.abs(D.rate - 1) > 0.0004 ? 'on' : ''}">${mxPctTxt(D)}</i></span><small id="mxbs-${k}" title="${esc(D.bpmSrc ? t('mxSrcTip_' + D.bpmSrc) : '')}">${esc(D.bpmSrc ? t('mx_' + D.bpmSrc) : '')}</small></span><span id="mxlab-${k}">${esc(mxLoopLabel(D))}</span></div>
     <div class="lrow"><button type="button" class="lpt${D.loop ? ' on' : ''}" data-mxa="loop-${k}" id="mxlp-${k}">LOOP</button>${LOOP_SIZES.map((n) => `<button type="button" data-mxa="lb-${k}-${n}" id="mxlb-${k}-${n}" class="${mxFits(D, n) ? '' : 'off'}${D.loopBeats === n ? ' on' : ''}" title="${esc(mxFits(D, n) ? '' : t('mxNoFit'))}">${n} ${esc(t('mxBeats').toUpperCase())}</button>`).join('')}</div>
-    <div class="grow"><button type="button" data-mxa="g-bm-${k}">BPM −</button><button type="button" data-mxa="g-bp-${k}">BPM +</button><button type="button" data-mxa="g-gl-${k}">◀ GRID</button><button type="button" data-mxa="g-gr-${k}">GRID ▶</button><button type="button" data-mxa="g-one-${k}">SET 1</button><button type="button" data-mxa="g-tap-${k}">TAP</button><button type="button" data-mxa="g-hf-${k}">½ / ×2</button></div>
+    <div class="grow"><button type="button" data-mxa="g-gl-${k}">◀ GRID</button><button type="button" data-mxa="g-gr-${k}">GRID ▶</button><button type="button" data-mxa="g-one-${k}">SET 1</button><button type="button" data-mxa="g-tap-${k}">TAP</button><button type="button" data-mxa="g-hf-${k}">½ / ×2</button></div>
     <div class="mid"><div class="tpb">
         <div class="rb"><button type="button" class="rbtn cue" data-mxcue="${k}" id="mxcue-${k}" aria-label="Cue"><span class="core">CUE</span></button></div>
         <div class="rb"><button type="button" class="rbtn dplay" data-mxa="play-${k}" id="mxp-${k}" aria-label="Play / pause"><span class="core"><svg class="ico" viewBox="0 0 14 14" width="16" height="16" aria-hidden="true"><path class="ip" d="M3.5 1.5v11l9-5.5z" fill="currentColor"/><path class="ia" d="M3 2h3v10H3zM8 2h3v10H8z" fill="currentColor"/></svg></span></button></div></div><div class="jogw"><div class="jog" data-jog="${k}" id="mxj-${k}" style="--ja:0deg" aria-label="Jog wheel ${n}"><div class="plat"><i></i></div><div class="jc"><b>${n}</b><span id="mxjt-${k}">0:00.0</span></div></div>
@@ -2319,9 +2347,8 @@ function mxDeckHTML(D) {
         <span class="tpct" id="mxt-${k}">${pct >= 0 ? '+' : ''}${pct}%</span></div>
     </div>`;
   }
-  return `<div class="deck"><div class="dhead"><div><div class="dn">DECK ${n}${tags ? ' · ' + esc(tags) : ''}</div>
-      <div class="dt">${esc(tr.title)}</div><div class="da">${esc(tr.artist)}</div></div>
-      <div class="dbpm"><b id="mxb-${k}">${D.bpm ? (D.bpm * D.rate).toFixed(1) : '—'}</b><span>BPM</span><div class="dorig"><b id="mxo-${k}">${D.bpm ? D.bpm.toFixed(1) : '—'}</b><i id="mxop-${k}" class="${Math.abs(D.rate - 1) > 0.0004 ? 'on' : ''}">${mxPctTxt(D)}</i></div><small id="mxbs-${k}">${esc(D.bpmSrc ? t('mx_' + D.bpmSrc) : '')}</small></div></div>
+  return `<div class="deck"><div class="dhead"><div class="dtags"><span class="dn">DECK ${n}</span>${i.camelot ? `<span class="dtag key">${esc(i.camelot)}</span>` : ''}${i.genre ? `<span class="dtag">${esc(i.genre)}</span>` : ''}</div>
+      <div class="dt" title="${esc(tr.title)}">${esc(tr.title)}</div><div class="da" title="${esc(tr.artist)}">${esc(tr.artist)}</div></div>
     ${body}</div>`;
 }
 // Ο mixer στη μέση, όπως σε κανονικό controller: κανάλι A | κανάλι B (HIGH / MID / LOW, fader), από κάτω ο crossfader
@@ -2415,7 +2442,7 @@ function mxDraw(D) {
   if (!D.buf) return;
   const c = mxCanvas('mxw-' + D.k); if (!c) return;
   if (!D.envO) D.envO = mxEnv(D.buf, 40, 1);
-  const { g, W, H, dpr } = c, dur = D.buf.duration, X = (tm) => (tm / dur) * W, pos = mxPos(D), px = X(pos), mid = H / 2;
+  const { g, W, H, dpr } = c, dur = D.buf.duration, X = (tm) => (tm / dur) * W, pos = mxPos(D, true), px = X(pos), mid = H / 2;
   g.clearRect(0, 0, W, H);
   const E = D.envO, N = E.body.length, xOf = (i) => ((i + 0.5) / N) * W;
   const body = mxWavePath(E.body, 0, N - 1, xOf, mid, mid - dpr);
@@ -2431,7 +2458,7 @@ function mxDrawZoom(D) {
   if (!D.buf) return;
   if (!D.envZ) D.envZ = mxEnv(D.buf, 600, 2);
   const c = mxCanvas('mxz-' + D.k); if (!c) return;
-  const { g, W, H, dpr } = c, dur = D.buf.duration, pos = mxPos(D), span = mxZoomSpan(D);
+  const { g, W, H, dpr } = c, dur = D.buf.duration, pos = mxPos(D, true), span = mxZoomSpan(D);
   const from = pos - span / 2, X = (tm) => ((tm - from) / span) * W;
   const RUL = 7 * dpr, mid = H / 2, amp = mid - RUL - 2 * dpr, half = W / 2;
   g.clearRect(0, 0, W, H);
@@ -2462,6 +2489,7 @@ function mxDrawZoom(D) {
 function mxAnim() {
   if (MX.a && document.getElementById('mxz-a')) {
     mxDrawZoom(MX.a); mxDrawZoom(MX.b); mxDraw(MX.a); mxDraw(MX.b);
+    for (const D of [MX.a, MX.b]) { const jw = document.getElementById('mxj-' + D.k); if (jw && D.buf) jw.style.setProperty('--ja', (((mxPos(D, true) / 1.8) * 360) % 360).toFixed(2) + 'deg'); }
     for (const D of [MX.a, MX.b]) {
       const el = document.getElementById('mxvu-' + D.k);
       if (!el) continue;
@@ -2491,7 +2519,7 @@ function mxPaint() {
       if (D.playing && D.bpm && D.buf) { const bt = Math.floor((mxPos(D) - D.first) / (60 / D.bpm) + 1e-6); b = ((bt % 4) + 4) % 4; }
       if (btn.dataset.b !== String(b)) { btn.dataset.b = String(b); btn.querySelectorAll('.ring path').forEach((el, i) => el.classList.toggle('lit', i <= b)); }
     }
-    const jw = document.getElementById('mxj-' + k); if (jw && D.buf) jw.style.setProperty('--ja', ((mxPos(D) / 1.8) * 360) % 360 + 'deg');
+    // (το γύρισμα του δίσκου γίνεται στο mxAnim, 60 καρέ/δευτ.)
     mxRingPaint(D);
     const jt = document.getElementById('mxjt-' + k);
     if (jt && D.buf) { const p = mxPos(D), tx = Math.floor(p / 60) + ':' + String(Math.floor(p % 60)).padStart(2, '0') + '.' + Math.floor((p % 1) * 10); if (jt.textContent !== tx) jt.textContent = tx; }
@@ -2745,7 +2773,7 @@ $('#out').addEventListener('click', (e) => {
       if (D.taps.length < 4) return;
     }
     mxRegrid(D);
-    const bbs = document.getElementById('mxbs-' + kk); if (bbs) bbs.textContent = D.bpmSrc ? t('mx_' + D.bpmSrc) : '';
+    const bbs = document.getElementById('mxbs-' + kk); if (bbs) { bbs.textContent = D.bpmSrc ? t('mx_' + D.bpmSrc) : ''; bbs.title = D.bpmSrc ? t('mxSrcTip_' + D.bpmSrc) : ''; }
   } else if (act.startsWith('lb-')) {
     const [, kk, n] = act.split('-');
     const D = MX[kk];

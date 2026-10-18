@@ -474,6 +474,9 @@
   .mxc .xfade{margin:0;padding-top:12px;border-top:1px solid var(--line)}
   /* γραμμή στη μέση του crossfader */
   .mxc .xfade input[type=range]{background:linear-gradient(var(--mute),var(--mute)) center/1px 16px no-repeat}
+  /* μετρητής στάθμης δίπλα στο fader */
+  .fw .vu{position:absolute;left:-7px;top:4px;bottom:4px;width:4px;pointer-events:none;background:linear-gradient(to top,#8a8a84 0 60%,#ecece8 60% 88%,#ff9d2e 88%)}
+  .fw .vu i{position:absolute;left:0;right:0;top:0;height:100%;background:#161615}
   .chsep{width:28px;height:1px;background:var(--line);margin:-2px 0}
   /* VOL faders πιο ψηλοί, να γεμίζει το κανάλι */
   .mx .chn .chf .fw{height:122px}
@@ -964,7 +967,7 @@ const I18N = {
     trGap: 'Tempo gap', trPitchB: 'Pitch B by', trFar: 'Tempos too far apart. Use a cut, an echo out or a break.', trHalfD: 'B runs at double or half the tempo of A. Mix on the beat grid at x2 or /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Long blend: bring B in on a phrase start, swap the bass around bar 16, then ease the highs.', trTipShort: 'Short blend: bring B in on a phrase start, cut the bass of A first and drop it on the downbeat.',
     mxTitle: 'Mixer · 30-second previews, looped on the beat', mxBoth: 'Play both (synced)', mxAuto: 'Auto blend', mxSync: 'Sync B to A', mxStopAll: 'Stop', mxFade: 'Crossfader',
-    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'detected', mx_manual: 'manual', mxSelTip: 'Drag the bar to choose which part of the preview loops (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'detected', mx_manual: 'manual', mxSelTip: 'Drag the bar to choose which part of the preview loops (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxNoOut: 'No sound is coming out: click anywhere on the page or press PLAY again. If it persists, reload with Cmd+Option+R', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Sync needs the tempo of both tracks.', mxSynced: 'B now runs at', mxBlending: 'Blending A → B with a bass swap in the middle…', mxDone: 'Blend finished. B keeps playing.', mxWaitLoad: 'Wait until both decks have loaded.',
     mxNote: 'Each preview loops on the beat, so you can blend for as long as you like. Move the tempo and volume faders while it plays, change TRIM and EQ, click the waveform to jump. Double-click any knob or fader to reset it.',
     noBpmFound: 'BPM and key were not found for this track.',
@@ -1049,7 +1052,7 @@ const I18N = {
     trGap: 'Διαφορά tempo', trPitchB: 'Pitch στο B', trFar: 'Τα tempo απέχουν πολύ. Κάνε cut, echo out ή break.', trHalfD: 'Το B τρέχει στο διπλάσιο ή μισό tempo από το A. Μίξη στο beat grid ×2 ή /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Μεγάλο blend: μπες με το B στην αρχή φράσης, κάνε swap στα μπάσα γύρω στο bar 16 και μετά κατέβασε σιγά τα πρίμα.', trTipShort: 'Μικρό blend: μπες με το B στην αρχή φράσης, κόψε πρώτα τα μπάσα του A και άφησέ τα στο downbeat.',
     mxTitle: 'Mixer · previews 30″ σε loop πάνω στο beat', mxBoth: 'Play και τα δύο (sync)', mxAuto: 'Αυτόματο blend', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ', mxFade: 'Crossfader',
-    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'εντοπίστηκε', mx_manual: 'χειροκίνητο', mxSelTip: 'Σύρε τη γραμμή για να διαλέξεις ποιο κομμάτι του preview θα κάνει loop (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'εντοπίστηκε', mx_manual: 'χειροκίνητο', mxSelTip: 'Σύρε τη γραμμή για να διαλέξεις ποιο κομμάτι του preview θα κάνει loop (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxNoOut: 'Δεν βγαίνει ήχος: κάνε ένα κλικ οπουδήποτε στη σελίδα ή πάτα ξανά PLAY. Αν συνεχίζει, ανανέωσε με Cmd+Option+R', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Το Sync θέλει το tempo και των δύο κομματιών.', mxSynced: 'Το B τρέχει τώρα στα', mxBlending: 'Blend A → B με bass swap στη μέση…', mxDone: 'Το blend τελείωσε. Το B συνεχίζει.', mxWaitLoad: 'Περίμενε να φορτώσουν και τα δύο decks.',
     mxNote: 'Κάθε preview κάνει loop πάνω στο beat, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα το tempo και τα faders έντασης την ώρα που παίζει, άλλαξε TRIM και EQ, κάνε κλικ στο κύμα για να πας αλλού. Διπλό κλικ σε knob ή fader το επαναφέρει.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
@@ -1925,9 +1928,29 @@ function mxCtx() {
     const AC = window.AudioContext || window.webkitAudioContext;
     MXCTX = new AC();
     MX.master = MXCTX.createGain(); MX.master.gain.value = 0.9; MX.master.connect(MXCTX.destination);
+    MX.man = MXCTX.createAnalyser(); MX.man.fftSize = 1024; MX.master.connect(MX.man);
   }
-  if (MXCTX.state === 'suspended') MXCTX.resume();
+  if (MXCTX.state !== 'running') { try { MXCTX.resume(); } catch (_) {} }
   return MXCTX;
+}
+// Safari: η μηχανή ήχου «ξεκλειδώνει» μόνο μέσα σε κλικ του χρήστη. Σε κάθε κλικ / πλήκτρο τη ξυπνάμε
+// και παίζουμε ένα αθόρυβο δείγμα (το τέχνασμα που χρησιμοποιούν τα web DJ apps).
+function mxUnlock() {
+  if (!MXCTX) return;
+  try {
+    if (MXCTX.state !== 'running') MXCTX.resume();
+    const b = MXCTX.createBuffer(1, 1, MXCTX.sampleRate), s0 = MXCTX.createBufferSource();
+    s0.buffer = b; s0.connect(MXCTX.destination); s0.start(0);
+  } catch (_) {}
+}
+['pointerdown', 'keydown', 'touchend'].forEach((ev) => document.addEventListener(ev, mxUnlock, true));
+// στάθμη (RMS) από έναν analyser
+function mxLevel(an) {
+  if (!an) return 0;
+  const a = an._buf || (an._buf = new Float32Array(an.fftSize));
+  an.getFloatTimeDomainData(a);
+  let s2 = 0; for (let i = 0; i < a.length; i++) s2 += a[i] * a[i];
+  return Math.sqrt(s2 / a.length);
 }
 function mxNewDeck(k) {
   const c = mxCtx();
@@ -1937,10 +1960,12 @@ function mxNewDeck(k) {
   const trim = c.createGain(); // TRIM / gain του καναλιού (πριν από τα EQ)
   const vol = c.createGain(); // channel fader (ένταση του deck)
   const gain = c.createGain(); // crossfader
+  const an = c.createAnalyser(); an.fftSize = 1024; // μετρητής στάθμης του καναλιού (μετά το fader)
+  vol.connect(an);
   trim.connect(low); low.connect(mid); mid.connect(high); high.connect(vol); vol.connect(gain); gain.connect(MX.master);
   return { k, id: null, tr: null, buf: null, status: '', bpm: 0, bpmSrc: '', first: 0, peaks: null, src: null,
     playing: false, startedAt: 0, startOff: 0, pausedAt: 0, cue: 0, cueHeld: false, rate: 1, loop: true, ls: 0, le: 0, loopBars: 0,
-    eq: { trim: 0, low: 0, mid: 0, high: 0 }, vol: 100, nodes: { trim, low, mid, high, vol, gain } };
+    eq: { trim: 0, low: 0, mid: 0, high: 0 }, vol: 100, nodes: { trim, low, mid, high, vol, gain, an } };
 }
 const mxEff = (D) => D.rate * (D.bend || 1);
 // Πόσα BPM έχει αλλάξει συνολικά σε σχέση με το αρχικό: π.χ. «+3.7 BPM» (το % φαίνεται κάτω από το tempo fader)
@@ -2301,7 +2326,7 @@ function mxChanHTML(D) {
   const k = D.k, n = k.toUpperCase();
   const knob = (b) => `<div class="kn kn-${b}"><div class="krow"><button type="button" class="kstep" data-eqstep="${b}-${k}:-1" aria-label="${b} minus">−</button><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b], b)}deg"><i></i></div><button type="button" class="kstep" data-eqstep="${b}-${k}:1" aria-label="${b} plus">+</button></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`;
   return `<div class="chn"><div class="chl">${n}</div>${knob('trim')}<div class="chsep"></div>${['high', 'mid', 'low'].map(knob).join('')}
-    <div class="chf"><div class="fw"><input type="range" min="0" max="100" step="1" value="${D.vol}" data-mx="vol-${k}" id="mxv-${k}" aria-label="Volume ${n}"></div><span>VOL</span><em id="mxvv-${k}">${D.vol}</em></div></div>`;
+    <div class="chf"><div class="fw"><span class="vu"><i id="mxvu-${k}"></i></span><input type="range" min="0" max="100" step="1" value="${D.vol}" data-mx="vol-${k}" id="mxv-${k}" aria-label="Volume ${n}"></div><span>VOL</span><em id="mxvv-${k}">${D.vol}</em></div></div>`;
 }
 function mxCenterHTML() {
   return `<div class="mxc"><div class="mxch">${mxChanHTML(MX.a)}${mxChanHTML(MX.b)}</div>
@@ -2403,7 +2428,23 @@ function mxDrawZoom(D) {
 }
 // ομαλή κίνηση του ζουμ (60 καρέ/δευτ.) όσο ο mixer είναι στην οθόνη
 function mxAnim() {
-  if (MX.a && document.getElementById('mxz-a')) { mxDrawZoom(MX.a); mxDrawZoom(MX.b); }
+  if (MX.a && document.getElementById('mxz-a')) {
+    mxDrawZoom(MX.a); mxDrawZoom(MX.b);
+    for (const D of [MX.a, MX.b]) {
+      const el = document.getElementById('mxvu-' + D.k);
+      if (!el) continue;
+      const lv = Math.min(1, Math.max(0, (20 * Math.log10(mxLevel(D.nodes.an) + 1e-6) + 48) / 48)); // −48…0 dB
+      D.vu = Math.max(lv, (D.vu || 0) - 0.025); // πέφτει απαλά, όπως τα LED
+      el.style.height = ((1 - D.vu) * 100).toFixed(1) + '%'; // σκούρο κάλυμμα από πάνω: φαίνεται όσο «ανάβει»
+    }
+    // παίζουν decks αλλά δεν βγαίνει τίποτα; → ξυπνάμε τη μηχανή ήχου και ενημερώνουμε
+    const playing = MX.a.playing || MX.b.playing;
+    if (playing && MXCTX && mxLevel(MX.man) < 1e-5) {
+      MX.silent = (MX.silent || 0) + 1;
+      if (MX.silent === 60) { try { MXCTX.resume(); } catch (_) {} }
+      if (MX.silent === 90 && !MX.silentMsg) { MX.silentMsg = 1; mxMsg(t('mxNoOut') + ' (' + MXCTX.state + ')'); }
+    } else { MX.silent = 0; if (MX.silentMsg && playing) { MX.silentMsg = 0; mxMsg(''); } }
+  }
   MX.raf = requestAnimationFrame(mxAnim);
 }
 function mxPaint() {
@@ -2463,7 +2504,7 @@ function mxEqUI(D, b) {
 }
 function mxPrep() {
   if (typeof isPlaying === 'function' && isPlaying()) pauseP();
-  mxCtx();
+  mxCtx(); mxUnlock();
 }
 function mxSyncTempo() {
   const A = MX.a, B = MX.b;

@@ -630,6 +630,8 @@
   .lrow button:hover{color:var(--text);border-color:var(--text)}
   .lrow button.on{background:#ff9d2e;border-color:#ff9d2e;color:#000}
   /* μέγεθος που περιμένει το τέλος της λούπας: αναβοσβήνει */
+  .hzretry{margin-top:12px;height:28px;padding:0 14px;background:transparent;border:1px solid var(--line);color:var(--text);font:700 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:0}
+  .hzretry:hover{border-color:var(--text)}
   .lrow button.pend{border-color:#ff9d2e;color:#ff9d2e;animation:pulse .45s ease-in-out infinite}
   .lrow button.off{opacity:.3;cursor:not-allowed}
   .lrow button.off:hover{color:var(--mute);border-color:var(--line)}
@@ -1027,7 +1029,7 @@ const I18N = {
     trGap: 'Tempo gap', trPitchB: 'Pitch B by', trFar: 'Tempos too far apart. Use a cut, an echo out or a break.', trHalfD: 'B runs at double or half the tempo of A. Mix on the beat grid at x2 or /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Long blend: bring B in on a phrase start, swap the bass around bar 16, then ease the highs.', trTipShort: 'Short blend: bring B in on a phrase start, cut the bass of A first and drop it on the downbeat.',
     mxTitle: 'Mixer · 30-second previews, looped on the beat', mxBoth: 'Play both (synced)', mxAuto: 'Auto blend', mxAutoStop: 'Stop auto blend', mxSync: 'Sync B to A', mxStopAll: 'Stop', mxFade: 'Crossfader',
-    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'analysed', mx_manual: 'edited', mxSrcTip_database: 'BPM from the database, checked against the audio', mxSrcTip_detected: 'BPM measured from the preview audio', mxSrcTip_manual: 'BPM you corrected (TAP or ½ / ×2)', mxSelTip: 'Drag the bar to move the loop. Tip: set CUE where you want the loop to start (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxQTip: 'Quantize: CUE, loops and jumps snap to the beat grid', mxLoopOff: 'loop off', mxNoOut: 'No sound is coming out: click anywhere on the page or press PLAY again. If it persists, reload with Cmd+Option+R', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Loading the preview…', mxAnalyzing: 'Analysing the tempo…', mxNoPrev: 'No preview available for this track.', mxError: 'Could not load this preview.', mx_detected: 'analysed', mx_manual: 'edited', mxSrcTip_database: 'BPM from the database, checked against the audio', mxSrcTip_detected: 'BPM measured from the preview audio', mxSrcTip_manual: 'BPM you corrected (TAP or ½ / ×2)', mxSelTip: 'Drag the bar to move the loop. Tip: set CUE where you want the loop to start (double-click resets)', mxNoFit: 'Longer than the 30-second preview', mx_database: 'database', mxRetry: 'Try again', mxQTip: 'Quantize: CUE, loops and jumps snap to the beat grid', mxLoopOff: 'loop off', mxNoOut: 'No sound is coming out: click anywhere on the page or press PLAY again. If it persists, reload with Cmd+Option+R', mxOrig: 'ORIG', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Sync needs the tempo of both tracks.', mxSynced: 'B now runs at', mxBlending: 'Blending A → B with a bass swap in the middle…', mxDone: 'Blend finished. B keeps playing.', mxWaitLoad: 'Wait until both decks have loaded.',
     mxNote: 'Each preview loops on the beat, so you can blend for as long as you like. Move the tempo and volume faders while it plays, change TRIM and EQ, click the waveform to jump. Double-click any knob or fader to reset it.',
     noBpmFound: 'BPM and key were not found for this track.',
@@ -1112,7 +1114,7 @@ const I18N = {
     trGap: 'Διαφορά tempo', trPitchB: 'Pitch στο B', trFar: 'Τα tempo απέχουν πολύ. Κάνε cut, echo out ή break.', trHalfD: 'Το B τρέχει στο διπλάσιο ή μισό tempo από το A. Μίξη στο beat grid ×2 ή /2.',
     trBlend: 'Blend', trBars: 'bars', trTipLong: 'Μεγάλο blend: μπες με το B στην αρχή φράσης, κάνε swap στα μπάσα γύρω στο bar 16 και μετά κατέβασε σιγά τα πρίμα.', trTipShort: 'Μικρό blend: μπες με το B στην αρχή φράσης, κόψε πρώτα τα μπάσα του A και άφησέ τα στο downbeat.',
     mxTitle: 'Mixer · previews 30″ σε loop πάνω στο beat', mxBoth: 'Play και τα δύο (sync)', mxAuto: 'Αυτόματο blend', mxAutoStop: 'Σταμάτα το blend', mxSync: 'Sync το B στο A', mxStopAll: 'Στοπ', mxFade: 'Crossfader',
-    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'ανάλυση', mx_manual: 'διόρθωση', mxSrcTip_database: 'BPM από τη βάση δεδομένων, ελεγμένο πάνω στον ήχο', mxSrcTip_detected: 'BPM μετρημένο από τον ήχο του preview', mxSrcTip_manual: 'BPM που διόρθωσες εσύ (TAP ή ½ / ×2)', mxSelTip: 'Σύρε τη γραμμή για να μετακινήσεις τη λούπα. Πιο εύκολα: βάλε CUE εκεί που θέλεις να ξεκινά (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxQTip: 'Quantize: CUE, λούπες και άλματα κουμπώνουν στο beat του grid', mxLoopOff: 'χωρίς λούπα', mxNoOut: 'Δεν βγαίνει ήχος: κάνε ένα κλικ οπουδήποτε στη σελίδα ή πάτα ξανά PLAY. Αν συνεχίζει, ανανέωσε με Cmd+Option+R', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
+    mxLoading: 'Φορτώνει το preview…', mxAnalyzing: 'Αναλύω το tempo…', mxNoPrev: 'Δεν υπάρχει preview για αυτό το κομμάτι.', mxError: 'Δεν φόρτωσε αυτό το preview.', mx_detected: 'ανάλυση', mx_manual: 'διόρθωση', mxSrcTip_database: 'BPM από τη βάση δεδομένων, ελεγμένο πάνω στον ήχο', mxSrcTip_detected: 'BPM μετρημένο από τον ήχο του preview', mxSrcTip_manual: 'BPM που διόρθωσες εσύ (TAP ή ½ / ×2)', mxSelTip: 'Σύρε τη γραμμή για να μετακινήσεις τη λούπα. Πιο εύκολα: βάλε CUE εκεί που θέλεις να ξεκινά (διπλό κλικ = αρχή)', mxNoFit: 'Μεγαλύτερο από το preview των 30″', mx_database: 'βάση', mxRetry: 'Δοκίμασε ξανά', mxQTip: 'Quantize: CUE, λούπες και άλματα κουμπώνουν στο beat του grid', mxLoopOff: 'χωρίς λούπα', mxNoOut: 'Δεν βγαίνει ήχος: κάνε ένα κλικ οπουδήποτε στη σελίδα ή πάτα ξανά PLAY. Αν συνεχίζει, ανανέωσε με Cmd+Option+R', mxOrig: 'ΑΡΧΙΚΟ', mxBars: 'bars', mxBar: 'bar', mxBeats: 'beats',
     mxNoSync: 'Το Sync θέλει το tempo και των δύο κομματιών.', mxSynced: 'Το B τρέχει τώρα στα', mxBlending: 'Blend A → B με bass swap στη μέση…', mxDone: 'Το blend τελείωσε. Το B συνεχίζει.', mxWaitLoad: 'Περίμενε να φορτώσουν και τα δύο decks.',
     mxNote: 'Κάθε preview κάνει loop πάνω στο beat, οπότε μπορείς να μιξάρεις όσο θέλεις. Κούνα το tempo και τα faders έντασης την ώρα που παίζει, άλλαξε TRIM και EQ, κάνε κλικ στο κύμα για να πας αλλού. Διπλό κλικ σε knob ή fader το επαναφέρει.',
     noBpmFound: 'Δεν βρέθηκαν BPM και tonality για αυτό το κομμάτι.',
@@ -2348,10 +2350,27 @@ async function mxLoadDeck(D, tr) {
   mxSetEq(D, 'low', 0); mxSetEq(D, 'mid', 0); mxSetEq(D, 'high', 0);
   mxStopAuto(); MX.xf = 50; mxApplyXf(); mxSetXf(50);
   if (!tr.preview) return;
+  // φόρτωμα με όριο χρόνου (ποτέ «κολλημένο» deck)
+  const getBuf = async (url) => {
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 20000);
+    try {
+      const r = await fetch('/api/audio?u=' + encodeURIComponent(url), { signal: ctl.signal });
+      if (!r.ok) throw new Error('audio ' + r.status);
+      return await mxDecode(await r.arrayBuffer());
+    } finally { clearTimeout(to); }
+  };
   try {
-    const r = await fetch('/api/audio?u=' + encodeURIComponent(tr.preview));
-    if (!r.ok) throw new Error('audio ' + r.status);
-    const buf = await mxDecode(await r.arrayBuffer());
+    let buf;
+    try { buf = await getBuf(tr.preview); }
+    catch (e1) {
+      // τα links των previews λήγουν μετά από λίγη ώρα: ζητάμε φρέσκο και ξαναδοκιμάζουμε μία φορά
+      if (D.id !== tr.id || String(tr.preview).startsWith('hzfile:')) throw e1;
+      const q = /^\d+$/.test(String(tr.id)) ? { id: String(tr.id) } : { artist: tr.artist || '', title: tr.track || tr.title || '' };
+      const fr = await (await fetch('/api/preview?' + new URLSearchParams(q))).json().catch(() => ({}));
+      if (!fr.preview || D.id !== tr.id) throw e1;
+      tr.preview = fr.preview;
+      buf = await getBuf(fr.preview);
+    }
     if (D.id !== tr.id) return;
     D.buf = buf; D.wave = mxBands(buf, 1200); D.envZ = null; D.envO = null; D.zc = null; D.oc = null; D.peaks = D.wave;
     D.status = 'analyzing'; mxRender();
@@ -2511,7 +2530,7 @@ function mxDeckHTML(D) {
   const tags = [i.camelot || '', i.genre || ''].filter(Boolean).join(' · ');
   let body;
   if (D.status !== 'ready') {
-    body = `<div class="mixhint" style="margin:6px 0 0" id="mxst-${k}">${esc(stat)}</div>`;
+    body = `<div class="mixhint" style="margin:6px 0 0" id="mxst-${k}">${esc(stat)}</div>${D.status === 'error' ? `<button type="button" class="hzretry" data-mxa="retry-${k}">${esc(t('mxRetry'))}</button>` : ''}`;
   } else {
     body = `<div class="wbox"><div class="dscr"><span class="dpos"><b id="mxjt-${k}">0:00.0</b><span> / ${esc(fmtT(D.buf.duration))}</span></span><span class="wlab" id="mxlab-${k}">${esc(mxLoopLabel(D))}</span></div>
     <canvas class="wz" id="mxz-${k}" width="640" height="84"></canvas>
@@ -3076,6 +3095,9 @@ $('#out').addEventListener('click', (e) => {
     const D = MX[kk], beats = Number(n);
     if (!D.buf || !D.bpm) return;
     mxLoopToggle(D, D.bl === beats ? 0 : beats);
+  } else if (act.startsWith('retry-')) {
+    const D = MX[act.slice(-1)], tr = D.tr;
+    if (tr) { D.id = null; mxLoadDeck(D, tr); mxRender(); }
   } else if (act === 'curve-eq' || act === 'curve-iso') {
     mxSetCurve(act.slice(6));
   } else if (act.startsWith('q-')) {

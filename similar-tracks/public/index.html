@@ -398,6 +398,18 @@
   .rowhead .c-n{text-align:right}
   .rowhead .links{justify-content:flex-start;font:inherit;letter-spacing:inherit;color:inherit}
   .row .c-n{color:var(--dim);font-size:12px;text-align:right}
+  /* σειρά του set: σύρσιμο ή ▲▼ (εμφανίζονται στο # όταν περνάς το ποντίκι) */
+  .row[draggable="true"]{cursor:grab}
+  .row.dragging{opacity:.35}
+  .row.drop-before{box-shadow:inset 0 2px 0 #ff9d2e}
+  .row.drop-after{box-shadow:inset 0 -2px 0 #ff9d2e}
+  .c-n .mv{display:none;flex-direction:column;align-items:flex-end;gap:2px}
+  .c-n .mv button{width:22px;height:16px;padding:0;background:transparent;border:1px solid var(--line);color:var(--mute);font:9px/1 var(--mono);cursor:pointer;border-radius:0}
+  .c-n .mv button:hover{border-color:#ff9d2e;color:#ff9d2e}
+  .row[data-idx]:hover .c-n .nnum{display:none}
+  .row[data-idx]:hover .c-n .mv{display:flex}
+  @media (hover:none){.row[data-idx] .c-n .nnum{display:none}.row[data-idx] .c-n .mv{display:flex}}
+  .setbtns{display:flex;gap:8px}
   .row .c-t,.row .c-a{min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
   .row .c-t .tt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
   .row .c-t{font:600 14.5px/1.3 var(--sans)}
@@ -1045,7 +1057,7 @@ const I18N = {
     setTitle: 'Your set', setMeta: 'tracks', setApprox: 'about', setMin: 'min with 1:00 blends',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
     yourTrack: 'Your track', inAt: 'in at',
-    rel_same: 'same key', rel_smooth: 'smooth key change', rel_relative: 'relative key', rel_boost: 'energy boost', rel_clash: 'keys clash, mix with care', rel_unknown: 'key unknown',
+    mvUp: 'Move up', mvDown: 'Move down', resetOrder: 'Reset order', reorderHint: 'Drag a track (or use ▲▼) to change the order. BPM and key changes update automatically.', rel_same: 'same key', rel_smooth: 'smooth key change', rel_relative: 'relative key', rel_boost: 'energy boost', rel_clash: 'keys clash, mix with care', rel_unknown: 'key unknown',
     blend: 'blend about', bars: 'bars',
     copySet: 'Copy tracklist', copied: 'Copied',
     noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
@@ -1130,7 +1142,7 @@ const I18N = {
     setTitle: 'Το set σου', setMeta: 'κομμάτια', setApprox: 'περίπου', setMin: 'λεπτά με blends 1:00',
     secIntro: 'Intro', secBuild: 'Build', secPeak: 'Peak time', secOutro: 'Outro',
     yourTrack: 'Το κομμάτι σου', inAt: 'μπαίνει στο',
-    rel_same: 'ίδιο κλειδί', rel_smooth: 'ομαλή αλλαγή κλειδιού', rel_relative: 'σχετικό κλειδί', rel_boost: 'ενεργειακό boost', rel_clash: 'τα κλειδιά συγκρούονται, πρόσεχε στη μίξη', rel_unknown: 'άγνωστο κλειδί',
+    mvUp: 'Πάνω', mvDown: 'Κάτω', resetOrder: 'Αρχική σειρά', reorderHint: 'Σύρε ένα κομμάτι (ή πάτα ▲▼) για να αλλάξεις τη σειρά. Οι αλλαγές BPM και κλειδιού ενημερώνονται μόνες τους.', rel_same: 'ίδιο κλειδί', rel_smooth: 'ομαλή αλλαγή κλειδιού', rel_relative: 'σχετικό κλειδί', rel_boost: 'ενεργειακό boost', rel_clash: 'τα κλειδιά συγκρούονται, πρόσεχε στη μίξη', rel_unknown: 'άγνωστο κλειδί',
     blend: 'blend περίπου', bars: 'bars',
     copySet: 'Αντιγραφή tracklist', copied: 'Αντιγράφηκε',
     noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
@@ -1424,8 +1436,9 @@ function rowHead(kind) { // 'search' | 'dc' | 'set'
 // Μία γραμμή του πίνακα: κάθε τιμή στη δική της στήλη
 function cellsRow(o) {
   const now = o.id != null && currentId != null && String(o.id) === String(currentId);
-  return `<div class="row${o.cls || ''}${now ? ' nowplaying' + (playingId != null ? ' isplaying' : '') : ''}"${o.id != null ? ` data-row="${esc(o.id)}"` : ''}>
-    <div class="c-n">${now ? '<span class="eq"><i></i><i></i><i></i></span>' : String(o.i + 1).padStart(2, '0')}</div>
+  const num = now ? '<span class="eq"><i></i><i></i><i></i></span>' : String(o.i + 1).padStart(2, '0');
+  return `<div class="row${o.cls || ''}${now ? ' nowplaying' + (playingId != null ? ' isplaying' : '') : ''}"${o.id != null ? ` data-row="${esc(o.id)}"` : ''}${o.reorder ? ` draggable="true" data-idx="${o.i}"` : ''}>
+    <div class="c-n">${o.reorder ? `<span class="nnum">${num}</span><span class="mv"><button type="button" data-mv="-1" aria-label="Move up" title="${esc(t('mvUp'))}">▲</button><button type="button" data-mv="1" aria-label="Move down" title="${esc(t('mvDown'))}">▼</button></span>` : num}</div>
     <img class="c-img" src="${esc(o.cover || '')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
     <div class="c-t" title="${esc(o.title)}"><span class="tt">${esc(o.title)}</span>${o.sub ? `<small>${o.sub}</small>` : ''}</div>
     <div class="c-a" title="${esc(o.artist)}"><span>${esc(o.artist)}</span></div>
@@ -1476,16 +1489,93 @@ function setRow(x, i, start) {
     id: x.id, i, cls: x.isSeed ? ' isseed' : '', cover: x.cover, title: x.title, artist: x.artist,
     sub: x.isSeed ? `<span class="mixtag">${esc(t('yourTrack'))}</span>` : '',
     genre: x.genre, gUnsure: x.genreSure === false, gNote: x.genreNote, bpm: x.bpm, key: x.camelot, keyName: x.key, time: fmtDur(x.duration),
-    last: fmtClock(start), play: playBtn(x), find: links(x),
+    last: fmtClock(start), play: playBtn(x), find: links(x), reorder: true,
   });
 }
+/* ---------- Χειροκίνητη σειρά στο set: σύρσιμο ή ▲▼ ----------
+   Οι ενότητες (warm-up, build, peak…) μένουν στις θέσεις τους· οι μεταβάσεις (BPM %, κλειδί) ξαναϋπολογίζονται. */
+function setMove(from, to) {
+  const items = setData && setData.set;
+  if (!items || from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) return;
+  if (!setData.orig) setData.orig = items.map((x) => Object.assign({}, x, { transition: x.transition && Object.assign({}, x.transition) }));
+  const secs = items.map((x) => x.section);
+  const [it] = items.splice(from, 1);
+  items.splice(to, 0, it);
+  items.forEach((x, i) => { x.section = secs[i]; });
+  setRecalc(items);
+  setData.edited = true;
+  renderSet();
+}
+function setRecalc(items) {
+  items.forEach((x, i) => {
+    const p = items[i - 1];
+    x.transition = p ? {
+      bpmPct: p.bpm && x.bpm ? Math.round(((x.bpm - p.bpm) / p.bpm) * 1000) / 10 : null,
+      key: p.camelot && x.camelot ? relOf(p.camelot, x.camelot) : 'unknown',
+      from: p.camelot || '', to: x.camelot || '',
+    } : null;
+  });
+}
+function setResetOrder() {
+  if (!setData || !setData.orig) return;
+  setData.set = setData.orig.map((x) => Object.assign({}, x));
+  setData.orig = null; setData.edited = false;
+  renderSet();
+}
+let setDrag = null;
+$('#out').addEventListener('dragstart', (e) => {
+  const r = e.target.closest && e.target.closest('.row[data-idx]');
+  if (!r || mode !== 'set') return;
+  setDrag = Number(r.dataset.idx);
+  r.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(setDrag)); } catch (_) {}
+});
+$('#out').addEventListener('dragover', (e) => {
+  if (setDrag == null) return;
+  const r = e.target.closest && e.target.closest('.row[data-idx]');
+  e.preventDefault();
+  document.querySelectorAll('.row.drop-before,.row.drop-after').forEach((x) => x.classList.remove('drop-before', 'drop-after'));
+  if (!r) return;
+  const b = r.getBoundingClientRect();
+  r.classList.add(e.clientY < b.top + b.height / 2 ? 'drop-before' : 'drop-after');
+});
+$('#out').addEventListener('drop', (e) => {
+  if (setDrag == null) return;
+  e.preventDefault();
+  const r = e.target.closest && e.target.closest('.row[data-idx]');
+  const from = setDrag;
+  setDrag = null;
+  if (!r) { renderSet(); return; }
+  const b = r.getBoundingClientRect(), over = Number(r.dataset.idx), after = e.clientY >= b.top + b.height / 2;
+  let to = over + (after ? 1 : 0);
+  if (to > from) to -= 1;
+  if (to === from) { renderSet(); return; }
+  setMove(from, to);
+});
+$('#out').addEventListener('dragend', () => {
+  if (setDrag == null) return;
+  setDrag = null;
+  document.querySelectorAll('.row.dragging,.row.drop-before,.row.drop-after').forEach((x) => x.classList.remove('dragging', 'drop-before', 'drop-after'));
+});
+$('#out').addEventListener('click', (e) => {
+  const mv = e.target.closest && e.target.closest('[data-mv]');
+  if (mv && mode === 'set') {
+    e.stopPropagation();
+    const i = Number(mv.closest('.row').dataset.idx);
+    setMove(i, i + Number(mv.dataset.mv));
+    return;
+  }
+  if (e.target.closest && e.target.closest('#resetSet')) setResetOrder();
+});
 function renderSet() {
   const d = setData, items = d.set || [];
   const starts = setStarts(items);
   const mins = Math.round((d.mixedSec || 0) / 60);
   let html = `<div class="setmeta"><div><h3>${esc(t('setTitle'))}</h3>
     <div class="sub2">${items.length} ${esc(t('setMeta'))} · ${esc(t('setApprox'))} ${mins} ${esc(t('setMin'))}</div></div>
-    <button type="button" class="copybtn" id="copySet">${esc(t('copySet'))}</button></div>`;
+    <div class="setbtns">${d.edited ? `<button type="button" class="copybtn" id="resetSet">${esc(t('resetOrder'))}</button>` : ''}<button type="button" class="copybtn" id="copySet">${esc(t('copySet'))}</button></div></div>
+    <div class="note" style="margin:0 0 10px">${esc(t('reorderHint'))}</div>`;
   html += curveSVG(items);
   html += '<div class="list">' + (items.length ? rowHead('set') : '');
   let prevSec = '';

@@ -1099,6 +1099,12 @@ const server = http.createServer(async (req, res) => {
   if (u.pathname === '/api/preview') {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     try {
+      // ?id=<Deezer id>: φρέσκο preview για συγκεκριμένο κομμάτι (τα links του Deezer λήγουν μετά από λίγη ώρα)
+      const id = (u.searchParams.get('id') || '').trim();
+      if (/^\d+$/.test(id)) {
+        const tr = await dz('/track/' + id);
+        return res.end(JSON.stringify({ preview: (tr && tr.preview) || '' }));
+      }
       const artist = (u.searchParams.get('artist') || '').trim(), title = (u.searchParams.get('title') || '').trim();
       if (!artist || !title) return res.end(JSON.stringify({ preview: '' }));
       const preview = await cached('pv:' + norm(artist) + '|' + norm(baseTitle(title)), async () => {
@@ -1108,7 +1114,7 @@ const server = http.createServer(async (req, res) => {
         const ok = r.filter((x) => x.preview && norm(baseTitle(x.title)) === nt && (norm(x.artist) === na || norm(x.artist).includes(na) || na.includes(norm(x.artist))));
         const best = ok.sort((a2, b2) => b2.duration - a2.duration)[0];
         return best ? best.preview : '';
-      }, 1800e3);
+      }, 600e3);
       return res.end(JSON.stringify({ preview }));
     } catch (_) { return res.end(JSON.stringify({ preview: '' })); }
   }

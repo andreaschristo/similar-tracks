@@ -140,6 +140,8 @@
   .anw i{display:block;width:3px;height:3px;background:var(--mute);animation:pulse 1s ease-in-out infinite}
   .anw i:nth-child(2){animation-delay:.2s}.anw i:nth-child(3){animation-delay:.4s}
   .anx{color:var(--dim);cursor:help}
+  /* στη στήλη BPM (αριστερή στοίχιση) η παύλα και οι τελείες κάθονται στη μέση ενός τριψήφιου BPM */
+  .c-bpm .anx,.c-bpm .anw{display:inline-flex;justify-content:center;width:3ch}
   .lnote{padding:12px 18px;border-top:1px solid var(--line);font:11px/1.5 var(--mono);color:var(--mute)}
   @media (max-width:760px){.lsteps{grid-auto-flow:row}.lsteps li{border-right:0;border-bottom:1px solid var(--line);padding:11px 14px}.lsteps li:last-child{border-bottom:0}.lhead .lq{display:none}}
   #status.err{color:#c9534f}
@@ -572,6 +574,12 @@
   /* AUTO BLEND κάτω από τον crossfader: ίδιο ύψος και ύφος με τα κουμπιά των decks */
   .mxc .autob{width:100%;height:28px;padding:0 4px;background:transparent;border:1px solid var(--line);color:var(--text);font:700 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:0}
   .mxc .autob:hover{border-color:var(--text)}
+  /* διακόπτης EQ CURVE (όπως στο DJM): ISO / EQ */
+  .eqc{display:grid;grid-template-columns:1fr 56px 56px;align-items:center;gap:6px}
+  .eqc span{font:700 9px var(--mono);letter-spacing:.14em;color:var(--mute)}
+  .eqc button{height:24px;background:transparent;border:1px solid var(--line);color:var(--mute);font:700 9px var(--mono);letter-spacing:.1em;cursor:pointer;border-radius:0;padding:0}
+  .eqc button:hover{border-color:var(--text);color:var(--text)}
+  .eqc button.on{color:#ff9d2e;border-color:#ff9d2e}
   .mxc .autob.on{color:#ff9d2e;border-color:#ff9d2e}
   .wave{width:100%;height:22px;display:block;background:#0d0d0d;cursor:pointer}
   .deck .dtime{font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;margin:4px 0 10px}
@@ -621,6 +629,8 @@
   .lrow button{background:transparent;border:1px solid var(--line);color:var(--mute);font:700 9px var(--mono);letter-spacing:.08em;padding:8px 2px;cursor:pointer;border-radius:0;touch-action:manipulation}
   .lrow button:hover{color:var(--text);border-color:var(--text)}
   .lrow button.on{background:#ff9d2e;border-color:#ff9d2e;color:#000}
+  /* μέγεθος που περιμένει το τέλος της λούπας: αναβοσβήνει */
+  .lrow button.pend{border-color:#ff9d2e;color:#ff9d2e;animation:pulse .45s ease-in-out infinite}
   .lrow button.off{opacity:.3;cursor:not-allowed}
   .lrow button.off:hover{color:var(--mute);border-color:var(--line)}
   .grow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
@@ -1974,7 +1984,7 @@ const baseOf = (s) => String(s || '').replace(/[\(\[].*?[\)\]]/g, '').replace(/\
 
 /* ---------- Mixer (Web Audio): 2 decks, live tempo, EQ, loops, BPM detection ---------- */
 let MXCTX = null;
-const MX = { a: null, b: null, xf: 0, bars: 8, auto: null, tick: null, master: null, msg: '' };
+const MX = { curve: 'iso', a: null, b: null, xf: 0, bars: 8, auto: null, tick: null, master: null, msg: '' };
 const mxClamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 function mxCtx() {
   if (!MXCTX) {
@@ -2007,18 +2017,37 @@ function mxLevel(an) {
 }
 function mxNewDeck(k) {
   const c = mxCtx();
-  const low = c.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 200;
-  const mid = c.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 1000; mid.Q.value = 0.8;
-  const high = c.createBiquadFilter(); high.type = 'highshelf'; high.frequency.value = 3500;
+  // EQ (όπως το DJM-900NXS σε θέση EQ): HI 13 kHz · MID 1 kHz · LOW 70 Hz, −26…+6 dB
+  const low = c.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 70;
+  const mid = c.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 1000; mid.Q.value = 0.7;
+  const high = c.createBiquadFilter(); high.type = 'highshelf'; high.frequency.value = 13000;
+  // ISOLATOR: το σήμα χωρίζεται σε 3 μπάντες (crossover Linkwitz-Riley 48 dB/oct στα 250 Hz και 2.5 kHz),
+  // κάθε μπάντα έχει δική της ένταση: τέρμα αριστερά = πλήρες κόψιμο (−∞), κέντρο = 0 dB, τέρμα δεξιά = +6 dB
+  const bq = (type, f, q) => { const n = c.createBiquadFilter(); n.type = type; n.frequency.value = f; n.Q.value = q; return n; };
+  // Linkwitz-Riley 8ης τάξης = Butterworth 4ης δύο φορές (Q 0.5412 και 1.3066· στο Web Audio το Q των lowpass/highpass είναι σε dB)
+  const QA = 20 * Math.log10(0.5412), QB = 20 * Math.log10(1.3066);
+  const lr8 = (type, f) => [bq(type, f, QA), bq(type, f, QB), bq(type, f, QA), bq(type, f, QB)];
+  const ap = (f) => [bq('allpass', f, 0.5412), bq('allpass', f, 1.3066)]; // ίδια φάση με το crossover, για επίπεδη απόκριση
+  const chain = (...ns) => { for (let i = 0; i < ns.length - 1; i++) ns[i].connect(ns[i + 1]); return ns; };
+  const iLowG = c.createGain(), iMidG = c.createGain(), iHighG = c.createGain(), isoOut = c.createGain(), eqOut = c.createGain();
+  const lp1 = chain(...lr8('lowpass', 250), ...ap(2500), iLowG);
+  const hp1 = chain(...lr8('highpass', 250));
+  const mp = chain(...lr8('lowpass', 2500), iMidG);
+  const hp2 = chain(...lr8('highpass', 2500), iHighG);
+  hp1[hp1.length - 1].connect(mp[0]); hp1[hp1.length - 1].connect(hp2[0]);
+  [iLowG, iMidG, iHighG].forEach((g) => g.connect(isoOut));
   const trim = c.createGain(); // TRIM / gain του καναλιού (πριν από τα EQ)
   const vol = c.createGain(); // channel fader (ένταση του deck)
   const gain = c.createGain(); // crossfader
   const an = c.createAnalyser(); an.fftSize = 1024; // μετρητής στάθμης του καναλιού (μετά το fader)
   vol.connect(an);
-  trim.connect(low); low.connect(mid); mid.connect(high); high.connect(vol); vol.connect(gain); gain.connect(MX.master);
+  trim.connect(low); low.connect(mid); mid.connect(high); high.connect(eqOut); eqOut.connect(vol);
+  trim.connect(lp1[0]); trim.connect(hp1[0]); isoOut.connect(vol);
+  vol.connect(gain); gain.connect(MX.master);
+  const iso = MX.curve !== 'eq'; eqOut.gain.value = iso ? 0 : 1; isoOut.gain.value = iso ? 1 : 0;
   return { k, id: null, tr: null, buf: null, status: '', bpm: 0, bpmSrc: '', first: 0, peaks: null, src: null,
     playing: false, startedAt: 0, startOff: 0, pausedAt: 0, cue: 0, cueHeld: false, rate: 1, loop: true, ls: 0, le: 0, loopBars: 0,
-    eq: { trim: 0, low: 0, mid: 0, high: 0 }, vol: 100, nodes: { trim, low, mid, high, vol, gain, an } };
+    eq: { trim: 0, low: 0, mid: 0, high: 0 }, vol: 100, nodes: { trim, low, mid, high, vol, gain, an, eqOut, isoOut, iso: { low: iLowG, mid: iMidG, high: iHighG } } };
 }
 const mxEff = (D) => D.rate * (D.bend || 1);
 // Πόσα BPM έχει αλλάξει συνολικά σε σχέση με το αρχικό: π.χ. «+3.7 BPM» (το % φαίνεται κάτω από το tempo fader)
@@ -2045,7 +2074,7 @@ function mxPos(D, vis) {
   if (!D.buf) return 0;
   if (!D.playing) return D.pausedAt;
   let p = D.startOff + ((vis ? mxNow() : MXCTX.currentTime) - D.startedAt) * mxEff(D);
-  if (D.loop && D.le > D.ls) { if (p >= D.le) p = D.ls + ((p - D.ls) % (D.le - D.ls)); }
+  if (mxWraps(D) && D.le > D.ls) { if (p >= D.le) p = D.ls + ((p - D.ls) % (D.le - D.ls)); }
   else p = Math.min(p, D.buf.duration);
   return p;
 }
@@ -2053,12 +2082,14 @@ function mxKill(D) {
   if (D.src) { const s = D.src; D.src = null; s.onended = null; try { s.stop(); } catch (_) {} }
   D.playing = false;
 }
+// Τα previews (30″) ξαναρχίζουν πάντα· ολόκληρα κομμάτια (εφαρμογή) κάνουν loop μόνο μέσα σε λούπα beats
+const mxWraps = (D) => !!(D.loop && D.buf && (D.bl > 0 || D.buf.duration < 45));
 function mxPlay(D, off) {
   if (!D.buf) return;
   mxKill(D);
   const c = mxCtx();
   const s = c.createBufferSource();
-  s.buffer = D.buf; s.loop = D.loop; s.loopStart = D.ls; s.loopEnd = D.le;
+  s.buffer = D.buf; s.loop = mxWraps(D); s.loopStart = D.ls; s.loopEnd = D.le;
   s.playbackRate.value = mxEff(D);
   s.connect(D.nodes.trim);
   s.onended = () => { if (D.src === s) { D.src = null; D.playing = false; D.pausedAt = 0; } };
@@ -2090,7 +2121,27 @@ function mxSetVol(D, v) {
   const em = document.getElementById('mxvv-' + D.k); if (em) em.textContent = String(D.vol);
   const r = document.getElementById('mxv-' + D.k); if (r && document.activeElement !== r) r.value = String(D.vol);
 }
-function mxSetEq(D, band, db) { D.eq[band] = db; D.nodes[band].gain.value = band === 'trim' ? Math.pow(10, db / 20) : db; }
+const MX_EQ_MIN = -26; // όπως το DJM: −26 dB (EQ) · τέρμα αριστερά = −∞ (ISOLATOR)
+function mxSetEq(D, band, db) {
+  D.eq[band] = db;
+  if (band === 'trim') { D.nodes.trim.gain.value = Math.pow(10, db / 20); return; }
+  D.nodes[band].gain.value = db;                                              // θέση EQ
+  D.nodes.iso[band].gain.value = db <= MX_EQ_MIN ? 0 : Math.pow(10, db / 20); // θέση ISOLATOR (τέρμα = σιωπή)
+}
+// διακόπτης EQ CURVE: ISO / EQ (ομαλή αλλαγή, χωρίς «κλικ»)
+function mxSetCurve(c) {
+  MX.curve = c === 'eq' ? 'eq' : 'iso';
+  try { localStorage.setItem('houze_eqcurve', MX.curve); } catch (_) {}
+  const t0 = MXCTX ? MXCTX.currentTime : 0;
+  for (const D of [MX.a, MX.b]) {
+    if (!D) continue;
+    D.nodes.eqOut.gain.setTargetAtTime(MX.curve === 'eq' ? 1 : 0, t0, 0.01);
+    D.nodes.isoOut.gain.setTargetAtTime(MX.curve === 'eq' ? 0 : 1, t0, 0.01);
+    ['low', 'mid', 'high'].forEach((b) => mxEqUI(D, b));
+  }
+  document.querySelectorAll('[data-mxa="curve-eq"],[data-mxa="curve-iso"]').forEach((el) => el.classList.toggle('on', el.dataset.mxa === 'curve-' + MX.curve));
+}
+const mxEqTxt = (b, db) => (b !== 'trim' && db <= MX_EQ_MIN ? (MX.curve === 'eq' ? '−26' : '−∞') : String(Math.round(db * 10) / 10));
 // Loop σε beats, όπως στο Traktor / Rekordbox: 4 / 8 / 16 / 32 beats (= 1 / 2 / 4 / 8 bars), πάντα από αρχή bar
 const LOOP_SIZES = [4, 8, 16, 32];
 const mxBarLen = (D) => (D.bpm ? 240 / D.bpm : 0);
@@ -2337,7 +2388,25 @@ function mxAlignOff(Bd, Ad) {
   if (Bd.le > Bd.ls && off >= Bd.le) off = Bd.ls + ((off - Bd.ls) % (Bd.le - Bd.ls));
   return off;
 }
-function mxLoopToggle(D, beats) {
+// Μικραίνεις λούπα (π.χ. 8 → 4) με QUANT: περιμένει να τελειώσει ο τρέχων γύρος και αλλάζει πάνω στην αρχή της,
+// ώστε να μην «κόβεται» στη μέση. Μεγάλωμα, κλείσιμο ή νέα λούπα γίνονται αμέσως.
+function mxLoopToggle(D, beats, now) {
+  clearTimeout(D.blT); D.blPend = 0;
+  if (!now && beats && D.bl && beats < D.loopBeats && D.q !== false && D.playing && D.bpm) {
+    const newEnd = D.ls + beats * (60 / D.bpm), pos = mxPos(D);
+    if (pos >= newEnd - 0.005) { // είμαστε μετά το νέο τέλος: περιμένουμε το «γύρισμα» της λούπας
+      D.blPend = beats;
+      const check = () => {
+        if (!D.playing || !D.bl || D.blPend !== beats) { D.blPend = 0; mxPaint(); return; }
+        const p = mxPos(D);
+        if (p < newEnd - 0.005 && p >= D.ls - 0.005) { D.blPend = 0; mxLoopToggle(D, beats, true); return; }
+        D.blT = setTimeout(check, Math.max(5, ((D.le - p) / mxEff(D)) * 1000 + 15));
+      };
+      D.blT = setTimeout(check, Math.max(5, ((D.le - pos) / mxEff(D)) * 1000 + 15));
+      mxPaint();
+      return;
+    }
+  }
   mxRebase(D);
   if (beats) {
     const was = D.bl;
@@ -2349,7 +2418,7 @@ function mxLoopToggle(D, beats) {
 }
 function mxApplySel(D) {
   mxLoopRegion(D);
-  if (D.src) { D.src.loopStart = D.ls; D.src.loopEnd = D.le; }
+  if (D.src) { D.src.loop = mxWraps(D); D.src.loopStart = D.ls; D.src.loopEnd = D.le; }
   const p = D.playing ? mxPos(D) : D.pausedAt;
   // αν είμαστε ήδη μέσα στη λούπα (ή λίγο πριν από την αρχή της) συνεχίζουμε ομαλά, αλλιώς πάμε στην αρχή της
   const beat = D.bpm ? 60 / D.bpm : 0.5;
@@ -2390,7 +2459,7 @@ document.addEventListener('dblclick', (e) => {
 });
 function mxRegrid(D) {
   mxLoopRegion(D);
-  if (D.src) { D.src.loopStart = D.ls; D.src.loopEnd = D.le; }
+  if (D.src) { D.src.loop = mxWraps(D); D.src.loopStart = D.ls; D.src.loopEnd = D.le; }
   mxPaint();
 }
 function mxStopAuto() { if (MX.auto) { clearInterval(MX.auto); MX.auto = null; } }
@@ -2432,7 +2501,7 @@ function mxRingPaint(D) {
   svg.dataset.i = String(idx);
   svg.querySelectorAll('path').forEach((el, i) => { el.classList.toggle('on', i === idx); el.classList.toggle('past', idx >= 0 && i < idx); });
 }
-const mxKnobAngle = (db, band) => (band === 'trim' ? (db / 12) * 135 : db >= 0 ? (db / 6) * 135 : (db / 24) * 135);
+const mxKnobAngle = (db, band) => (band === 'trim' ? (db / 12) * 135 : db >= 0 ? (db / 6) * 135 : (db / -MX_EQ_MIN) * 135);
 function mxDeckHTML(D) {
   const k = D.k, n = k.toUpperCase();
   const tr = D.tr;
@@ -2468,7 +2537,7 @@ function mxDeckHTML(D) {
 // Ο mixer στη μέση, όπως σε κανονικό controller: κανάλι A | κανάλι B (HIGH / MID / LOW, fader), από κάτω ο crossfader
 function mxChanHTML(D) {
   const k = D.k, n = k.toUpperCase();
-  const knob = (b) => `<div class="kn kn-${b}"><div class="krow"><button type="button" class="kstep" data-eqstep="${b}-${k}:-1" aria-label="${b} minus">−</button><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b], b)}deg"><i></i></div><button type="button" class="kstep" data-eqstep="${b}-${k}:1" aria-label="${b} plus">+</button></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${D.eq[b]}</em></div>`;
+  const knob = (b) => `<div class="kn kn-${b}"><div class="krow"><button type="button" class="kstep" data-eqstep="${b}-${k}:-1" aria-label="${b} minus">−</button><div class="knob" tabindex="0" role="slider" aria-label="${b} ${n}" data-knob="${b}-${k}" id="mxe-${b}-${k}" style="--a:${mxKnobAngle(D.eq[b], b)}deg"><i></i></div><button type="button" class="kstep" data-eqstep="${b}-${k}:1" aria-label="${b} plus">+</button></div><span>${b.toUpperCase()}</span><em id="mxev-${b}-${k}">${esc(mxEqTxt(b, D.eq[b]))}</em></div>`;
   return `<div class="chn"><div class="chl">${n}</div>${knob('trim')}<div class="chsep"></div>${['high', 'mid', 'low'].map(knob).join('')}
     <div class="chf"><div class="fw"><input type="range" min="0" max="100" step="1" value="${D.vol}" data-mx="vol-${k}" id="mxv-${k}" aria-label="Volume ${n}"></div><span>VOL</span><em id="mxvv-${k}">${D.vol}</em></div></div>`;
 }
@@ -2560,17 +2629,30 @@ function mxOverviewCache(D, W, H, dpr) {
   g.fill(mxWavePath(E.body, 0, N - 1, (i) => ((i + 0.5) / N) * W, mid, mid - dpr));
   return (D.oc = { key, cv });
 }
+const MX_TILE = 2048;
 function mxZoomCache(D, W, H, dpr) {
   const span = mxZoomSpan(D), dur = D.buf.duration, key = [W, H, span.toFixed(5), dur].join('|');
   if (D.zc && D.zc.key === key) return D.zc;
   if (!D.envZ) D.envZ = mxEnv(D.buf, 600, 2);
-  const CW = Math.max(1, Math.min(16000, Math.ceil((dur / span) * W)));
-  const cv = document.createElement('canvas'); cv.width = CW; cv.height = H;
-  const g = cv.getContext('2d'), RUL = 7 * dpr, mid = H / 2, amp = mid - RUL - 2 * dpr, E = D.envZ, N = E.body.length;
-  const xOf = (i) => ((i + 0.5) / N) * CW;
-  g.fillStyle = '#7a7a73'; g.fill(mxWavePath(E.body, 0, N - 1, xOf, mid, amp));
-  g.fillStyle = '#f0f0ec'; g.fill(mxWavePath(E.core, 0, N - 1, xOf, mid, amp * 0.55));
-  return (D.zc = { key, cv, CW, pps: CW / dur });
+  const pps = W / span; // pixels ανά δευτερόλεπτο
+  return (D.zc = { key, H, dpr, pps, CW: Math.ceil(dur * pps), tiles: new Map() });
+}
+// ένα «πλακίδιο» 2048 px της κυματομορφής, σχεδιάζεται μόνο όταν χρειαστεί (κρατάμε τα 8 πιο πρόσφατα)
+function mxZoomTile(D, z, i) {
+  let tl = z.tiles.get(i);
+  if (tl) { z.tiles.delete(i); z.tiles.set(i, tl); return tl; }
+  const cv = document.createElement('canvas'); cv.width = MX_TILE; cv.height = z.H;
+  const g = cv.getContext('2d'), RUL = 7 * z.dpr, mid = z.H / 2, amp = mid - RUL - 2 * z.dpr, E = D.envZ, N = E.body.length, cps = E.cps;
+  const x0 = i * MX_TILE, t0 = x0 / z.pps, t1 = (x0 + MX_TILE) / z.pps;
+  const i0 = Math.max(0, Math.floor(t0 * cps) - 2), i1 = Math.min(N - 1, Math.ceil(t1 * cps) + 2);
+  if (i1 > i0) {
+    const xOf = (k) => ((k + 0.5) / cps) * z.pps - x0;
+    g.fillStyle = '#7a7a73'; g.fill(mxWavePath(E.body, i0, i1, xOf, mid, amp));
+    g.fillStyle = '#f0f0ec'; g.fill(mxWavePath(E.core, i0, i1, xOf, mid, amp * 0.55));
+  }
+  tl = cv; z.tiles.set(i, tl);
+  while (z.tiles.size > 8) z.tiles.delete(z.tiles.keys().next().value);
+  return tl;
 }
 // Επισκόπηση όλου του preview + πορτοκαλί πλαίσιο για ό,τι δείχνει το ζουμ
 function mxDraw(D) {
@@ -2596,7 +2678,10 @@ function mxDrawZoom(D) {
   g.clearRect(0, 0, W, H);
   const z = mxZoomCache(D, W, H, dpr), sx = from * z.pps, sw = span * z.pps;
   const s0 = Math.max(0, sx), s1 = Math.min(z.CW, sx + sw);
-  if (s1 > s0) g.drawImage(z.cv, s0, 0, s1 - s0, H, ((s0 - sx) / sw) * W, 0, ((s1 - s0) / sw) * W, H);
+  for (let ti = Math.floor(s0 / MX_TILE); ti * MX_TILE < s1; ti++) {
+    const a0 = Math.max(s0, ti * MX_TILE), a1 = Math.min(s1, (ti + 1) * MX_TILE);
+    if (a1 > a0) g.drawImage(mxZoomTile(D, z, ti), a0 - ti * MX_TILE, 0, a1 - a0, H, ((a0 - sx) / sw) * W, 0, ((a1 - a0) / sw) * W, H);
+  }
   g.fillStyle = MX_DARK; g.fillRect(0, 0, half, H);
   if (D.bpm) {
     const beat = 60 / D.bpm;
@@ -2743,7 +2828,7 @@ function mxPaint() {
       LOOP_SIZES.forEach((n) => {
         const bt = document.getElementById('mxlb-' + k + '-' + n); if (!bt) return;
         const fit = mxFits(D, n);
-        bt.classList.toggle('off', !fit); bt.classList.toggle('on', !!D.bl && D.loopBeats === n);
+        bt.classList.toggle('off', !fit); bt.classList.toggle('on', !!D.bl && D.loopBeats === n); bt.classList.toggle('pend', D.blPend === n);
         bt.title = fit ? '' : t('mxNoFit');
       });
       { const lpb = document.getElementById('mxlp-' + k); if (lpb) lpb.classList.toggle('on', !!D.bl); }
@@ -2773,7 +2858,7 @@ function mxSetXf(v) { MX.xf = mxClamp(v, 0, 100); mxApplyXf(); const x = documen
 function mxEqUI(D, b) {
   const e = document.getElementById('mxe-' + b + '-' + D.k), v = document.getElementById('mxev-' + b + '-' + D.k);
   if (e) e.style.setProperty('--a', mxKnobAngle(D.eq[b], b) + 'deg');
-  if (v) v.textContent = String(Math.round(D.eq[b] * 10) / 10);
+  if (v) v.textContent = mxEqTxt(b, D.eq[b]);
 }
 function mxPrep() {
   if (typeof isPlaying === 'function' && isPlaying()) pauseP();
@@ -2794,7 +2879,7 @@ function mxAuto() {
   mxPrep(); mxStopAuto();
   A.loop = true; B.loop = true;
   if (A.bpm && B.bpm) mxSetRate(B, (A.bpm * A.rate) / B.bpm);
-  mxSetEq(A, 'low', 0); mxSetEq(B, 'low', -24); mxEqUI(A, 'low'); mxEqUI(B, 'low');
+  mxSetEq(A, 'low', 0); mxSetEq(B, 'low', MX_EQ_MIN); mxEqUI(A, 'low'); mxEqUI(B, 'low');
   if (!A.playing) mxPlay(A, A.ls);
   const x0 = fromB ? 100 : 0, x1 = fromB ? 0 : 100;
   mxSetXf(x0);
@@ -2807,7 +2892,7 @@ function mxAuto() {
     const p = Math.min(1, (performance.now() - t0) / 1000 / total);
     mxSetXf(x0 + (x1 - x0) * p);
     const q = mxClamp((p - 0.45) / 0.1, 0, 1); // bass swap γύρω από τη μέση
-    mxSetEq(A, 'low', -24 * q); mxSetEq(B, 'low', -24 * (1 - q));
+    mxSetEq(A, 'low', MX_EQ_MIN * q); mxSetEq(B, 'low', MX_EQ_MIN * (1 - q));
     mxEqUI(A, 'low'); mxEqUI(B, 'low');
     if (p >= 1) { mxStopAuto(); mxPause(A); mxSetEq(A, 'low', 0); mxEqUI(A, 'low'); mxMsg(t('mxDone')); mxPaint(); }
   }, 30);
@@ -2824,7 +2909,7 @@ $('#out').addEventListener('input', (e) => {
   if (what === 'vol') { mxSetVol(D, Number(el.value)); return; }
 });
 // Περιστροφικά knobs: σύρε πάνω/κάτω, διπλό κλικ = μηδέν, βελάκια στο πληκτρολόγιο
-function mxKnobSet(k, b, db) { const D = MX[k]; mxSetEq(D, b, b === 'trim' ? mxClamp(Math.round(db * 2) / 2, -12, 12) : mxClamp(Math.round(db * 2) / 2, -24, 6)); mxEqUI(D, b); }
+function mxKnobSet(k, b, db) { const D = MX[k]; mxSetEq(D, b, b === 'trim' ? mxClamp(Math.round(db * 2) / 2, -12, 12) : mxClamp(Math.round(db * 2) / 2, MX_EQ_MIN, 6)); mxEqUI(D, b); }
 let mxDrag = null, mxJog = null, mxRep = null, mxRepT = null;
 function mxJogAngle(el, e) { const r = el.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)); }
 function mxJogEnd() {
@@ -2991,6 +3076,8 @@ $('#out').addEventListener('click', (e) => {
     const D = MX[kk], beats = Number(n);
     if (!D.buf || !D.bpm) return;
     mxLoopToggle(D, D.bl === beats ? 0 : beats);
+  } else if (act === 'curve-eq' || act === 'curve-iso') {
+    mxSetCurve(act.slice(6));
   } else if (act.startsWith('q-')) {
     const D = MX[act.slice(-1)];
     D.q = D.q === false;

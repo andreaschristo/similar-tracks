@@ -410,6 +410,25 @@
   .row[data-idx]:hover .c-n .mv{display:flex}
   @media (hover:none){.row[data-idx] .c-n .nnum{display:none}.row[data-idx] .c-n .mv{display:flex}}
   .setbtns{display:flex;gap:8px}
+  .copybtn.on{background:var(--text);color:#0b0b0b;border-color:var(--text)}
+  .copybtn:disabled{opacity:.35;cursor:default}
+  /* Rekordbox panel */
+  .rbp{border:1px solid var(--line);margin:16px 0 6px;padding:18px 20px;display:grid;gap:18px}
+  .rbstep{display:grid;grid-template-columns:26px minmax(0,1fr);gap:14px;align-items:start}
+  .rbn{width:26px;height:26px;border:1px solid var(--dim);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mute)}
+  .rbt{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text);margin:5px 0 10px}
+  .rbrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+  .rbmeta{font-size:12px;color:var(--mute);line-height:1.6;margin-top:6px}
+  .rbrow .rbmeta{margin-top:0}
+  .rbp input.rbin{display:block;flex:none;width:100%;max-width:560px;background:transparent;border:1px solid var(--line);color:var(--text);font:inherit;font-size:12px;padding:9px 12px;border-radius:0;outline:none}
+  .rbp input.rbin:focus{border-color:var(--dim)}
+  .rblist{display:grid;gap:0;margin:0 0 12px;border-top:1px solid var(--line)}
+  .rblist>div{display:grid;grid-template-columns:24px minmax(0,1fr) minmax(0,1fr);gap:12px;font-size:12px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .rblist>div span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rblist>div span:first-child{color:var(--dim)}
+  .rblist .ok span:last-child{color:var(--mute)}
+  .rblist .miss span:last-child{color:#e0645c}
+  @media (max-width:640px){.rblist>div{grid-template-columns:24px minmax(0,1fr)}.rblist>div span:last-child{grid-column:2}}
   .row .c-t,.row .c-a{min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
   .row .c-t .tt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
   .row .c-t{font:600 14.5px/1.3 var(--sans)}
@@ -1060,6 +1079,12 @@ const I18N = {
     mvUp: 'Move up', mvDown: 'Move down', resetOrder: 'Reset order', reorderHint: 'Drag a track (or use ▲▼) to change the order. BPM and key changes update automatically.', rel_same: 'same key', rel_smooth: 'smooth key change', rel_relative: 'relative key', rel_boost: 'energy boost', rel_clash: 'keys clash, mix with care', rel_unknown: 'key unknown',
     blend: 'blend about', bars: 'bars',
     copySet: 'Copy tracklist', copied: 'Copied',
+    rbBtn: 'Rekordbox', rbStep1: 'Choose the folder with your music', rbPick: 'Choose folder', rbPickAgain: 'Choose again', rbFiles: 'tracks',
+    rbPrivacy: 'Nothing is uploaded. Only the file names are read, here in your browser.',
+    rbStep2: 'Full path of that folder', rbPathHint: 'In Finder: right-click the folder, hold Option, choose “Copy … as Pathname”, and paste it here. Asked only once.',
+    rbStep3: 'Your tracks', rbFound: 'found', rbMissing: 'not in your folder', rbDownload: 'Download playlist (.m3u8)',
+    rbNeedPath: 'Paste the folder path first (step 2).', rbSaved: 'Saved in Downloads.',
+    rbHow: 'In rekordbox: File → Import → Import Playlist, choose the .m3u8 file. The playlist keeps the set order; tracks you don’t have are skipped.',
     noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
     shortSet: 'Only this many tracks matched. Try a more popular track for a full set.',
     backSearch: 'Back to results',
@@ -1145,6 +1170,12 @@ const I18N = {
     mvUp: 'Πάνω', mvDown: 'Κάτω', resetOrder: 'Αρχική σειρά', reorderHint: 'Σύρε ένα κομμάτι (ή πάτα ▲▼) για να αλλάξεις τη σειρά. Οι αλλαγές BPM και κλειδιού ενημερώνονται μόνες τους.', rel_same: 'ίδιο κλειδί', rel_smooth: 'ομαλή αλλαγή κλειδιού', rel_relative: 'σχετικό κλειδί', rel_boost: 'ενεργειακό boost', rel_clash: 'τα κλειδιά συγκρούονται, πρόσεχε στη μίξη', rel_unknown: 'άγνωστο κλειδί',
     blend: 'blend περίπου', bars: 'bars',
     copySet: 'Αντιγραφή tracklist', copied: 'Αντιγράφηκε',
+    rbBtn: 'Rekordbox', rbStep1: 'Διάλεξε τον φάκελο με τη μουσική σου', rbPick: 'Επιλογή φακέλου', rbPickAgain: 'Αλλαγή φακέλου', rbFiles: 'κομμάτια',
+    rbPrivacy: 'Δεν ανεβαίνει τίποτα. Διαβάζονται μόνο τα ονόματα των αρχείων, εδώ στον browser σου.',
+    rbStep2: 'Η πλήρης διαδρομή αυτού του φακέλου', rbPathHint: 'Στο Finder: δεξί κλικ στον φάκελο, κράτα πατημένο το Option, διάλεξε «Αντιγραφή … ως όνομα διαδρομής» και κάνε επικόλληση εδώ. Ζητείται μόνο μία φορά.',
+    rbStep3: 'Τα κομμάτια σου', rbFound: 'βρέθηκαν', rbMissing: 'δεν είναι στον φάκελό σου', rbDownload: 'Λήψη playlist (.m3u8)',
+    rbNeedPath: 'Βάλε πρώτα τη διαδρομή του φακέλου (βήμα 2).', rbSaved: 'Αποθηκεύτηκε στις Λήψεις.',
+    rbHow: 'Στο rekordbox: File → Import → Import Playlist και διάλεξε το αρχείο .m3u8. Η playlist κρατάει τη σειρά του set· όσα κομμάτια δεν έχεις παραλείπονται.',
     noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
     shortSet: 'Ταίριαξαν μόνο τόσα κομμάτια. Δοκίμασε πιο δημοφιλές κομμάτι για πλήρες set.',
     backSearch: 'Πίσω στα αποτελέσματα',
@@ -1574,7 +1605,8 @@ function renderSet() {
   const mins = Math.round((d.mixedSec || 0) / 60);
   let html = `<div class="setmeta"><div><h3>${esc(t('setTitle'))}</h3>
     <div class="sub2">${items.length} ${esc(t('setMeta'))} · ${esc(t('setApprox'))} ${mins} ${esc(t('setMin'))}</div></div>
-    <div class="setbtns">${d.edited ? `<button type="button" class="copybtn" id="resetSet">${esc(t('resetOrder'))}</button>` : ''}<button type="button" class="copybtn" id="copySet">${esc(t('copySet'))}</button></div></div>
+    <div class="setbtns">${d.edited ? `<button type="button" class="copybtn" id="resetSet">${esc(t('resetOrder'))}</button>` : ''}<button type="button" class="copybtn${RB.open ? ' on' : ''}" id="rbToggle">${esc(t('rbBtn'))}</button><button type="button" class="copybtn" id="copySet">${esc(t('copySet'))}</button></div></div>
+    ${RB.open ? rbPanel(items) : ''}
     <div class="note" style="margin:0 0 10px">${esc(t('reorderHint'))}</div>`;
   html += curveSVG(items);
   html += '<div class="list">' + (items.length ? rowHead('set') : '');
@@ -1589,6 +1621,104 @@ function renderSet() {
   if (items.length < (d.wanted || 10)) html += `<div class="note">${esc(t('shortSet'))}</div>`;
   $('#out').innerHTML = html;
 }
+/* ---------- Rekordbox: playlist .m3u8 με τη σειρά του set ----------
+   Ο χρήστης διαλέγει τον φάκελο με τη μουσική του. Δεν ανεβαίνει τίποτα: διαβάζουμε μόνο τα ονόματα των αρχείων
+   μέσα στον browser, βρίσκουμε ποια κομμάτια του set έχει, και φτιάχνουμε ένα .m3u8 που το rekordbox εισάγει ως playlist. */
+const RB = { open: false, base: '', root: '', files: [] };
+try { Object.assign(RB, JSON.parse(localStorage.getItem('houze_rb') || '{}') || {}); } catch (_) {}
+RB.open = false;
+const RB_EXT = /\.(mp3|wav|aiff?|flac|m4a|aac|mp4|alac|ogg)$/i;
+function rbSave() { try { localStorage.setItem('houze_rb', JSON.stringify({ base: RB.base, root: RB.root, files: RB.files })); } catch (_) {} }
+const rbNorm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+  .replace(/&/g, ' and ').replace(/\b(feat|ft|featuring)\b\.?/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
+const RB_SKIP = new Set(['original', 'mix', 'extended', 'radio', 'edit', 'version', 'the', 'a', 'and', 'vs']);
+let RB_IDX = null;
+function rbIndex() {
+  if (RB_IDX && RB_IDX.n === RB.files.length) return RB_IDX.list;
+  const list = RB.files.map((rel) => {
+    const name = rel.split('/').pop().replace(/\.[^.]+$/, '');
+    return { rel, name, words: new Set(rbNorm(name).split(' ')) };
+  });
+  RB_IDX = { n: RB.files.length, list };
+  return list;
+}
+function rbFind(x) {
+  const core = rbNorm(baseOf(x.title)).split(' ').filter(Boolean);
+  if (!core.length) return null;
+  const extra = rbNorm((String(x.title).match(/[\(\[](.*?)[\)\]]/g) || []).join(' ')).split(' ').filter((w) => w && !RB_SKIP.has(w));
+  const art = rbNorm(x.artist).split(' ').filter((w) => w && !RB_SKIP.has(w));
+  let best = null, bs = 0;
+  for (const f of rbIndex()) {
+    if (!core.every((w) => f.words.has(w))) continue;
+    const a = art.filter((w) => f.words.has(w)).length;
+    if (!a && core.length < 2) continue;
+    const e = extra.filter((w) => f.words.has(w)).length;
+    const sc = core.length * 2 + a * 3 + e * 2 - (extra.length - e) - f.words.size * 0.05;
+    if (sc > bs) { bs = sc; best = f; }
+  }
+  return best;
+}
+function rbAbs(rel) {
+  const win = /^[a-z]:\\/i.test(RB.base) || RB.base.includes('\\');
+  const sep = win ? '\\' : '/';
+  const tail = rel.split('/').slice(1).join(sep);
+  return RB.base.replace(/[\\/]+$/, '') + sep + tail;
+}
+function rbPanel(items) {
+  const has = RB.files.length > 0;
+  let html = `<div class="rbp">
+    <div class="rbstep"><span class="rbn">1</span><div><div class="rbt">${esc(t('rbStep1'))}</div>
+      <div class="rbrow"><button type="button" class="copybtn" id="rbPick">${esc(has ? t('rbPickAgain') : t('rbPick'))}</button>
+      <span class="rbmeta">${has ? esc(RB.root) + ' · ' + RB.files.length + ' ' + esc(t('rbFiles')) : esc(t('rbPrivacy'))}</span></div></div></div>
+    <div class="rbstep"><span class="rbn">2</span><div><div class="rbt">${esc(t('rbStep2'))}</div>
+      <input type="text" id="rbBase" class="rbin" spellcheck="false" autocomplete="off" placeholder="/Users/you/Music/${esc(RB.root || 'House')}" value="${esc(RB.base)}">
+      <div class="rbmeta">${esc(t('rbPathHint'))}</div></div></div>`;
+  if (has) {
+    const res = items.map((x) => ({ x, f: rbFind(x) }));
+    const ok = res.filter((r) => r.f).length;
+    html += `<div class="rbstep"><span class="rbn">3</span><div><div class="rbt">${esc(t('rbStep3'))} · ${ok}/${items.length} ${esc(t('rbFound'))}</div>
+      <div class="rblist">${res.map((r, i) => `<div class="${r.f ? 'ok' : 'miss'}"><span>${String(i + 1).padStart(2, '0')}</span><span>${esc(r.x.artist)} - ${esc(r.x.title)}</span><span>${r.f ? esc(r.f.name) : esc(t('rbMissing'))}</span></div>`).join('')}</div>
+      <div class="rbrow"><button type="button" class="copybtn on" id="rbDl"${ok ? '' : ' disabled'}>${esc(t('rbDownload'))}</button>
+      <span class="rbmeta" id="rbMsg"></span></div>
+      <div class="rbmeta">${esc(t('rbHow'))}</div></div></div>`;
+  }
+  return html + `<input type="file" id="rbDir" webkitdirectory directory multiple hidden></div>`;
+}
+function rbDownload() {
+  const msg = $('#rbMsg');
+  RB.base = ($('#rbBase') && $('#rbBase').value || '').trim().replace(/^['"]|['"]$/g, '');
+  rbSave();
+  if (!/^(\/|[a-z]:\\|\\\\)/i.test(RB.base)) { if (msg) msg.textContent = t('rbNeedPath'); $('#rbBase') && $('#rbBase').focus(); return; }
+  const lines = ['#EXTM3U'];
+  setData.set.forEach((x) => {
+    const f = rbFind(x);
+    if (!f) return;
+    lines.push(`#EXTINF:${Math.round(x.duration || 0)},${x.artist} - ${x.title}`, rbAbs(f.rel));
+  });
+  const d = new Date(), pad = (n) => String(n).padStart(2, '0');
+  const name = `HOUZE set ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}.${pad(d.getMinutes())}.m3u8`;
+  const url = URL.createObjectURL(new Blob([lines.join('\n') + '\n'], { type: 'audio/x-mpegurl' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  if (msg) msg.textContent = t('rbSaved');
+}
+$('#out').addEventListener('click', (e) => {
+  if (!e.target.closest || mode !== 'set') return;
+  if (e.target.closest('#rbToggle')) { RB.open = !RB.open; renderSet(); return; }
+  if (e.target.closest('#rbPick')) { $('#rbDir').click(); return; }
+  if (e.target.closest('#rbDl')) rbDownload();
+});
+$('#out').addEventListener('change', (e) => {
+  if (e.target.id === 'rbBase') { RB.base = e.target.value.trim().replace(/^['"]|['"]$/g, ''); rbSave(); return; }
+  if (e.target.id !== 'rbDir') return;
+  const fs = [...(e.target.files || [])].map((f) => f.webkitRelativePath || f.name).filter((r) => RB_EXT.test(r) && !/(^|\/)\._/.test(r));
+  if (!fs.length) return;
+  const root = fs[0].split('/')[0];
+  if (root !== RB.root) { RB.base = RB.base && RB.base.replace(/[\\/]+$/, '').split(/[\\/]/).pop() === root ? RB.base : ''; }
+  RB.root = root; RB.files = fs; RB_IDX = null;
+  rbSave(); renderSet();
+});
 function copySet() {
   const items = setData.set, starts = setStarts(items);
   const text = items.map((x, i) =>
@@ -2019,6 +2149,8 @@ function links(tr) {
     ['TS', 'Traxsource', 'https://www.traxsource.com/search?term=' + q],
     ['BC', 'Bandcamp', 'https://bandcamp.com/search?q=' + q],
     ['JN', 'Juno Records', 'https://www.juno.co.uk/search/?q%5Ball%5D%5B%5D=' + q],
+    // DJ Delivery: ψάχνει «Artist - Title» (χωρίς Original/Extended Mix, που συνήθως χαλάει την αναζήτηση)
+    ['DD', 'DJ Delivery', 'https://srv.djdelivery.com/#/search?text=' + encodeURIComponent(tr.artist + ' - ' + String(tr.title || '').replace(/\s*[\(\[](original|extended)( mix)?[\)\]]/ig, '').trim())],
     // Discogs: από το tab Discogs πάει κατευθείαν στη σελίδα του δίσκου (με το credit που ζητάει το Discogs)
     tr.discogs && tr.link ? ['DC', 'Discogs', tr.link, t('dcCredit') + ' · ' + t('dcOpen')] : ['DC', 'Discogs', 'https://www.discogs.com/search/?type=all&q=' + q],
   ];

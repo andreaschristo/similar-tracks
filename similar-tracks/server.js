@@ -29,7 +29,14 @@ async function getText(url) {
   if (!r.ok) throw new Error(r.status + ' ' + url);
   return r.text();
 }
-const dz = (p) => getJSON('https://api.deezer.com' + p);
+// Deezer: όριο ~50 αιτήματα / 5″. Αν το ξεπεράσουμε (error code 4), περιμένουμε λίγο και ξαναδοκιμάζουμε
+async function dz(p) {
+  for (let i = 0; ; i++) {
+    const r = await getJSON('https://api.deezer.com' + p);
+    if (!(r && r.error && Number(r.error.code) === 4) || i >= 2) return r;
+    await sleep(1200 * (i + 1));
+  }
+}
 async function lf(method, params) {
   const q = new URLSearchParams({ method, api_key: LASTFM, format: 'json', autocorrect: '1', ...params });
   return getJSON('https://ws.audioscrobbler.com/2.0/?' + q);
@@ -323,12 +330,43 @@ const KEY_SIM = { same: 1, smooth: 0.9, relative: 0.85, boost: 0.6, clash: 0.1 }
 function keySim(a, b) { const r = camRel(a, b); return r === 'unknown' ? null : KEY_SIM[r]; }
 // Τελικό match: ακροατές 40% · ήχος (tags) 30% · BPM 15% · κλειδί 15%.
 // Αν λείπει κάποιο στοιχείο, το match μειώνεται: 90%+ μόνο όταν ταιριάζουν ΟΛΑ.
-const W = { cf: 0.4, tag: 0.3, bpm: 0.15, key: 0.15 };
+// Συνοχή πάνω από δημοφιλία: ήχος (tags) και είδος, tempo, εποχή, μετά «ακροατές» και κλειδί. Ίδιο label = μπόνους.
+const W = { cf: 0.22, tag: 0.22, genre: 0.12, bpm: 0.16, era: 0.14, key: 0.14 };
 function scoreOf(x) {
-  const parts = { cf: x.cf, tag: x.tagSim, bpm: x.bpmSim, key: x.keySim };
+  const parts = { cf: x.cf, tag: x.tagSim, genre: x.genreSim, bpm: x.bpmSim, era: x.eraSim, key: x.keySim };
   let s = 0, w = 0;
   for (const k in W) if (parts[k] != null) { s += W[k] * parts[k]; w += W[k]; }
-  return w ? (s / w) * (0.7 + 0.3 * w) : 0;
+  const base = w ? (s / w) * (0.6 + 0.4 * w) : 0;
+  return Math.min(1, base + (x.sameLabel ? 0.08 : 0));
+}
+// Εποχή: ίδια περίοδος (±2 χρόνια) = 1, πάνω από 14 χρόνια διαφορά = 0
+function eraSim(a, b) {
+  if (!a || !b) return null;
+  const d = Math.abs(a - b);
+  return d <= 2 ? 1 : d >= 14 ? 0 : 1 - (d - 2) / 12;
+}
+// Το «προφίλ» του κομματιού σου: tempo, χρονιά, label
+async function seedProfile(seed) {
+  const d = (seed.id && await dzTrack(seed.id)) || {};
+  let bpm = d.bpm || 0;
+  if (GSB) { const si = await trackInfo(seed.artist, seed.title); if (si && si.bpm) bpm = si.bpm; }
+  const label = await dzLabel(d.albumId);
+  return { bpm, year: d.year || 0, label };
+}
+// Αναζήτηση στο Deezer μέσα στο tempo του κομματιού σου (±4%) και με ελάχιστη διάρκεια
+async function dzSearch(q, sp, minDur, limit) {
+  const parts = [q];
+  if (sp && sp.bpm) parts.push(`bpm_min:${Math.floor(sp.bpm * 0.96)}`, `bpm_max:${Math.ceil(sp.bpm * 1.04)}`);
+  if (minDur) parts.push(`dur_min:${minDur}`);
+  const full = parts.join(' ');
+  return cached('dzs:' + full + '|' + limit, async () => ((await dz(`/search?q=${enc(full)}&limit=${limit}`)).data || []).map(mapTrack), 6 * 3600e3);
+}
+// «(Kerri Chandler Remix)» → «Kerri Chandler»
+function remixerOf(title) {
+  const m = String(title || '').match(/[\(\[]([^\)\]]+?)\s+(remix|rework|re-edit|edit|dub|mix|version|reshape|refix)[\)\]]/i);
+  if (!m) return '';
+  const n = m[1].trim();
+  return /^(original|extended|club|radio|vocal|instrumental|main|album|12"?|12 inch|dub|short|long|full|re)$/i.test(n) ? '' : n;
 }
 const pct100 = (v) => (v == null ? null : Math.round(v * 100));
 // Επιλογή είδους → ακριβές είδος που κρατάμε («house» = μόνο σκέτο house)
@@ -432,10 +470,12 @@ async function similar(seed, opts) {
   const cap = opts.cap || 40;
   const useHouse = !!LASTFM; // techno / progressive κ.λπ. φεύγουν πάντα, ακόμα και στο All
 
-  const [lfTracks, pool] = await Promise.all([
+  const [lfTracks, pool, sp] = await Promise.all([
     lastfmSimilar(seed.artist, seed.title).catch(() => []),
     artistPool(seed).catch(() => []),
+    seedProfile(seed).catch(() => ({})),
   ]);
+  seed.profile = sp;
 
   // Γρήγορο πρώτο φίλτρο: πετάμε καλλιτέχνες που δεν είναι house (techno, pop κ.λπ.)
   const kinds = {};
@@ -453,22 +493,38 @@ async function similar(seed, opts) {
     const k = norm(t.artist) + '|' + norm(baseTitle(t.title));
     if (k === seedKey) return;
     const c = cands.get(k);
-    if (!c || cf > c.cf) cands.set(k, { ...t, cf });
+    if (!c || cf > c.cf) cands.set(k, { ...t, cf, sameLabel: !!(t.sameLabel || (c && c.sameLabel)) });
+    else if (t.sameLabel) c.sameLabel = true;
   };
   for (const t of lfTracks) if (ok(t)) add(t, Math.sqrt(Math.max(0, Math.min(1, t.match || 0))));
   const usable = pool.filter((a) => !(useHouse && kind(a.name) === 'reject')).slice(0, want || cap > 40 ? 26 : 18);
+  // Συγγενικοί καλλιτέχνες: κομμάτια τους ΣΤΟ ΙΔΙΟ TEMPO με το δικό σου (όχι απλώς τα πιο γνωστά τους)
   const tops = await pmap(usable, async (a, i) => {
+    // ίδιος κόσμος ακούει τον καλλιτέχνη, όχι απαραίτητα αυτό το κομμάτι → 75% του artist match
+    const aSim = a.sim != null ? a.sim : 0.2 + 0.5 * (1 - i / usable.length);
+    const inTempo = sp.bpm ? await dzSearch(`artist:"${a.name}"`, sp, minDur, 12).catch(() => []) : [];
+    const mine = inTempo.filter((t) => norm(t.artist) === norm(a.name) && ok(t));
+    if (mine.length >= 3) return mine.slice(0, 8).map((t, j) => ({ t, cf: 0.75 * aSim * (1 - 0.04 * j), tempo: true }));
     if (!a.id) {
       const r = await resolveDzArtist(a.name);
       if (!r) return [];
       a.id = r.id;
     }
-    // ίδιος κόσμος ακούει τον καλλιτέχνη, όχι απαραίτητα αυτό το κομμάτι → 75% του artist match
-    const aSim = a.sim != null ? a.sim : 0.2 + 0.5 * (1 - i / usable.length);
     const top = await dzTop(a.id);
-    return top.filter(ok).slice(0, 8).map((t, j) => ({ t, cf: 0.75 * aSim * (1 - 0.04 * j) }));
+    return top.filter(ok).slice(0, 6).map((t, j) => ({ t, cf: 0.6 * aSim * (1 - 0.05 * j) }));
   }, 4, 500);
   for (const arr of tops) if (arr) for (const { t, cf } of arr) add(t, cf);
+  // Ίδιο label, ίδιο tempo: έτσι σκάβει ένας DJ
+  if (sp.label && !GENERIC_LABEL.test(labelKey(sp.label))) {
+    const lab = await dzSearch(`label:"${sp.label}"`, sp, minDur, 40).catch(() => []);
+    lab.filter(ok).forEach((t, j) => add({ ...t, sameLabel: true }, 0.45 * (1 - 0.006 * j)));
+  }
+  // Remixer του κομματιού σου → κι άλλα δικά του κομμάτια στο ίδιο tempo
+  const rmx = remixerOf(seed.title);
+  if (rmx && norm(rmx) !== norm(seed.artist)) {
+    const rl = await dzSearch(`artist:"${rmx}"`, sp, minDur, 15).catch(() => []);
+    rl.filter(ok).slice(0, 8).forEach((t, j) => add(t, 0.5 * (1 - 0.04 * j)));
+  }
 
   let list = [...cands.values()].sort((a, b) => b.cf + lenScore(b) * 0.2 - (a.cf + lenScore(a) * 0.2));
   const per = {};
@@ -488,31 +544,56 @@ async function similar(seed, opts) {
     list = list.filter((x) => !x.excluded && (!want || x.genre === want));
   }
 
-  // 3) BPM + κλειδί για τους καλύτερους υποψήφιους
+  // 3) Συνοχή: tempo, εποχή και label από το Deezer για όλους τους υποψήφιους
+  const seedGenre = seed.genre && seed.genreSure ? seed.genre : '';
+  const seedLab = sp.label ? labelKey(sp.label) : '';
+  const prelim = (x) => scoreOf(x);
+  list.sort((a, b) => prelim(b) - prelim(a));
+  list = list.slice(0, 64);
+  await pmap(list, async (x, i) => {
+    const d = await dzTrack(x.id);
+    if (!d) return;
+    x.dzBpm = d.bpm; x.year = d.year;
+    if (seedLab && !x.sameLabel && i < 32) { const l = await dzLabel(d.albumId); if (l && labelKey(l) === seedLab) x.sameLabel = true; }
+  }, 6, 600);
+  list.forEach((x) => {
+    x.bpmSim = bpmSim(sp.bpm, x.dzBpm);
+    x.eraSim = eraSim(sp.year, x.year);
+    x.genreSim = seedGenre && x.genre && x.genreSure ? (x.genre === seedGenre ? 1 : x.genre === 'house' || seedGenre === 'house' ? 0.6 : 0.25) : null;
+  });
+  // εκτός tempo (πάνω από ±8%) = δεν μιξάρεται: έξω
+  list = list.filter((x) => !(sp.bpm && x.dzBpm && Math.abs(x.dzBpm - sp.bpm) / sp.bpm > 0.08));
   list.forEach((x) => { x.score = scoreOf(x); });
   list.sort((a, b) => b.score - a.score);
+  // 4) Κλειδί (και ακριβέστερο BPM) για τους καλύτερους, από το GetSongBPM
   if (GSB) {
     const si = await trackInfo(seed.artist, seed.title);
-    const top = list.slice(0, 30);
+    const sBpm = (si && si.bpm) || sp.bpm;
+    const top = list.slice(0, 40);
     const infos = await pmap(top, (x) => trackInfo(x.artist, x.title), 6, 200);
     top.forEach((x, i) => {
       const inf = infos[i];
-      x.bpmSim = si && inf ? bpmSim(si.bpm, inf.bpm) : null;
+      const b = (inf && inf.bpm) || x.dzBpm;
+      x.bpmSim = bpmSim(sBpm, b);
       x.keySim = si && inf ? keySim(si.camelot, inf.camelot) : null;
       x.score = scoreOf(x);
     });
+    list = list.filter((x) => x.bpmSim == null || x.bpmSim > 0 || !sBpm);
     list.sort((a, b) => b.score - a.score);
   }
 
   // 4) Τελική λίστα: έως 3 ανά καλλιτέχνη
   const perArtist = {};
   const out = [];
+  let labCount = 0;
   for (const x of list) {
     const a = norm(x.artist);
     if ((perArtist[a] || 0) >= 3) continue;
+    if (x.sameLabel && labCount >= Math.ceil(cap * 0.35)) continue; // όχι μόνο ένα label: ποικιλία μέσα στο ίδιο ύφος
+    if (x.sameLabel) labCount++;
     perArtist[a] = (perArtist[a] || 0) + 1;
     x.pct = Math.max(5, Math.min(99, Math.round(x.score * 100)));
-    x.why = { cf: pct100(x.cf), tag: pct100(x.tagSim), bpm: pct100(x.bpmSim), key: pct100(x.keySim) };
+    x.why = { cf: pct100(x.cf), tag: pct100(x.tagSim), bpm: pct100(x.bpmSim), key: pct100(x.keySim), era: pct100(x.eraSim), label: x.sameLabel ? 100 : null };
     out.push(x);
     if (out.length >= cap) break;
   }
@@ -520,17 +601,36 @@ async function similar(seed, opts) {
 }
 
 // ---------- BPM από το Deezer (όταν το έχει) ----------
-async function dzBpm(id) {
+// Ένα αίτημα στο Deezer δίνει BPM, ημερομηνία κυκλοφορίας και album (→ label)
+async function dzTrack(id) {
   try {
-    return await cached('dzbpm:' + id, async () => {
-      let b = Number((await dz('/track/' + id)).bpm) || 0;
-      if (b < 60 || b > 200) return 0;
-      while (b < 95) b *= 2;   // μισό tempo → κανονικό
-      while (b > 160) b /= 2;  // διπλό tempo → κανονικό
-      return Math.round(b * 10) / 10;
+    return await cached('dztr:' + id, async () => {
+      const d = await dz('/track/' + id);
+      if (!d || d.error) throw new Error('dz track'); // δεν μπαίνει στη cache
+      let b = Number(d.bpm) || 0;
+      if (b < 60 || b > 200) b = 0;
+      while (b && b < 95) b *= 2;   // μισό tempo → κανονικό
+      while (b > 160) b /= 2;       // διπλό tempo → κανονικό
+      const y = Number(String(d.release_date || (d.album && d.album.release_date) || '').slice(0, 4)) || 0;
+      return { bpm: Math.round(b * 10) / 10, year: y > 1950 ? y : 0, albumId: (d.album && d.album.id) || 0 };
     }, 7 * 24 * 3600e3);
-  } catch (_) { return 0; }
+  } catch (_) { return null; }
 }
+async function dzBpm(id) { const t = await dzTrack(id); return (t && t.bpm) || 0; }
+async function dzLabel(albumId) {
+  if (!albumId) return '';
+  try {
+    return await cached('dzlab:' + albumId, async () => {
+      const a = await dz('/album/' + albumId);
+      if (!a || a.error) throw new Error('dz album');
+      return a.label || '';
+    }, 7 * 24 * 3600e3);
+  } catch (_) { return ''; }
+}
+// «Defected Records Ltd» = «Defected» : κρατάμε το βασικό όνομα του label
+const labelKey = (l) => norm(l).replace(/\b(records?|recordings|music|ltd|limited|inc|llc|gmbh|digital|label|group|entertainment|bv)\b/g, ' ').replace(/\s+/g, ' ').trim();
+// Labels-διανομείς / «όλα τα είδη»: δεν λένε τίποτα για τον ήχο
+const GENERIC_LABEL = /^(believe|tunecore|distrokid|cdbaby|cd baby|ditto|amuse|routenote|orchard|the orchard|awal|independent|self released|warner|sony|universal|emi|virgin|ministry of sound|spinnin)$/;
 
 // ---------- BPM + tonality (GetSongBPM) ----------
 const CAM_MAJ = { C: '8B', G: '9B', D: '10B', A: '11B', E: '12B', B: '1B', 'F#': '2B', Gb: '2B', 'C#': '3B', Db: '3B', 'G#': '4B', Ab: '4B', 'D#': '5B', Eb: '5B', 'A#': '6B', Bb: '6B', F: '7B' };
@@ -653,8 +753,11 @@ async function buildSet(seed, pool, role, N = 10) {
   // BPM + tonality για το seed και τους υποψήφιους
   if (LASTFM) await pmap([seed, ...cands], async (t) => { t.genre = await genreOf(t.artist, t.title); t.tags = await ttagsOf(t.artist, t.title); }, 5, 200);
   const infos = await pmap([seed, ...cands], (t) => trackInfo(t.artist, t.title), 6, 200);
-  seed.info = infos[0] || null;
-  cands.forEach((t, i) => { t.info = infos[i + 1] || null; });
+  // όπου το GetSongBPM δεν ξέρει το tempo, παίρνουμε το BPM του Deezer
+  const dzb = await pmap([seed, ...cands], async (t) => (t.dzBpm != null ? t.dzBpm : (t.profile && t.profile.bpm) || dzBpm(t.id)), 6, 600);
+  const withDz = (inf, b) => (inf && inf.bpm ? inf : b ? { bpm: b, key: (inf && inf.key) || '', camelot: (inf && inf.camelot) || '' } : inf || null);
+  seed.info = withDz(infos[0], dzb[0]);
+  cands.forEach((t, i) => { t.info = withDz(infos[i + 1], dzb[i + 1]); });
 
   // Η ενέργεια κάθε υποψηφίου σε σχέση με τους υπόλοιπους (0 = ο πιο χαλαρός, 1 = ο πιο δυναμικός)
   const raws = cands.map(energyRaw);
@@ -700,6 +803,9 @@ async function buildSet(seed, pool, role, N = 10) {
         cost += idx * 0.15; // χωρίς BPM: σειρά ομοιότητας
       }
       cost += Math.abs((c.eRank == null ? 0.5 : c.eRank) - roleEnergy(role, i, N)) * 5; // ρόλος: ενέργεια μέσα στο ίδιο στυλ
+      // συνοχή: πόσο ταιριάζει με το κομμάτι σου (ήχος, εποχή, label) — όχι μόνο tempo και κλειδί
+      cost += (1 - (c.score != null ? c.score : 0.45)) * 6;
+      if (c.eraSim != null) cost += (1 - c.eraSim) * 3;
       if (role === 'close') cost += (1 - emotiveOf(c)) * 1.2; // closer: δυναμικό αλλά με πιο μελωδικό / uplifting χρώμα
       if (picked.some((p) => p && norm(p.artist) === norm(c.artist))) cost += 2;
       const d = c.duration || 0;
@@ -745,6 +851,7 @@ async function handleSet(q, role, minutes, genre) {
   if (!seed) return { error: 'Δεν βρέθηκε το τραγούδι στο Deezer.', code: 'notfound' };
   const rg = await resolveGenre(genre, seed);
   genre = rg.genre;
+  if (rg.seedGenre) { seed.genre = rg.seedGenre.genre; seed.genreSure = rg.seedGenre.sure; }
   const N = Math.max(6, Math.min(24, Math.round(minutes / 6))); // ~6 λεπτά ανά κομμάτι: 60'→10, 90'→15, 120'→20
   const big = N > 12;
   const opts = { minDur: 300, house: genre !== 'any', genre, cap: big ? 70 : 40 };

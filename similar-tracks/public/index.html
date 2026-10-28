@@ -1097,7 +1097,7 @@ const I18N = {
     noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
     shortSet: 'Only this many tracks matched. Try a more popular track for a full set.',
     backSearch: 'Back to results',
-    hTitle: 'Title', hArtist: 'Artist', hGenre: 'Genre', hKey: 'Key', hEnergy: 'Energy', enTip: 'Energy 1–10, analysed from the 30-second preview (loudness, drums, brightness, how full it stays)', hTime: 'Time', hYear: 'Year', hMatch: 'Match', hInAt: 'In at', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Find', hListen: 'Listen', hBuy: 'Buy',
+    hTitle: 'Title', hArtist: 'Artist', hGenre: 'Genre', hKey: 'Key', wEra: 'Era', wLabel: 'Same label', hEnergy: 'Energy', enTip: 'Energy 1–10, analysed from the 30-second preview (loudness, drums, brightness, how full it stays)', hTime: 'Time', hYear: 'Year', hMatch: 'Match', hInAt: 'In at', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Find', hListen: 'Listen', hBuy: 'Buy',
     err_notfound: 'Track not found. Try "Artist - Title".',
     err_nourl: 'Could not read a title from that link. Try "Artist - Title".',
     err_generic: 'Something went wrong. Try again.',
@@ -1188,7 +1188,7 @@ const I18N = {
     noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
     shortSet: 'Ταίριαξαν μόνο τόσα κομμάτια. Δοκίμασε πιο δημοφιλές κομμάτι για πλήρες set.',
     backSearch: 'Πίσω στα αποτελέσματα',
-    hTitle: 'Τίτλος', hArtist: 'Καλλιτέχνης', hGenre: 'Είδος', hKey: 'Κλειδί', hEnergy: 'Energy', enTip: 'Energy 1–10, από το preview 30″ (ένταση, κρουστά, ψηλές συχνότητες, πόσο «γεμάτο» μένει)', hTime: 'Χρόνος', hYear: 'Χρονιά', hMatch: 'Match', hInAt: 'Μπαίνει', hListen: 'Ακρόαση', hBuy: 'Αγορά', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Αναζήτηση',
+    hTitle: 'Τίτλος', hArtist: 'Καλλιτέχνης', hGenre: 'Είδος', hKey: 'Κλειδί', wEra: 'Εποχή', wLabel: 'Ίδιο label', hEnergy: 'Energy', enTip: 'Energy 1–10, από το preview 30″ (ένταση, κρουστά, ψηλές συχνότητες, πόσο «γεμάτο» μένει)', hTime: 'Χρόνος', hYear: 'Χρονιά', hMatch: 'Match', hInAt: 'Μπαίνει', hListen: 'Ακρόαση', hBuy: 'Αγορά', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Αναζήτηση',
     err_notfound: 'Δεν βρέθηκε το κομμάτι. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_nourl: 'Δεν μπόρεσα να διαβάσω τίτλο από αυτό το link. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_generic: 'Κάτι πήγε στραβά. Δοκίμασε ξανά.',
@@ -1466,7 +1466,10 @@ function whyText(tr) {
   const w = tr.why;
   if (!w) return '';
   const f = (k, v) => `${t(k)} ${v == null ? '–' : v + '%'}`;
-  return [f('wListen', w.cf), f('wSound', w.tag), 'BPM ' + (w.bpm == null ? '–' : w.bpm + '%'), f('wKey', w.key)].join(' · ');
+  const parts = [f('wListen', w.cf), f('wSound', w.tag), 'BPM ' + (w.bpm == null ? '–' : w.bpm + '%'), f('wKey', w.key)];
+  if (w.era != null) parts.push(f('wEra', w.era));
+  if (w.label) parts.push(t('wLabel'));
+  return parts.join(' · ');
 }
 function rowHead(kind) { // 'search' | 'dc' | 'set'
   const time = t(kind === 'dc' ? 'hYear' : 'hTime');

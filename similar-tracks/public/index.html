@@ -365,7 +365,7 @@
   .links a:hover{color:var(--text)}
   /* Επικεφαλίδες στηλών: κάθε γραμμή μοιράζεται τις ίδιες στήλες (subgrid) ώστε να ευθυγραμμίζονται */
   /* Πίνακας αποτελεσμάτων: σταθερές στήλες, ίδιες για επικεφαλίδα και γραμμές (subgrid) */
-  .list{display:grid;grid-template-columns:28px 46px minmax(0,1.7fr) minmax(0,1fr) 124px max-content max-content max-content max-content 120px auto;column-gap:12px}
+  .list{display:grid;grid-template-columns:28px 46px minmax(0,1.7fr) minmax(0,1fr) 124px max-content max-content max-content max-content max-content 120px auto;column-gap:12px}
   .list>*{grid-column:1 / -1}
   .list>.row,.list>.rowhead{display:grid;grid-template-columns:subgrid;column-gap:12px}
   .list>.row .links{gap:9px;justify-content:flex-start}
@@ -449,7 +449,14 @@
   .list .c-num{align-items:flex-start;padding-left:12px}
   .list .c-n{text-align:left !important}
   /* Key: στο κέντρο (κλειδί και MIX το ένα κάτω από το άλλο) */
-  .list .c-key,.list .c-pct{align-items:center !important;text-align:center !important}
+  .list .c-key,.list .c-pct,.list .c-en{align-items:center !important;text-align:center !important}
+  .list>.row>.c-en{justify-content:center}
+  /* Energy: αριθμός + λεπτή μπάρα από κάτω */
+  .enb{display:inline-flex;flex-direction:column;align-items:center;gap:4px;cursor:default}
+  .enb b{font-weight:700}
+  .enb i{display:block;width:26px;height:3px;background:var(--line)}
+  .enb u{display:block;height:100%;background:var(--text)}
+  .c-en .anx,.c-en .anw{display:inline-flex;justify-content:center;width:3ch}
   /* Genre: ο τίτλος μένει αριστερά, οι ετικέτες στο κέντρο */
   .list>.row>.c-g,.list>.rowhead>.c-g{justify-content:center;text-align:center}
   /* Play: τίτλος και κουμπιά στο κέντρο */
@@ -458,7 +465,7 @@
 
   /* ===== Πίνακας σε στυλ DJ software (Traktor): μία γραμμή ανά κομμάτι, ριγέ, γραμμές μόνο στην επικεφαλίδα ===== */
   @media (min-width:761px){
-    .list{grid-template-columns:30px 48px minmax(0,1.7fr) minmax(0,1fr) max-content max-content max-content max-content max-content max-content auto !important;column-gap:0 !important;border:1px solid var(--line)}
+    .list{grid-template-columns:30px 48px minmax(0,1.7fr) minmax(0,1fr) max-content max-content max-content max-content max-content max-content max-content auto !important;column-gap:0 !important;border:1px solid var(--line)}
     .list>.row,.list>.rowhead{column-gap:0 !important}
     .list>*>*{padding-left:10px !important;padding-right:10px;text-align:left !important;justify-content:flex-start !important;align-items:center !important}
     .list>*>.c-img{padding:0 !important;justify-content:center !important}
@@ -477,6 +484,8 @@
     .list .c-num{flex-direction:row !important;gap:6px}
     .list .mixtag{width:auto !important;height:auto !important;padding:2px 4px !important}
     .list .c-play{gap:8px}
+    .list .enb{flex-direction:row;gap:7px}
+    .list .enb b{min-width:2ch;text-align:right}
   }
   .rowhead .r{text-align:right}
   .play{width:30px;height:30px;border:1px solid var(--dim);background:transparent;color:var(--text);cursor:pointer;font-size:11px;padding:0;border-radius:0;display:inline-flex;align-items:center;justify-content:center}
@@ -805,11 +814,11 @@
     .mixrow{grid-template-columns:100px 1fr}
     .row{grid-template-columns:26px 46px 1fr auto auto;row-gap:8px}
     .list{display:block}
-    .list>.row{grid-template-columns:26px 46px minmax(0,1fr) auto auto;grid-template-areas:"n img t bpm key" "n img a pct time" "n play play play play" "n links links links links";row-gap:4px;column-gap:10px}
+    .list>.row{grid-template-columns:26px 46px minmax(0,1fr) auto auto auto;grid-template-areas:"n img t bpm key en" "n img a pct time en" "n play play play play play" "n links links links links links";row-gap:4px;column-gap:10px}
     .rowhead{display:none !important}
     .gcell,.row .c-g{display:none}
     .row .c-n{grid-area:n}.row .c-img{grid-area:img}.row .c-t{grid-area:t}.row .c-a{grid-area:a}
-    .row .c-bpm{grid-area:bpm}.row .c-key{grid-area:key}.row .c-pct{grid-area:pct}.row .c-time{grid-area:time}
+    .row .c-bpm{grid-area:bpm}.row .c-key{grid-area:key}.row .c-en{grid-area:en}.row .c-pct{grid-area:pct}.row .c-time{grid-area:time}
     .row .c-num,.list>.row>.c-a,.list>.row>.links{border-left:0;align-self:center;padding-left:0}
     .links{grid-column:2 / -1;justify-content:flex-start;flex-wrap:wrap}
     .row .links{grid-area:links;margin-top:2px}
@@ -1088,7 +1097,7 @@ const I18N = {
     noBpmSet: 'BPM data is not available for most of these tracks, so the order follows similarity instead of an energy curve.',
     shortSet: 'Only this many tracks matched. Try a more popular track for a full set.',
     backSearch: 'Back to results',
-    hTitle: 'Title', hArtist: 'Artist', hGenre: 'Genre', hKey: 'Key', hTime: 'Time', hYear: 'Year', hMatch: 'Match', hInAt: 'In at', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Find', hListen: 'Listen', hBuy: 'Buy',
+    hTitle: 'Title', hArtist: 'Artist', hGenre: 'Genre', hKey: 'Key', hEnergy: 'Energy', enTip: 'Energy 1–10, analysed from the 30-second preview (loudness, drums, brightness, how full it stays)', hTime: 'Time', hYear: 'Year', hMatch: 'Match', hInAt: 'In at', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Find', hListen: 'Listen', hBuy: 'Buy',
     err_notfound: 'Track not found. Try "Artist - Title".',
     err_nourl: 'Could not read a title from that link. Try "Artist - Title".',
     err_generic: 'Something went wrong. Try again.',
@@ -1179,7 +1188,7 @@ const I18N = {
     noBpmSet: 'Δεν υπάρχουν BPM για τα περισσότερα από αυτά τα κομμάτια, οπότε η σειρά ακολουθεί την ομοιότητα και όχι καμπύλη ενέργειας.',
     shortSet: 'Ταίριαξαν μόνο τόσα κομμάτια. Δοκίμασε πιο δημοφιλές κομμάτι για πλήρες set.',
     backSearch: 'Πίσω στα αποτελέσματα',
-    hTitle: 'Τίτλος', hArtist: 'Καλλιτέχνης', hGenre: 'Είδος', hKey: 'Κλειδί', hTime: 'Χρόνος', hYear: 'Χρονιά', hMatch: 'Match', hInAt: 'Μπαίνει', hListen: 'Ακρόαση', hBuy: 'Αγορά', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Αναζήτηση',
+    hTitle: 'Τίτλος', hArtist: 'Καλλιτέχνης', hGenre: 'Είδος', hKey: 'Κλειδί', hEnergy: 'Energy', enTip: 'Energy 1–10, από το preview 30″ (ένταση, κρουστά, ψηλές συχνότητες, πόσο «γεμάτο» μένει)', hTime: 'Χρόνος', hYear: 'Χρονιά', hMatch: 'Match', hInAt: 'Μπαίνει', hListen: 'Ακρόαση', hBuy: 'Αγορά', hRange: 'Pitch ±6%', hPlay: 'Play', hFind: 'Αναζήτηση',
     err_notfound: 'Δεν βρέθηκε το κομμάτι. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_nourl: 'Δεν μπόρεσα να διαβάσω τίτλο από αυτό το link. Δοκίμασε "Καλλιτέχνης - Τίτλος".',
     err_generic: 'Κάτι πήγε στραβά. Δοκίμασε ξανά.',
@@ -1462,7 +1471,7 @@ function whyText(tr) {
 function rowHead(kind) { // 'search' | 'dc' | 'set'
   const time = t(kind === 'dc' ? 'hYear' : 'hTime');
   const last = t(kind === 'set' ? 'hInAt' : kind === 'new' ? 'hSource' : 'hMatch');
-  return `<div class="rowhead"><span class="c-n">#</span><span class="c-img"></span><span class="c-t">${esc(t('hTitle'))}</span><span class="c-a">${esc(t('hArtist'))}</span><span class="c-g">${esc(t('hGenre'))}</span><span class="c-num c-bpm">BPM</span><span class="c-num c-key">${esc(t('hKey'))}</span><span class="c-num c-time">${esc(time)}</span><span class="c-num c-pct">${esc(last)}</span><span class="c-play">${esc(t('hPlay'))}</span><span class="links"><span class="lg lg-listen">${esc(t('hListen'))}</span><span class="lg lg-buy">${esc(t('hBuy'))}</span></span></div>`;
+  return `<div class="rowhead"><span class="c-n">#</span><span class="c-img"></span><span class="c-t">${esc(t('hTitle'))}</span><span class="c-a">${esc(t('hArtist'))}</span><span class="c-g">${esc(t('hGenre'))}</span><span class="c-num c-bpm">BPM</span><span class="c-num c-key">${esc(t('hKey'))}</span><span class="c-num c-en">${esc(t('hEnergy'))}</span><span class="c-num c-time">${esc(time)}</span><span class="c-num c-pct">${esc(last)}</span><span class="c-play">${esc(t('hPlay'))}</span><span class="links"><span class="lg lg-listen">${esc(t('hListen'))}</span><span class="lg lg-buy">${esc(t('hBuy'))}</span></span></div>`;
 }
 // Μία γραμμή του πίνακα: κάθε τιμή στη δική της στήλη
 function cellsRow(o) {
@@ -1476,6 +1485,7 @@ function cellsRow(o) {
     <div class="c-g">${o.genre ? `<span class="gtag${o.gUnsure ? ' unsure' : ''}" title="${esc(o.gUnsure ? gNoteText(o.gNote) : o.genre)}">${esc(o.genre)}${o.gUnsure ? ' ?' : ''}</span>` : ''}</div>
     <div class="c-num c-bpm"${anTitle(o.id, 'bpm', '')}>${bpmCell(o.id, o.bpm)}</div>
     <div class="c-num c-key"${anTitle(o.id, 'key', o.keyName)}>${keyCell(o.id, o.key, o.mix)}</div>
+    <div class="c-num c-en">${enCell(o.id)}</div>
     <div class="c-num c-time">${esc(o.time || '')}</div>
     <div class="c-num c-pct">${o.last || ''}</div>
     <div class="c-play">${o.play || ''}</div>
@@ -1723,7 +1733,7 @@ function copySet() {
   const items = setData.set, starts = setStarts(items);
   const text = items.map((x, i) =>
     `${String(i + 1).padStart(2, '0')} [${fmtClock(starts[i])}] ${x.artist} - ${x.title}` +
-    (x.bpm ? ` (${Math.round(x.bpm)} BPM${x.camelot ? ', ' + x.camelot : ''})` : '')).join('\n');
+    (x.bpm ? ` (${Math.round(x.bpm)} BPM${x.camelot ? ', ' + x.camelot : ''}${x.energy ? ', E' + x.energy : ''})` : '')).join('\n');
   const done = () => {
     const b = $('#copySet');
     if (!b) return;
@@ -1743,6 +1753,11 @@ const ANW = '<span class="anw" aria-hidden="true"><i></i><i></i><i></i></span>';
 const anKeyOf = (tr) => (String(tr.artist || '') + '|' + baseOf(tr.track || tr.title)).toLowerCase().replace(/\s+/g, ' ').trim();
 const AN_WHY = { nopreview: 'anNoPrev', noaudio: 'anNoAudio', nobeat: 'anNoBeat' };
 const anDash = (id) => (id != null && AN.why[id] ? `<span class="anx" title="${esc(t(AN_WHY[AN.why[id]] || 'anNoBeat'))}">–</span>` : '');
+function enCell(id) {
+  const e = enOf(id);
+  if (!e) return id != null && AN.state[id] === 'run' ? ANW : anDash(id);
+  return `<span class="enb" title="${esc(t('enTip'))}"><b>${e}</b><i><u style="width:${e * 10}%"></u></i></span>`;
+}
 function bpmCell(id, bpm) { return bpm ? String(Math.round(bpm)) : (id != null && AN.state[id] === 'run' ? ANW : anDash(id)); }
 function keyCell(id, cam, mix) {
   return (cam ? `<span>${esc(cam)}</span>` : (id != null && AN.state[id] === 'run' ? ANW : anDash(id))) + (mix ? '<span class="mixtag">MIX</span>' : '');
@@ -1756,9 +1771,14 @@ function anReset() { AN.gen++; AN.q = []; AN.queued = new Set(); AN.state = {}; 
 function anItem(id) { // η εγγραφή του set, αν είμαστε σε set
   return mode === 'set' && setData ? (setData.set || []).find((x) => String(x.id) === String(id)) : null;
 }
+function anKnown(tr) {
+  const i = infoMap[tr.id] || {}, s = anItem(tr.id) || {}, r = AN.res[tr.id] || {};
+  return { bpm: i.bpm || s.bpm || r.bpm || 0, camelot: i.camelot || s.camelot || r.camelot || '', key: i.key || s.key || r.key || '' };
+}
+const enOf = (id) => { if (id == null) return 0; const r = AN.res[id], s = anItem(id); return (r && r.energy) || (s && s.energy) || 0; };
 function anHas(tr) {
-  const i = infoMap[tr.id] || {}, s = anItem(tr.id) || {};
-  return !!((i.bpm || s.bpm) && (i.camelot || s.camelot));
+  const k = anKnown(tr);
+  return !!(k.bpm && k.camelot && enOf(tr.id));
 }
 // Συμπληρώνει ΜΟΝΟ ό,τι λείπει: αν η βάση έχει τιμή, κρατάμε τη βάση
 function anMerge(id) {
@@ -1770,6 +1790,7 @@ function anMerge(id) {
   if (!i.bpm && r.bpm) { i.bpm = r.bpm; src.bpm = r.low ? 2 : 1; }
   if (!i.camelot && r.camelot) { i.camelot = r.camelot; i.key = r.key; src.key = 1; }
   const s = anItem(id);
+  if (s && r.energy) s.energy = r.energy;
   if (s) {
     if (!s.bpm && r.bpm) { s.bpm = r.bpm; src.bpm = r.low ? 2 : 1; }
     if (!s.camelot && r.camelot) { s.camelot = r.camelot; s.key = r.key; src.key = 1; }
@@ -1781,9 +1802,11 @@ function anEnqueue(list) {
     if (!tr || tr.discogs || tr.id == null || AN.queued.has(String(tr.id)) || anHas(tr)) continue;
     const m = AN.mem[anKeyOf(tr)];
     // παλιά αποθηκευμένη ανάλυση χωρίς BPM ή κλειδί → ξανά, με τη νέα μέθοδο (v3)
-    if (m && ((m.b && m.c) || m.v === 3)) {
+    if (m && ((m.b && m.c) || m.v >= 3)) {
       if (m.w) AN.why[tr.id] = m.w;
-      AN.res[tr.id] = { bpm: m.b || 0, camelot: m.c || '', key: m.k || '', low: !!m.l }; anMerge(tr.id); anDone(tr.id, gen); continue;
+      AN.res[tr.id] = { bpm: m.b || 0, camelot: m.c || '', key: m.k || '', low: !!m.l, energy: m.e || 0 }; anMerge(tr.id); anDone(tr.id, gen);
+      // παλιότερη ανάλυση χωρίς energy → ξανά, μόνο για το energy (γρήγορο)
+      if (m.e != null || m.w === 'nopreview') continue;
     }
     AN.queued.add(String(tr.id));
     AN.q.push(tr);
@@ -1800,10 +1823,10 @@ function anPump() {
     AN.busy++;
     AN.state[tr.id] = 'run'; anPatch(tr.id);
     anRun(tr).then((r) => {
-      const ok = r && (r.bpm || r.camelot);
+      const ok = r && (r.bpm || r.camelot || r.energy);
       // αποθηκεύουμε και το «δεν έχει καθαρό ρυθμό», για να μην ξαναψάχνει κάθε φορά (όχι όμως τα λάθη δικτύου)
       if (ok || (r && r.why !== 'noaudio')) {
-        AN.mem[anKeyOf(tr)] = { b: (r && r.bpm) || 0, c: (r && r.camelot) || '', k: (r && r.key) || '', l: r && r.low ? 1 : 0, w: (r && r.why) || '', v: 3 };
+        AN.mem[anKeyOf(tr)] = { b: (r && r.bpm) || 0, c: (r && r.camelot) || '', k: (r && r.key) || '', l: r && r.low ? 1 : 0, w: (r && r.why) || '', e: (r && r.energy) || 0, v: 4 };
         anSave();
       }
       if (gen !== AN.gen) return;
@@ -1838,7 +1861,8 @@ function anPatch(id) {
   const tr = findTrack(id);
   const bpm = i.bpm || s.bpm, cam = i.camelot || s.camelot, kn = i.key || s.key;
   const mix = mode === 'search' && tr && isMixable(tr);
-  const b = el.querySelector('.c-bpm'), k = el.querySelector('.c-key');
+  const b = el.querySelector('.c-bpm'), k = el.querySelector('.c-key'), en = el.querySelector('.c-en');
+  if (en) en.innerHTML = enCell(id);
   if (b) { b.innerHTML = bpmCell(id, bpm); const sv = AN.src[id] && AN.src[id].bpm; b.title = sv ? t(sv === 2 ? 'anLow' : 'anTip') : ''; }
   if (k) { k.innerHTML = keyCell(id, cam, mix); k.title = [kn || '', AN.src[id] && AN.src[id].key ? t('anTip') : ''].filter(Boolean).join(' · '); }
 }
@@ -1875,6 +1899,11 @@ async function anRun(tr) {
     buf = await anDecode(await r.arrayBuffer());
   } catch (_) { return { why: 'noaudio' }; }
   await sleepMs(0);
+  let energy = 0;
+  try { energy = anEnergy(buf) || 0; } catch (_) {}
+  // BPM και κλειδί υπάρχουν ήδη (βάση ή παλιότερη ανάλυση) → μόνο energy, χωρίς να ξαναψάχνουμε ρυθμό
+  const kn = anKnown(tr);
+  if (kn.bpm && kn.camelot) return { bpm: kn.bpm, camelot: kn.camelot, key: kn.key || '', low: false, energy, why: '' };
   let bpm = 0, low = false;
   try {
     let d = await mxDetect(buf, 0);
@@ -1890,7 +1919,46 @@ async function anRun(tr) {
   await sleepMs(0);
   let k = null;
   try { k = anDetectKey(buf); } catch (_) {}
-  return { bpm, low, camelot: k ? k.camelot : '', key: k ? k.key : '', why: bpm ? '' : 'nobeat' };
+  return { bpm, low, camelot: k ? k.camelot : '', key: k ? k.key : '', energy, why: bpm ? '' : 'nobeat' };
+}
+// Energy 1–10 από το preview: δυνατότητα (loudness), πυκνότητα χτυπημάτων (kick + hats), φωτεινότητα (ψηλές), πόσο «γεμάτο» μένει
+function anEnergy(buf) {
+  const sr = buf.sampleRate, n = buf.length;
+  const a = buf.getChannelData(0), b = buf.numberOfChannels > 1 ? buf.getChannelData(1) : a;
+  const fr = Math.round(sr * 0.02), nf = Math.floor(n / fr);
+  if (nf < 100) return null;
+  const kL = 1 - Math.exp(-2 * Math.PI * 150 / sr), kH = 1 - Math.exp(-2 * Math.PI * 4000 / sr);
+  const eA = new Float64Array(nf), eL = new Float64Array(nf), eH = new Float64Array(nf);
+  let l1 = 0, l2 = 0, h1 = 0, h2 = 0, p = 0;
+  for (let f = 0; f < nf; f++) {
+    let sA = 0, sL = 0, sH = 0;
+    for (let i = 0; i < fr; i++, p++) {
+      const x = (a[p] + b[p]) * 0.5;
+      l1 += kL * (x - l1); l2 += kL * (l1 - l2);
+      h1 += kH * (x - h1); h2 += kH * (h1 - h2);
+      const hi = x - h2;
+      sA += x * x; sL += l2 * l2; sH += hi * hi;
+    }
+    eA[f] = sA / fr; eL[f] = sL / fr; eH[f] = sH / fr;
+  }
+  let tA = 0, tL = 0, tH = 0;
+  for (let f = 0; f < nf; f++) { tA += eA[f]; tL += eL[f]; tH += eH[f]; }
+  if (tA <= 1e-9 * nf) return null;
+  const loud = 10 * Math.log10(tA / nf);                       // μέση στάθμη RMS σε dBFS
+  const sorted = Array.from(eA).sort((x, y) => x - y), p90 = sorted[Math.floor(nf * 0.9)];
+  let sus = 0; for (let f = 0; f < nf; f++) if (eA[f] > p90 * 0.25) sus++;
+  sus /= nf;                                                   // πόσο χρόνο μένει «γεμάτο» (breakdowns → χαμηλά)
+  const flux = (e, tot) => {                                    // χτυπήματα ανά δευτερόλεπτο, σταθμισμένα με τη δύναμή τους
+    const fl = 1e-4 * tot / nf; let s = 0;
+    for (let f = 1; f < nf; f++) { const d = Math.log((e[f] + fl) / (e[f - 1] + fl)); if (d > 0.4) s += Math.min(d, 3); }
+    return s / (nf * 0.02);
+  };
+  const punch = (flux(eL, tL) + flux(eH, tH)) / 2;
+  const bright = tH / tA;
+  const c = (v) => Math.max(0, Math.min(1, v));
+  const nL = c((loud + 20) / 12), nP = c((punch - 2) / 14), nB = c((bright - 0.005) / 0.06), nS = c((sus - 0.35) / 0.55);
+  const e = 0.4 * nL + 0.25 * nP + 0.2 * nB + 0.15 * nS;
+  return Math.max(1, Math.min(10, Math.round(1 + 9 * e)));
 }
 const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
 // Tempo με αυτοσυσχέτιση: πόσο «μοιάζει» ο ρυθμός με τον εαυτό του αν τον μετακινήσεις κατά ένα beat.
